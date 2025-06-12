@@ -1,0 +1,307 @@
+{% extends 'base.html' %}
+
+{% block title %}My Orders - My PEVO{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-clipboard-list me-2"></i>My Pilot Car Orders</h2>
+                    <p class="text-muted">Track your pilot car escort service orders</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('order_pilot_car') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>New Order
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if orders %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Order #</th>
+                                    <th>Date</th>
+                                    <th>Route</th>
+                                    <th>Pickup Date</th>
+                                    <th>Pilot Car Types</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in orders %}
+                                <tr>
+                                    <td>
+                                        <strong>#{{ order.id }}</strong>
+                                    </td>
+                                    <td>
+                                        {{ order.created_at.strftime('%m/%d/%Y') }}<br>
+                                        <small class="text-muted">{{ order.created_at.strftime('%I:%M %p') }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="small">
+                                            <strong>From:</strong> {{ order.pickup_address[:50] }}{% if order.pickup_address|length > 50 %}...{% endif %}<br>
+                                            <strong>To:</strong> {{ order.delivery_address[:50] }}{% if order.delivery_address|length > 50 %}...{% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {{ order.pickup_date.strftime('%m/%d/%Y') }}<br>
+                                        <small class="text-muted">{{ order.pickup_time }}</small>
+                                    </td>
+                                    <td>
+                                        {% set positions = order.pilot_car_positions | from_json %}
+                                        {% for position in positions %}
+                                            <span class="badge bg-info me-1">{{ position }}</span>
+                                        {% endfor %}
+                                    </td>
+                                    <td>
+                                        {% if order.status == 'pending' %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% elif order.status == 'confirmed' %}
+                                            <span class="badge bg-info">Confirmed</span>
+                                        {% elif order.status == 'completed' %}
+                                            <span class="badge bg-success">Completed</span>
+                                        {% elif order.status == 'cancelled' %}
+                                            <span class="badge bg-danger">Cancelled</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-outline-primary btn-sm" 
+                                                onclick="viewOrder({{ order.id }})" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-clipboard-list text-muted" style="font-size: 4rem;"></i>
+                    <h4 class="mt-3 text-muted">No orders yet</h4>
+                    <p class="text-muted">Your pilot car orders will appear here once you place them.</p>
+                    <a href="{{ url_for('order_pilot_car') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Place Your First Order
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Order Details Modal -->
+<div class="modal fade" id="orderModal" tabindex="-1" aria-labelledby="orderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="orderModalLabel">Order Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="orderModalBody">
+                <!-- Order details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Order data for JavaScript functions
+const orders = [
+    {% for order in orders %}
+    {
+        id: {{ order.id }},
+        company_name: "{{ order.company_name }}",
+        dot_number: "{{ order.dot_number or '' }}",
+        pickup_address: "{{ order.pickup_address }}",
+        delivery_address: "{{ order.delivery_address }}",
+        pickup_date: "{{ order.pickup_date.strftime('%m/%d/%Y') }}",
+        pickup_time: "{{ order.pickup_time }}",
+        pilot_car_positions: {{ order.pilot_car_positions | safe }},
+        driver_name: "{{ order.driver_name }}",
+        driver_phone: "{{ order.driver_phone }}",
+        length: "{{ order.length }}",
+        width: "{{ order.width }}",
+        height: "{{ order.height }}",
+        weight: "{{ order.weight }}",
+        truck_number: "{{ order.truck_number or '' }}",
+        load_number: "{{ order.load_number or '' }}",
+        load_description: "{{ order.load_description or '' }}",
+        additional_notes: "{{ order.additional_notes or '' }}",
+        contact_name: "{{ order.contact_name }}",
+        preferred_contact: "{{ order.preferred_contact }}",
+        phone_number: "{{ order.phone_number }}",
+        email: "{{ order.email }}",
+        po_number: "{{ order.po_number or '' }}",
+        payment_method: "{{ order.payment_method }}",
+        status: "{{ order.status }}",
+        admin_notes: "{{ order.admin_notes or '' }}",
+        estimated_cost: {{ order.estimated_cost or 'null' }},
+        final_cost: {{ order.final_cost or 'null' }},
+        created_at: "{{ order.created_at.strftime('%m/%d/%Y %I:%M %p') }}"
+    },
+    {% endfor %}
+];
+
+function viewOrder(orderId) {
+    const order = orders.find(o => o.id === orderId);
+    if (!order) {
+        alert('Order not found');
+        return;
+    }
+    
+    const modalBody = document.getElementById('orderModalBody');
+    
+    // Format pilot car positions
+    const positions = order.pilot_car_positions.map(pos => `<span class="badge bg-info me-1">${pos}</span>`).join('');
+    
+    // Format status
+    let statusBadge = '';
+    switch(order.status) {
+        case 'pending':
+            statusBadge = '<span class="badge bg-warning">Pending</span>';
+            break;
+        case 'confirmed':
+            statusBadge = '<span class="badge bg-info">Confirmed</span>';
+            break;
+        case 'completed':
+            statusBadge = '<span class="badge bg-success">Completed</span>';
+            break;
+        case 'cancelled':
+            statusBadge = '<span class="badge bg-danger">Cancelled</span>';
+            break;
+    }
+    
+    modalBody.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Order Information</h6>
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>Order #:</strong></td>
+                        <td>#${order.id}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Status:</strong></td>
+                        <td>${statusBadge}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Order Date:</strong></td>
+                        <td>${order.created_at}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Company:</strong></td>
+                        <td>${order.company_name}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>DOT Number:</strong></td>
+                        <td>${order.dot_number || '<span class="text-muted">Not provided</span>'}</td>
+                    </tr>
+                </table>
+                
+                <h6>Service Details</h6>
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>Pickup Date:</strong></td>
+                        <td>${order.pickup_date} at ${order.pickup_time}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Pilot Car Types:</strong></td>
+                        <td>${positions}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Driver:</strong></td>
+                        <td>${order.driver_name} - ${order.driver_phone}</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="col-md-6">
+                <h6>Route</h6>
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>Pickup:</strong></td>
+                        <td>${order.pickup_address}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Delivery:</strong></td>
+                        <td>${order.delivery_address}</td>
+                    </tr>
+                </table>
+                
+                <h6>Load Information</h6>
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>Dimensions:</strong></td>
+                        <td>L: ${order.length}, W: ${order.width}, H: ${order.height}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Weight:</strong></td>
+                        <td>${order.weight}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Truck #:</strong></td>
+                        <td>${order.truck_number || '<span class="text-muted">Not provided</span>'}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Load #:</strong></td>
+                        <td>${order.load_number || '<span class="text-muted">Not provided</span>'}</td>
+                    </tr>
+                </table>
+                
+                ${order.estimated_cost ? `
+                <h6>Cost Information</h6>
+                <table class="table table-sm">
+                    ${order.estimated_cost ? `<tr><td><strong>Estimated Cost:</strong></td><td>$${order.estimated_cost.toFixed(2)}</td></tr>` : ''}
+                    ${order.final_cost ? `<tr><td><strong>Final Cost:</strong></td><td>$${order.final_cost.toFixed(2)}</td></tr>` : ''}
+                </table>
+                ` : ''}
+            </div>
+        </div>
+        
+        ${order.additional_notes ? `
+        <div class="row mt-3">
+            <div class="col-12">
+                <h6>Additional Notes</h6>
+                <p class="text-muted">${order.additional_notes}</p>
+            </div>
+        </div>
+        ` : ''}
+        
+        ${order.admin_notes ? `
+        <div class="row mt-3">
+            <div class="col-12">
+                <h6>Admin Notes</h6>
+                <div class="alert alert-info">
+                    ${order.admin_notes}
+                </div>
+            </div>
+        </div>
+        ` : ''}
+    `;
+    
+    new bootstrap.Modal(document.getElementById('orderModal')).show();
+}
+</script>
+{% endblock %} 

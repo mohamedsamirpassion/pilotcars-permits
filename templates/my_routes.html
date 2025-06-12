@@ -1,0 +1,343 @@
+{% extends "base.html" %}
+
+{% block title %}My Routes - My PEVO{% endblock %}
+
+{% block extra_head %}
+<style>
+  .state-badge {
+    background: #007bff;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    font-weight: bold;
+  }
+  
+  .badge-yes {
+    background: #28a745;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.75em;
+  }
+  
+  .badge-no {
+    background: #6c757d;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.75em;
+  }
+  
+  .escort-badge {
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.75em;
+    margin-right: 2px;
+    color: white;
+  }
+  
+  .escort-badge.escort-none { background: #28a745; }
+  .escort-badge.escort-high-pole { background: #ffc107; color: #000; }
+  .escort-badge.escort-front { background: #17a2b8; }
+  .escort-badge.escort-rear { background: #007bff; }
+  .escort-badge.escort-police { background: #dc3545; }
+  .escort-badge.escort-other { background: #6c757d; }
+  
+  .notes-cell {
+    max-width: 200px;
+    word-wrap: break-word;
+    font-size: 0.85em;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-history me-2"></i>My Routes</h2>
+                    <p class="text-muted mb-0">View and manage your saved load planning routes</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('load_plan') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>New Load Plan
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if routes %}
+    <div class="row">
+        <div class="col-12">
+            <div class="dashboard-card p-4">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Route Name</th>
+                                <th>Origin → Destination</th>
+                                <th>Dimensions</th>
+                                <th>Road Type</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for route in routes %}
+                            <tr>
+                                <td>
+                                    <strong>{{ route.route_name }}</strong>
+                                </td>
+                                <td>
+                                    <div class="route-path">{{ route.origin }} → {{ route.destination }}</div>
+                                </td>
+                                <td>
+                                    <small class="text-muted">
+                                        L: {{ route.length }}' × W: {{ route.width }}' × H: {{ route.height }}'<br>
+                                        Weight: {{ route.weight }} lbs
+                                    </small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ route.road_type }}</span>
+                                </td>
+                                <td>
+                                    {{ route.created_at.strftime('%m/%d/%Y %I:%M %p') }}
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary me-1" onclick="viewRouteDetails({{ route.id }})">
+                                        <i class="fas fa-eye"></i> View
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteRoute({{ route.id }})">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-12">
+            <div class="dashboard-card p-5 text-center">
+                <i class="fas fa-route text-muted" style="font-size: 4rem;"></i>
+                <h4 class="mt-4 text-muted">No Routes Found</h4>
+                <p class="text-muted mb-4">You haven't created any load plans yet. Start by creating your first route!</p>
+                <a href="{{ url_for('load_plan') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus me-2"></i>Create Your First Load Plan
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Route Details Modal -->
+<div class="modal fade" id="routeDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-route me-2"></i>Route Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Content will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function viewRouteDetails(routeId) {
+    // Find the route data from the template
+    const routes = [
+        {% for route in routes %}
+        {
+            id: {{ route.id }},
+            route_name: "{{ route.route_name }}",
+            origin: "{{ route.origin }}",
+            destination: "{{ route.destination }}",
+            road_type: "{{ route.road_type }}",
+            length: {{ route.length }},
+            width: {{ route.width }},
+            height: {{ route.height }},
+            weight: {{ route.weight }},
+            front_overhang: {{ route.front_overhang or 0 }},
+            rear_overhang: {{ route.rear_overhang or 0 }},
+            custom_route: {{ route.custom_route|safe if route.custom_route else '[]' }},
+            route_results: {{ route.route_results|safe if route.route_results else '[]' }},
+            created_at: "{{ route.created_at.strftime('%m/%d/%Y %I:%M %p') }}"
+        },
+        {% endfor %}
+    ];
+    
+    const route = routes.find(r => r.id === routeId);
+    if (!route) {
+        alert('Route not found');
+        return;
+    }
+    
+    const modalBody = document.getElementById('modalBody');
+    
+    // Parse the results if they exist
+    let results = [];
+    try {
+        results = typeof route.route_results === 'string' ? JSON.parse(route.route_results) : route.route_results;
+    } catch (e) {
+        console.error('Error parsing route results:', e);
+    }
+    
+    let customRoute = [];
+    try {
+        customRoute = typeof route.custom_route === 'string' ? JSON.parse(route.custom_route) : route.custom_route;
+    } catch (e) {
+        console.error('Error parsing custom route:', e);
+    }
+    
+    modalBody.innerHTML = `
+        <div class="route-summary mb-4">
+            <h4>${route.route_name}</h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Origin:</strong> ${route.origin}</p>
+                    <p><strong>Destination:</strong> ${route.destination}</p>
+                    <p><strong>Road Type:</strong> ${route.road_type}</p>
+                    <p><strong>Created:</strong> ${route.created_at}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Dimensions:</strong></p>
+                    <ul class="list-unstyled">
+                        <li>Length: ${route.length} feet</li>
+                        <li>Width: ${route.width} feet</li>
+                        <li>Height: ${route.height} feet</li>
+                        <li>Weight: ${route.weight} lbs</li>
+                        ${route.front_overhang > 0 ? `<li>Front Overhang: ${route.front_overhang} feet</li>` : ''}
+                        ${route.rear_overhang > 0 ? `<li>Rear Overhang: ${route.rear_overhang} feet</li>` : ''}
+                    </ul>
+                </div>
+            </div>
+            ${customRoute.length > 0 ? `<p><strong>Custom Route:</strong> ${customRoute.join(' → ')}</p>` : ''}
+        </div>
+        
+        ${results.length > 0 ? `
+        <h5>Escort Requirements</h5>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>State</th>
+                        <th>Road Type</th>
+                        <th>Route Survey</th>
+                        <th>Police Escort</th>
+                        <th>Escort Requirements</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${results.map(result => {
+                        const requirements = result.escort_requirements || 'None Required';
+                        const escortInfo = processEscortRequirements(requirements);
+                        return `
+                        <tr>
+                            <td><span class="state-badge">${result.state}</span></td>
+                            <td>${result.road_type}</td>
+                            <td>${escortInfo.routeSurvey ? '<span class="badge-yes">Yes</span>' : '<span class="badge-no">No</span>'}</td>
+                            <td>${escortInfo.policeEscort ? '<span class="badge-yes">Yes</span>' : '<span class="badge-no">No</span>'}</td>
+                            <td>${getEscortBadge(escortInfo.finalRequirements)}</td>
+                            <td class="notes-cell">${result.notes || 'No additional notes'}</td>
+                        </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        </div>
+        ` : '<p class="text-muted">No escort requirements data available.</p>'}
+    `;
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('routeDetailsModal'));
+    modal.show();
+}
+
+function getEscortBadge(requirements) {
+    if (requirements === 'None Required') {
+        return '<span class="escort-badge escort-none">None Required</span>';
+    }
+    
+    const badges = requirements.split(', ').map(req => {
+        const reqLower = req.toLowerCase();
+        let className = 'escort-badge';
+        
+        if (reqLower.includes('high pole')) {
+            className += ' escort-high-pole';
+        } else if (reqLower.includes('front')) {
+            className += ' escort-front';
+        } else if (reqLower.includes('rear')) {
+            className += ' escort-rear';
+        } else if (reqLower.includes('police')) {
+            className += ' escort-police';
+        } else {
+            className += ' escort-other';
+        }
+        
+        return `<span class="${className}">${req}</span>`;
+    });
+    
+    return badges.join(' ');
+}
+
+// Process escort requirements with High Pole logic (same as admin view)
+function processEscortRequirements(requirements) {
+    if (!requirements || requirements === 'None Required') {
+        return {
+            routeSurvey: false,
+            policeEscort: false,
+            finalRequirements: 'None Required'
+        };
+    }
+    
+    const reqString = requirements.toLowerCase();
+    const routeSurvey = reqString.includes('route survey');
+    const policeEscort = reqString.includes('police');
+    
+    // Parse individual escort requirements
+    let hasRear = reqString.includes('rear');
+    let hasFront = reqString.includes('front');
+    let hasHP = reqString.includes('high pole') || reqString.includes('hp');
+    
+    // Apply High Pole logic: HP replaces Front
+    if (hasHP && hasFront) {
+        hasFront = false; // HP replaces front
+    }
+    
+    // Build final requirements
+    const finalReqs = [];
+    if (hasHP) finalReqs.push('High Pole');
+    if (hasFront) finalReqs.push('Front');
+    if (hasRear) finalReqs.push('Rear');
+    
+    return {
+        routeSurvey,
+        policeEscort,
+        finalRequirements: finalReqs.length > 0 ? finalReqs.join(', ') : 'None Required'
+    };
+}
+
+function deleteRoute(routeId) {
+    if (confirm('Are you sure you want to delete this route? This action cannot be undone.')) {
+        // Here you would implement the delete functionality
+        alert('Delete functionality will be implemented in a future version');
+    }
+}
+</script>
+{% endblock %} 

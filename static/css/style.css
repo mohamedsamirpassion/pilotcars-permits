@@ -1,0 +1,352 @@
+/* My PEVO Custom Styles */
+
+:root {
+    --pevo-primary: #1e5799;
+    --pevo-secondary: #2989d8;
+    --pevo-accent: #207ce5;
+    --pevo-success: #28a745;
+    --pevo-warning: #ffc107;
+    --pevo-danger: #dc3545;
+    --pevo-dark: #343a40;
+    --pevo-light: #f8f9fa;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--pevo-light);
+}
+
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.bg-primary {
+    background: linear-gradient(135deg, var(--pevo-primary) 0%, var(--pevo-secondary) 100%) !important;
+}
+
+/* Load Plan Layout */
+.load-plan-container {
+    min-height: calc(100vh - 120px);
+    overflow: visible;
+}
+
+.map-container {
+    height: 600px;
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#map {
+    height: 100%;
+    width: 100%;
+    border-radius: 8px;
+}
+
+/* Google Maps specific styling */
+.gm-style {
+    border-radius: 8px;
+}
+
+.gm-style .gm-style-iw {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.info-panel {
+    min-height: 100%;
+    overflow-y: visible;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+}
+
+/* Form Styling */
+.form-section {
+    margin-bottom: 25px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid var(--pevo-primary);
+}
+
+.form-section h5 {
+    color: var(--pevo-primary);
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.dimension-input {
+    max-width: 100px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--pevo-primary) 0%, var(--pevo-secondary) 100%);
+    border: none;
+    padding: 10px 25px;
+    font-weight: 600;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(30, 87, 153, 0.3);
+}
+
+/* Results Table */
+.results-container {
+    margin-top: 20px;
+}
+
+.table {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.table thead th {
+    background: var(--pevo-primary);
+    color: white;
+    border: none;
+    padding: 15px;
+    font-weight: 600;
+}
+
+.table tbody td {
+    padding: 12px 15px;
+    vertical-align: middle;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(30, 87, 153, 0.05);
+}
+
+/* Route Summary */
+.route-summary {
+    background: linear-gradient(135deg, var(--pevo-primary) 0%, var(--pevo-secondary) 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.route-summary h4 {
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.route-path {
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+/* State Badges */
+.state-badge {
+    background: var(--pevo-accent);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Escort Type Badges */
+.escort-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin: 2px;
+}
+
+.escort-none { background: #e9ecef; color: #6c757d; }
+.escort-front { background: #d4edda; color: #155724; }
+.escort-rear { background: #cce5ff; color: #004085; }
+.escort-height { background: #fff3cd; color: #856404; }
+.escort-police { background: #f8d7da; color: #721c24; }
+
+/* Loading Spinner */
+.loading {
+    text-align: center;
+    padding: 40px;
+}
+
+.spinner-border {
+    color: var(--pevo-primary);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .load-plan-container {
+        height: auto;
+    }
+    
+    .map-container {
+        height: 300px;
+        margin-bottom: 20px;
+    }
+    
+    .info-panel {
+        height: auto;
+    }
+    
+    .form-section {
+        margin-bottom: 15px;
+        padding: 15px;
+    }
+}
+
+/* Dashboard Cards */
+.dashboard-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card-icon {
+    font-size: 2.5rem;
+    color: var(--pevo-primary);
+}
+
+/* Login/Register Forms */
+.auth-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--pevo-primary) 0%, var(--pevo-secondary) 100%);
+}
+
+.auth-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    padding: 40px;
+    max-width: 400px;
+}
+
+.auth-logo {
+    color: var(--pevo-primary);
+    font-size: 2rem;
+    margin-bottom: 30px;
+}
+
+/* Custom Route Builder */
+.route-builder {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.state-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 10px;
+}
+
+.state-option {
+    padding: 5px 10px;
+    background: white;
+    border: 2px solid #dee2e6;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.875rem;
+}
+
+.state-option:hover {
+    border-color: var(--pevo-primary);
+}
+
+.state-option.selected {
+    background: var(--pevo-primary);
+    color: white;
+    border-color: var(--pevo-primary);
+}
+
+.selected-route {
+    margin-top: 10px;
+    padding: 10px;
+    background: white;
+    border-radius: 4px;
+    border: 2px solid var(--pevo-success);
+}
+
+/* Map Controls */
+.map-controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+    background: white;
+    padding: 10px;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Notes styling */
+.notes-cell {
+    max-width: 300px;
+    word-wrap: break-word;
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+/* State search suggestions */
+.state-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1050;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.state-suggestion-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #f8f9fa;
+    transition: background-color 0.2s ease;
+}
+
+.state-suggestion-item:hover {
+    background-color: var(--pevo-light);
+}
+
+.state-suggestion-item:last-child {
+    border-bottom: none;
+}
+
+/* High Pole escort styling */
+.escort-hp {
+    background: #f8d7da;
+    color: #721c24;
+    font-weight: bold;
+}
+
+/* Yes/No badge styling */
+.badge-yes {
+    background: #d4edda;
+    color: #155724;
+}
+
+.badge-no {
+    background: #e2e3e5;
+    color: #6c757d;
+} 

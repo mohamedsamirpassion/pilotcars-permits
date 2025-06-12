@@ -1,0 +1,593 @@
+{% extends 'base.html' %}
+
+{% block title %}Order Management - My PEVO Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-clipboard-list me-2"></i>Pilot Car Order Management</h2>
+                    <p class="text-muted">View and manage all pilot car escort orders</p>
+                </div>
+                <div>
+                    <a href="/admin" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5>{{ stats.pending }}</h5>
+                            <small>Pending</small>
+                        </div>
+                        <i class="fas fa-hourglass-half fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5>{{ stats.confirmed }}</h5>
+                            <small>Confirmed</small>
+                        </div>
+                        <i class="fas fa-check-circle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5>{{ stats.completed }}</h5>
+                            <small>Completed</small>
+                        </div>
+                        <i class="fas fa-check fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5>{{ stats.cancelled }}</h5>
+                            <small>Cancelled</small>
+                        </div>
+                        <i class="fas fa-times fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Controls -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <input type="text" class="form-control" id="searchOrders" placeholder="Search orders...">
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select" id="statusFilter">
+                                <option value="">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="confirmed">Confirmed</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="filterByStatus('pending')">Pending</button>
+                                <button type="button" class="btn btn-outline-info btn-sm" onclick="filterByStatus('confirmed')">Confirmed</button>
+                                <button type="button" class="btn btn-outline-success btn-sm" onclick="filterByStatus('completed')">Completed</button>
+                                <button type="button" class="btn btn-outline-danger btn-sm" onclick="filterByStatus('cancelled')">Cancelled</button>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="clearFilters()">
+                                <i class="fas fa-times me-1"></i>Clear Filters
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    {% if orders %}
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="ordersTable">
+                            <thead>
+                                <tr>
+                                    <th>Order #</th>
+                                    <th>Date</th>
+                                    <th>Company</th>
+                                    <th>Route</th>
+                                    <th>Pickup Date</th>
+                                    <th>Pilot Car Types</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in orders %}
+                                <tr class="order-row" data-status="{{ order.status }}">
+                                    <td>
+                                        <strong>#{{ order.id }}</strong>
+                                        {% if order.user_id %}
+                                            <br><small class="text-muted">Registered</small>
+                                        {% else %}
+                                            <br><small class="text-muted">Guest</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ order.created_at.strftime('%m/%d/%Y') }}<br>
+                                        <small class="text-muted">{{ order.created_at.strftime('%I:%M %p') }}</small>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong>{{ order.company_name }}</strong>
+                                            {% if order.dot_number %}
+                                                <br><small class="text-muted">DOT: {{ order.dot_number }}</small>
+                                            {% endif %}
+                                            <br><small class="text-muted">{{ order.contact_name }} - {{ order.phone_number }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="small">
+                                            <strong>From:</strong> {{ order.pickup_address[:40] }}{% if order.pickup_address|length > 40 %}...{% endif %}<br>
+                                            <strong>To:</strong> {{ order.delivery_address[:40] }}{% if order.delivery_address|length > 40 %}...{% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {{ order.pickup_date.strftime('%m/%d/%Y') }}<br>
+                                        <small class="text-muted">{{ order.pickup_time }}</small>
+                                    </td>
+                                    <td>
+                                        {% set positions = order.pilot_car_positions | from_json %}
+                                        {% for position in positions %}
+                                            <span class="badge bg-info me-1">{{ position }}</span>
+                                        {% endfor %}
+                                    </td>
+                                    <td>
+                                        {% if order.status == 'pending' %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% elif order.status == 'confirmed' %}
+                                            <span class="badge bg-info">Confirmed</span>
+                                        {% elif order.status == 'completed' %}
+                                            <span class="badge bg-success">Completed</span>
+                                        {% elif order.status == 'cancelled' %}
+                                            <span class="badge bg-danger">Cancelled</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group-vertical btn-group-sm" role="group">
+                                            <button type="button" class="btn btn-outline-primary btn-sm" 
+                                                    onclick="viewOrder({{ order.id }})" title="View Details">
+                                                <i class="fas fa-eye me-1"></i>View
+                                            </button>
+                                            <button type="button" class="btn btn-outline-warning btn-sm" 
+                                                    onclick="updateOrderStatus({{ order.id }})" title="Update Status">
+                                                <i class="fas fa-edit me-1"></i>Update
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-clipboard-list text-muted" style="font-size: 4rem;"></i>
+                        <h4 class="mt-3 text-muted">No orders yet</h4>
+                        <p class="text-muted">Pilot car orders will appear here when customers place them</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Order Details Modal -->
+<div class="modal fade" id="orderModal" tabindex="-1" aria-labelledby="orderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="orderModalLabel">Order Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="orderModalBody">
+                <!-- Order details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Update Status Modal -->
+<div class="modal fade" id="updateStatusModal" tabindex="-1" aria-labelledby="updateStatusModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updateStatusModalLabel">Update Order Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="updateStatusForm">
+                    <input type="hidden" id="updateOrderId">
+                    <div class="mb-3">
+                        <label for="orderStatus" class="form-label">Status</label>
+                        <select class="form-select" id="orderStatus" required>
+                            <option value="pending">Pending</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="estimatedCost" class="form-label">Estimated Cost ($)</label>
+                        <input type="number" class="form-control" id="estimatedCost" step="0.01" min="0">
+                    </div>
+                    <div class="mb-3">
+                        <label for="finalCost" class="form-label">Final Cost ($)</label>
+                        <input type="number" class="form-control" id="finalCost" step="0.01" min="0">
+                    </div>
+                    <div class="mb-3">
+                        <label for="adminNotes" class="form-label">Admin Notes</label>
+                        <textarea class="form-control" id="adminNotes" rows="3" 
+                                  placeholder="Add notes about the order status or any issues..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveOrderUpdate()">Update Order</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Order data for JavaScript functions
+const orders = [
+    {% for order in orders %}
+    {
+        id: {{ order.id }},
+        company_name: "{{ order.company_name }}",
+        dot_number: "{{ order.dot_number or '' }}",
+        pickup_address: "{{ order.pickup_address }}",
+        delivery_address: "{{ order.delivery_address }}",
+        pickup_date: "{{ order.pickup_date.strftime('%m/%d/%Y') }}",
+        pickup_time: "{{ order.pickup_time }}",
+        pilot_car_positions: {{ order.pilot_car_positions | safe }},
+        driver_name: "{{ order.driver_name }}",
+        driver_phone: "{{ order.driver_phone }}",
+        length: "{{ order.length }}",
+        width: "{{ order.width }}",
+        height: "{{ order.height }}",
+        weight: "{{ order.weight }}",
+        truck_number: "{{ order.truck_number or '' }}",
+        load_number: "{{ order.load_number or '' }}",
+        load_description: "{{ order.load_description or '' }}",
+        additional_notes: "{{ order.additional_notes or '' }}",
+        contact_name: "{{ order.contact_name }}",
+        preferred_contact: "{{ order.preferred_contact }}",
+        phone_number: "{{ order.phone_number }}",
+        email: "{{ order.email }}",
+        po_number: "{{ order.po_number or '' }}",
+        payment_method: "{{ order.payment_method }}",
+        status: "{{ order.status }}",
+        admin_notes: "{{ order.admin_notes or '' }}",
+        estimated_cost: {{ order.estimated_cost or 'null' }},
+        final_cost: {{ order.final_cost or 'null' }},
+        user_id: {{ order.user_id or 'null' }},
+        created_at: "{{ order.created_at.strftime('%m/%d/%Y %I:%M %p') }}"
+    },
+    {% endfor %}
+];
+
+// Filter functionality
+function filterByStatus(status) {
+    document.getElementById('statusFilter').value = status;
+    filterOrders();
+}
+
+function clearFilters() {
+    document.getElementById('searchOrders').value = '';
+    document.getElementById('statusFilter').value = '';
+    filterOrders();
+}
+
+function filterOrders() {
+    const searchTerm = document.getElementById('searchOrders').value.toLowerCase();
+    const statusFilter = document.getElementById('statusFilter').value;
+    const rows = document.querySelectorAll('.order-row');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        const status = row.getAttribute('data-status');
+        
+        const matchesSearch = searchTerm === '' || text.includes(searchTerm);
+        const matchesStatus = statusFilter === '' || status === statusFilter;
+        
+        if (matchesSearch && matchesStatus) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+// Event listeners for filters
+document.getElementById('searchOrders').addEventListener('input', filterOrders);
+document.getElementById('statusFilter').addEventListener('change', filterOrders);
+
+function viewOrder(orderId) {
+    const order = orders.find(o => o.id === orderId);
+    if (!order) {
+        alert('Order not found');
+        return;
+    }
+    
+    const modalBody = document.getElementById('orderModalBody');
+    
+    // Format pilot car positions
+    const positions = order.pilot_car_positions.map(pos => `<span class="badge bg-info me-1">${pos}</span>`).join('');
+    
+    // Format status
+    let statusBadge = '';
+    switch(order.status) {
+        case 'pending':
+            statusBadge = '<span class="badge bg-warning">Pending</span>';
+            break;
+        case 'confirmed':
+            statusBadge = '<span class="badge bg-info">Confirmed</span>';
+            break;
+        case 'completed':
+            statusBadge = '<span class="badge bg-success">Completed</span>';
+            break;
+        case 'cancelled':
+            statusBadge = '<span class="badge bg-danger">Cancelled</span>';
+            break;
+    }
+    
+    modalBody.innerHTML = `
+        <div class="row">
+            <div class="col-md-4">
+                <h6>Order Information</h6>
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>Order #:</strong></td>
+                        <td>#${order.id}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Status:</strong></td>
+                        <td>${statusBadge}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Order Date:</strong></td>
+                        <td>${order.created_at}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Customer Type:</strong></td>
+                        <td>${order.user_id ? '<span class="badge bg-success">Registered</span>' : '<span class="badge bg-secondary">Guest</span>'}</td>
+                    </tr>
+                </table>
+                
+                <h6>Company Information</h6>
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>Company:</strong></td>
+                        <td>${order.company_name}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>DOT Number:</strong></td>
+                        <td>${order.dot_number || '<span class="text-muted">Not provided</span>'}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Contact:</strong></td>
+                        <td>${order.contact_name}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Phone:</strong></td>
+                        <td><a href="tel:${order.phone_number}">${order.phone_number}</a></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Email:</strong></td>
+                        <td><a href="mailto:${order.email}">${order.email}</a></td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="col-md-4">
+                <h6>Service Details</h6>
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>Pickup Date:</strong></td>
+                        <td>${order.pickup_date} at ${order.pickup_time}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Pilot Car Types:</strong></td>
+                        <td>${positions}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Driver:</strong></td>
+                        <td>${order.driver_name}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Driver Phone:</strong></td>
+                        <td><a href="tel:${order.driver_phone}">${order.driver_phone}</a></td>
+                    </tr>
+                </table>
+                
+                <h6>Route</h6>
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>Pickup:</strong></td>
+                        <td>${order.pickup_address}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Delivery:</strong></td>
+                        <td>${order.delivery_address}</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="col-md-4">
+                <h6>Load Information</h6>
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>Length:</strong></td>
+                        <td>${order.length}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Width:</strong></td>
+                        <td>${order.width}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Height:</strong></td>
+                        <td>${order.height}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Weight:</strong></td>
+                        <td>${order.weight}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Truck #:</strong></td>
+                        <td>${order.truck_number || '<span class="text-muted">Not provided</span>'}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Load #:</strong></td>
+                        <td>${order.load_number || '<span class="text-muted">Not provided</span>'}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>PO Number:</strong></td>
+                        <td>${order.po_number || '<span class="text-muted">Not provided</span>'}</td>
+                    </tr>
+                </table>
+                
+                ${order.estimated_cost || order.final_cost ? `
+                <h6>Cost Information</h6>
+                <table class="table table-sm">
+                    ${order.estimated_cost ? `<tr><td><strong>Estimated Cost:</strong></td><td>$${order.estimated_cost.toFixed(2)}</td></tr>` : ''}
+                    ${order.final_cost ? `<tr><td><strong>Final Cost:</strong></td><td>$${order.final_cost.toFixed(2)}</td></tr>` : ''}
+                </table>
+                ` : ''}
+            </div>
+        </div>
+        
+        ${order.load_description ? `
+        <div class="row mt-3">
+            <div class="col-12">
+                <h6>Load Description</h6>
+                <p class="text-muted">${order.load_description}</p>
+            </div>
+        </div>
+        ` : ''}
+        
+        ${order.additional_notes ? `
+        <div class="row mt-3">
+            <div class="col-12">
+                <h6>Additional Notes</h6>
+                <p class="text-muted">${order.additional_notes}</p>
+            </div>
+        </div>
+        ` : ''}
+        
+        ${order.admin_notes ? `
+        <div class="row mt-3">
+            <div class="col-12">
+                <h6>Admin Notes</h6>
+                <div class="alert alert-info">
+                    ${order.admin_notes}
+                </div>
+            </div>
+        </div>
+        ` : ''}
+    `;
+    
+    new bootstrap.Modal(document.getElementById('orderModal')).show();
+}
+
+function updateOrderStatus(orderId) {
+    const order = orders.find(o => o.id === orderId);
+    if (!order) {
+        alert('Order not found');
+        return;
+    }
+    
+    // Populate the form
+    document.getElementById('updateOrderId').value = orderId;
+    document.getElementById('orderStatus').value = order.status;
+    document.getElementById('estimatedCost').value = order.estimated_cost || '';
+    document.getElementById('finalCost').value = order.final_cost || '';
+    document.getElementById('adminNotes').value = order.admin_notes || '';
+    
+    new bootstrap.Modal(document.getElementById('updateStatusModal')).show();
+}
+
+function saveOrderUpdate() {
+    const orderId = document.getElementById('updateOrderId').value;
+    const status = document.getElementById('orderStatus').value;
+    const estimatedCost = document.getElementById('estimatedCost').value;
+    const finalCost = document.getElementById('finalCost').value;
+    const adminNotes = document.getElementById('adminNotes').value;
+    
+    const updateData = {
+        status: status,
+        admin_notes: adminNotes
+    };
+    
+    if (estimatedCost) updateData.estimated_cost = estimatedCost;
+    if (finalCost) updateData.final_cost = finalCost;
+    
+    fetch(`/admin/update-order-status/${orderId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updateData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Error: ' + error);
+    });
+}
+</script>
+{% endblock %} 

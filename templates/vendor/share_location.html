@@ -1,0 +1,432 @@
+{% extends "base.html" %}
+
+{% block title %}Share Your Location - My PEVO{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-map-marker-alt me-2"></i>Share Your Location</h2>
+                    {% if session.user_id and session.user_type == 'vendor' %}
+                        <p class="text-muted">Share your current location and availability to receive job opportunities.</p>
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong>Registered Vendor:</strong> You are logged in as a registered vendor. Your locations will be marked as verified.
+                        </div>
+                    {% else %}
+                        <p class="text-muted">Share your current location and availability to receive job opportunities.</p>
+                    {% endif %}
+                </div>
+                {% if not session.user_id %}
+                <div>
+                    <a href="{{ url_for('login') }}" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-sign-in-alt me-2"></i>Login
+                    </a>
+                    <a href="{{ url_for('register') }}" class="btn btn-primary">
+                        <i class="fas fa-user-plus me-2"></i>Register as Vendor
+                    </a>
+                </div>
+                {% else %}
+                <div>
+                    <a href="{{ url_for('vendor_dashboard') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-tachometer-alt me-2"></i>My Dashboard
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Location Information Form -->
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-user me-2"></i>Location Information</h5>
+                </div>
+                <div class="card-body">
+                    <form id="locationForm">
+                        <!-- Contact Information -->
+                        <h6 class="text-primary mb-3">Contact Information</h6>
+                        
+                        <div class="mb-3">
+                            <label for="company_name" class="form-label">Company/Service Name *</label>
+                            <input type="text" class="form-control" id="company_name" name="company_name" 
+                                   value="{% if user %}{{ user.company_name }}{% endif %}" required>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email *</label>
+                                    <input type="email" class="form-control" id="email" name="email" 
+                                           value="{% if user %}{{ user.email }}{% endif %}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Phone Number *</label>
+                                    <input type="tel" class="form-control" id="phone" name="phone" 
+                                           value="{% if user and user.phone_number %}{{ user.phone_number }}{% endif %}"
+                                           placeholder="(555) 123-4567" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="contact_name" class="form-label">Contact Name</label>
+                            <input type="text" class="form-control" id="contact_name" name="contact_name" 
+                                   placeholder="Driver/Operator name">
+                        </div>
+
+                        <!-- Location Method -->
+                        <h6 class="text-primary mb-3 mt-4">Location Method</h6>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="location_method" 
+                                       id="current_location" value="current" checked>
+                                <label class="form-check-label" for="current_location">
+                                    <i class="fas fa-crosshairs me-2"></i>Use My Current Location
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="location_method" 
+                                       id="select_on_map" value="map">
+                                <label class="form-check-label" for="select_on_map">
+                                    <i class="fas fa-map me-2"></i>Select on Map
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info" id="selected_location" style="display: none;">
+                            <i class="fas fa-map-marker-alt me-2"></i>
+                            <span id="location_display">No location selected</span>
+                        </div>
+
+                        <!-- Coverage Radius -->
+                        <h6 class="text-primary mb-3 mt-4">Coverage Radius</h6>
+                        <p class="text-muted small">Select the radius you are willing to travel from your current location.</p>
+                        
+                        <div class="mb-3">
+                            <label for="coverage_radius" class="form-label">Radius (miles)</label>
+                            <select class="form-select" id="coverage_radius" name="coverage_radius">
+                                <option value="50">50 miles</option>
+                                <option value="100" selected>100 miles</option>
+                                <option value="150">150 miles</option>
+                                <option value="200">200 miles</option>
+                                <option value="300">300 miles</option>
+                            </select>
+                        </div>
+
+                        <!-- Services Provided -->
+                        <h6 class="text-primary mb-3 mt-4">Services Provided</h6>
+                        <p class="text-muted small">Select the services you can provide (check all that apply).</p>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="chase_lead" value="Chase/Lead">
+                                    <label class="form-check-label" for="chase_lead">
+                                        Chase/Lead
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="hp" value="HP (Height Pole)">
+                                    <label class="form-check-label" for="hp">
+                                        HP (Height Pole)
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="route_survey" value="Route Survey">
+                                    <label class="form-check-label" for="route_survey">
+                                        Route Survey
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="steer" value="Steer">
+                                    <label class="form-check-label" for="steer">
+                                        Steer
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="mb-3 mt-4">
+                            <label for="notes" class="form-label">Additional Notes</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3" 
+                                      placeholder="Special conditions, availability details, etc."></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100" id="shareLocationBtn">
+                            <i class="fas fa-share-alt me-2"></i>Share My Location
+                        </button>
+                    </form>
+
+                    <div class="alert alert-warning mt-3">
+                        <i class="fas fa-clock me-2"></i>
+                        <strong>Your location will be visible to admin coordinators for 48 hours</strong>, after which it will expire.
+                    </div>
+
+                    {% if not user %}
+                    <div class="text-center mt-3">
+                        <p class="text-muted">Want to manage your locations more easily? 
+                            <a href="{{ url_for('register') }}">Register as a vendor</a>
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Map -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-map me-2"></i>Location Map</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div id="map" style="height: 600px; width: 100%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Information Section -->
+    <div class="row mt-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Why Share Your Location?</h6>
+                            <p class="small">By sharing your location, you'll be visible to our pilot car escort coordinators who can match you with nearby jobs.</p>
+                            
+                            <h6 class="text-primary mt-3">How It Works</h6>
+                            <ol class="small">
+                                <li>Share your current location and coverage radius</li>
+                                <li>Your availability will be visible to coordinators for 48 hours</li>
+                                <li>Coordinators may contact you for nearby escort opportunities</li>
+                            </ol>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Privacy</h6>
+                            <p class="small">Your location is only visible to My PEVO admin coordinators, not to other vendors or trucking companies.</p>
+
+                            <h6 class="text-primary mt-3">Service Types</h6>
+                            <ul class="small">
+                                <li><strong>Chase/Lead:</strong> Front or rear escort vehicle</li>
+                                <li><strong>HP (Height Pole):</strong> Height measuring equipment</li>
+                                <li><strong>Route Survey:</strong> Pre-trip route analysis</li>
+                                <li><strong>Steer:</strong> Steerable trailer assistance</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let map;
+let marker;
+let selectedLocation = null;
+
+function initMap() {
+    // Initialize map centered on US
+    map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 4,
+        center: { lat: 39.8283, lng: -98.5795 }, // Center of US
+        mapTypeId: 'roadmap'
+    });
+
+    // Add click listener for map selection
+    map.addListener('click', function(event) {
+        if (document.getElementById('select_on_map').checked) {
+            placeMarker(event.latLng);
+            geocodeLatLng(event.latLng);
+        }
+    });
+
+    // Try to get user's current location
+    if (navigator.geolocation && document.getElementById('current_location').checked) {
+        getCurrentLocation();
+    }
+}
+
+function getCurrentLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                const pos = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                
+                map.setCenter(pos);
+                map.setZoom(10);
+                placeMarker(pos);
+                geocodeLatLng(pos);
+            },
+            function() {
+                console.log('Error getting location');
+            }
+        );
+    }
+}
+
+function placeMarker(location) {
+    if (marker) {
+        marker.setMap(null);
+    }
+    
+    marker = new google.maps.Marker({
+        position: location,
+        map: map,
+        title: 'Selected Location',
+        draggable: true
+    });
+
+    marker.addListener('dragend', function() {
+        geocodeLatLng(marker.getPosition());
+    });
+
+    selectedLocation = location;
+}
+
+function geocodeLatLng(latlng) {
+    const geocoder = new google.maps.Geocoder();
+    geocoder.geocode({ location: latlng }, function(results, status) {
+        if (status === 'OK') {
+            if (results[0]) {
+                const address = results[0].formatted_address;
+                document.getElementById('location_display').textContent = address;
+                document.getElementById('selected_location').style.display = 'block';
+
+                // Extract city and state
+                const components = results[0].address_components;
+                let city = '';
+                let state = '';
+                
+                for (let component of components) {
+                    if (component.types.includes('locality')) {
+                        city = component.long_name;
+                    }
+                    if (component.types.includes('administrative_area_level_1')) {
+                        state = component.short_name;
+                    }
+                }
+
+                selectedLocation = {
+                    lat: latlng.lat(),
+                    lng: latlng.lng(),
+                    city: city,
+                    state: state,
+                    address: address
+                };
+            }
+        }
+    });
+}
+
+// Form submission
+document.getElementById('locationForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    // Validate location is selected
+    if (!selectedLocation) {
+        alert('Please select a location on the map or use your current location.');
+        return;
+    }
+
+    // Validate at least one service is selected
+    const services = [];
+    document.querySelectorAll('input[type="checkbox"]:checked').forEach(function(checkbox) {
+        services.push(checkbox.value);
+    });
+
+    if (services.length === 0) {
+        alert('Please select at least one service you can provide.');
+        return;
+    }
+
+    // Prepare form data
+    const formData = {
+        company_name: document.getElementById('company_name').value,
+        contact_name: document.getElementById('contact_name').value,
+        email: document.getElementById('email').value,
+        phone: document.getElementById('phone').value,
+        location_city: selectedLocation.city,
+        location_state: selectedLocation.state,
+        latitude: selectedLocation.lat,
+        longitude: selectedLocation.lng,
+        coverage_radius: document.getElementById('coverage_radius').value,
+        services_provided: services,
+        notes: document.getElementById('notes').value
+    };
+
+    // Submit to server
+    const submitBtn = document.getElementById('shareLocationBtn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sharing Location...';
+
+    fetch('/vendor/submit-location', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Location shared successfully! Your location will be visible for 48 hours.');
+            // Reset form
+            document.getElementById('locationForm').reset();
+            if (marker) {
+                marker.setMap(null);
+            }
+            selectedLocation = null;
+            document.getElementById('selected_location').style.display = 'none';
+        } else {
+            alert('Error sharing location: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error sharing location. Please try again.');
+    })
+    .finally(() => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-share-alt me-2"></i>Share My Location';
+    });
+});
+
+// Location method change handlers
+document.getElementById('current_location').addEventListener('change', function() {
+    if (this.checked) {
+        getCurrentLocation();
+    }
+});
+
+document.getElementById('select_on_map').addEventListener('change', function() {
+    if (this.checked) {
+        alert('Click anywhere on the map to select your location.');
+    }
+});
+</script>
+
+<!-- Google Maps API -->
+<script async defer 
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB7POzdvk3ri7buWrkOLV7nNZK8pSeOxao&callback=initMap">
+</script>
+{% endblock %} 

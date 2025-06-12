@@ -1,0 +1,388 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users - My PEVO Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-users me-2"></i>User Management</h2>
+                    <p class="text-muted">Manage trucking companies and vendor accounts, approve registrations, and handle suspensions.</p>
+                </div>
+                <div>
+                    <a href="/admin" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-arrow-left me-2"></i>Admin Dashboard
+                    </a>
+                    <a href="/admin/vendor-locations" class="btn btn-primary">
+                        <i class="fas fa-map-marker-alt me-2"></i>Vendor Locations
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">Trucking Companies</h5>
+                            <h3>{{ trucking_companies|length }}</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-truck fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">Vendors</h5>
+                            <h3>{{ vendors|length }}</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-car fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">Pending Approval</h5>
+                            <h3>{{ trucking_companies|selectattr('is_approved', 'false')|list|length }}</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">Suspended Users</h5>
+                            <h3>{{ (trucking_companies + vendors)|selectattr('is_suspended', 'true')|list|length }}</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-ban fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trucking Companies Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-truck me-2"></i>Trucking Companies</h5>
+                </div>
+                <div class="card-body">
+                    {% if trucking_companies %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Company Details</th>
+                                        <th>Contact Information</th>
+                                        <th>DOT Number</th>
+                                        <th>Registration Date</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for company in trucking_companies %}
+                                        <tr id="user-{{ company.id }}">
+                                            <td>
+                                                <div>
+                                                    <strong>{{ company.company_name }}</strong><br>
+                                                    <small class="text-muted">ID: #{{ company.id }}</small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div>
+                                                    <i class="fas fa-envelope text-info me-1"></i>
+                                                    <a href="mailto:{{ company.email }}">{{ company.email }}</a><br>
+                                                    {% if company.phone_number %}
+                                                        <i class="fas fa-phone text-primary me-1"></i>
+                                                        <a href="tel:{{ company.phone_number }}">{{ company.phone_number }}</a>
+                                                    {% else %}
+                                                        <span class="text-muted">No phone number</span>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                {% if company.dot_number %}
+                                                    <span class="badge bg-success">{{ company.dot_number }}</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">No DOT#</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ company.created_at.strftime('%m/%d/%Y') }}</td>
+                                            <td>
+                                                {% if company.is_suspended %}
+                                                    <span class="badge bg-danger">Suspended</span>
+                                                {% elif company.is_approved %}
+                                                    <span class="badge bg-success">Approved</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">Pending Approval</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    {% if not company.is_approved and not company.is_suspended %}
+                                                        <button class="btn btn-sm btn-success" onclick="approveUser({{ company.id }})">
+                                                            <i class="fas fa-check"></i> Approve
+                                                        </button>
+                                                    {% endif %}
+                                                    
+                                                    {% if company.is_suspended %}
+                                                        <button class="btn btn-sm btn-warning" onclick="unsuspendUser({{ company.id }})">
+                                                            <i class="fas fa-undo"></i> Unsuspend
+                                                        </button>
+                                                    {% else %}
+                                                        <button class="btn btn-sm btn-danger" onclick="suspendUser({{ company.id }})">
+                                                            <i class="fas fa-ban"></i> Suspend
+                                                        </button>
+                                                    {% endif %}
+                                                    
+                                                    <button class="btn btn-sm btn-info" onclick="viewUserDetails({{ company.id }}, 'trucking')">
+                                                        <i class="fas fa-eye"></i> View
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-truck fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No Trucking Companies</h5>
+                            <p class="text-muted">No trucking companies have registered yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vendors Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-car me-2"></i>Pilot Car Vendors</h5>
+                </div>
+                <div class="card-body">
+                    {% if vendors %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Company Details</th>
+                                        <th>Contact Information</th>
+                                        <th>Registration Date</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for vendor in vendors %}
+                                        <tr id="user-{{ vendor.id }}">
+                                            <td>
+                                                <div>
+                                                    <strong>{{ vendor.company_name }}</strong><br>
+                                                    <small class="text-muted">ID: #{{ vendor.id }}</small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div>
+                                                    <i class="fas fa-envelope text-info me-1"></i>
+                                                    <a href="mailto:{{ vendor.email }}">{{ vendor.email }}</a><br>
+                                                    {% if vendor.phone_number %}
+                                                        <i class="fas fa-phone text-primary me-1"></i>
+                                                        <a href="tel:{{ vendor.phone_number }}">{{ vendor.phone_number }}</a>
+                                                    {% else %}
+                                                        <span class="text-muted">No phone number</span>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                            <td>{{ vendor.created_at.strftime('%m/%d/%Y') }}</td>
+                                            <td>
+                                                {% if vendor.is_suspended %}
+                                                    <span class="badge bg-danger">Suspended</span>
+                                                {% else %}
+                                                    <span class="badge bg-success">Active</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    {% if vendor.is_suspended %}
+                                                        <button class="btn btn-sm btn-warning" onclick="unsuspendUser({{ vendor.id }})">
+                                                            <i class="fas fa-undo"></i> Unsuspend
+                                                        </button>
+                                                    {% else %}
+                                                        <button class="btn btn-sm btn-danger" onclick="suspendUser({{ vendor.id }})">
+                                                            <i class="fas fa-ban"></i> Suspend
+                                                        </button>
+                                                    {% endif %}
+                                                    
+                                                    <button class="btn btn-sm btn-info" onclick="viewUserDetails({{ vendor.id }}, 'vendor')">
+                                                        <i class="fas fa-eye"></i> View
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-car fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No Vendors</h5>
+                            <p class="text-muted">No pilot car vendors have registered yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Details Modal -->
+<div class="modal fade" id="userDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">User Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="userDetailsContent">
+                <!-- Content will be loaded dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function approveUser(userId) {
+    if (confirm('Are you sure you want to approve this trucking company?')) {
+        fetch(`/admin/approve-user/${userId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while approving the user.');
+        });
+    }
+}
+
+function suspendUser(userId) {
+    if (confirm('Are you sure you want to suspend this user? They will not be able to access their account.')) {
+        fetch(`/admin/suspend-user/${userId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while suspending the user.');
+        });
+    }
+}
+
+function unsuspendUser(userId) {
+    if (confirm('Are you sure you want to unsuspend this user? They will regain access to their account.')) {
+        fetch(`/admin/unsuspend-user/${userId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while unsuspending the user.');
+        });
+    }
+}
+
+function viewUserDetails(userId, userType) {
+    // This would fetch and display detailed user information
+    // For now, just show a placeholder
+    document.getElementById('userDetailsContent').innerHTML = `
+        <div class="text-center py-4">
+            <i class="fas fa-info-circle fa-3x text-primary mb-3"></i>
+            <h5>User Details</h5>
+            <p>Detailed user information for ${userType} user ID: ${userId}</p>
+            <p class="text-muted">This feature can be expanded to show:</p>
+            <ul class="text-start">
+                <li>Complete registration details</li>
+                <li>Activity history</li>
+                <li>Load plans created (for trucking companies)</li>
+                <li>Location sharing history (for vendors)</li>
+                <li>Account statistics</li>
+            </ul>
+        </div>
+    `;
+    
+    // Show the modal
+    const modal = new bootstrap.Modal(document.getElementById('userDetailsModal'));
+    modal.show();
+}
+</script>
+{% endblock %} 

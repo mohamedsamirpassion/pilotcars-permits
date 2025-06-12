@@ -1,0 +1,368 @@
+{% extends 'base.html' %}
+
+{% block title %}Order Pilot Car - My PEVO{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="text-center mb-4">
+                <h2><i class="fas fa-car me-2"></i>Order Pilot Car Escort Service</h2>
+                <p class="text-muted">Professional pilot car escort services for oversized loads</p>
+                {% if not user %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        You're ordering as a guest. <a href="{{ url_for('login') }}">Login</a> or <a href="{{ url_for('register') }}">Register</a> to save your information for faster future orders.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <form id="pilotCarOrderForm">
+        <div class="row">
+            <!-- Left Column -->
+            <div class="col-lg-6">
+                <!-- Company Information -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-building me-2"></i>Company Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="company_name" class="form-label">Company Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="company_name" name="company_name" 
+                                   value="{{ user.company_name if user else '' }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="dot_number" class="form-label">DOT Number</label>
+                            <input type="text" class="form-control" id="dot_number" name="dot_number" 
+                                   value="{{ user.dot_number if user else '' }}">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pickup & Delivery Locations -->
+                <div class="card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>Pickup & Delivery Locations</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="pickup_address" class="form-label">Pickup Address <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="pickup_address" name="pickup_address" rows="3" 
+                                      placeholder="Complete pickup address including city, state, and zip code" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="delivery_address" class="form-label">Delivery Address <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="delivery_address" name="delivery_address" rows="3" 
+                                      placeholder="Complete delivery address including city, state, and zip code" required></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pickup & Service Details -->
+                <div class="card mb-4">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0"><i class="fas fa-clock me-2"></i>Pickup & Service Details</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="pickup_date" class="form-label">Pickup Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="pickup_date" name="pickup_date" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="pickup_time" class="form-label">Pickup Time <span class="text-danger">*</span></label>
+                                <input type="time" class="form-control" id="pickup_time" name="pickup_time" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Pilot Car Position <span class="text-danger">*</span></label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input pilot-car-position" type="checkbox" value="Chase" id="chase">
+                                        <label class="form-check-label" for="chase">Chase</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input pilot-car-position" type="checkbox" value="Lead" id="lead">
+                                        <label class="form-check-label" for="lead">Lead</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input pilot-car-position" type="checkbox" value="Height Pole" id="height_pole">
+                                        <label class="form-check-label" for="height_pole">Height Pole</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input pilot-car-position" type="checkbox" value="Steer" id="steer">
+                                        <label class="form-check-label" for="steer">Steer</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input pilot-car-position" type="checkbox" value="Route Survey" id="route_survey">
+                                        <label class="form-check-label" for="route_survey">Route Survey</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Driver Information -->
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="fas fa-user me-2"></i>Driver Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="driver_name" class="form-label">Driver Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="driver_name" name="driver_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="driver_phone" class="form-label">Driver Phone <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="driver_phone" name="driver_phone" 
+                                   placeholder="(555) 123-4567" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="col-lg-6">
+                <!-- Load Information -->
+                <div class="card mb-4">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0"><i class="fas fa-truck me-2"></i>Load Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="length" class="form-label">Length <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="length" name="length" 
+                                       placeholder="e.g., 80 ft" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="width" class="form-label">Width <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="width" name="width" 
+                                       placeholder="e.g., 12 ft" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="height" class="form-label">Height <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="height" name="height" 
+                                       placeholder="e.g., 13.6 ft" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="weight" class="form-label">Weight <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="weight" name="weight" 
+                                       placeholder="e.g., 80,000 lbs" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="truck_number" class="form-label">Truck Number</label>
+                                <input type="text" class="form-control" id="truck_number" name="truck_number">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="load_number" class="form-label">Load Number</label>
+                                <input type="text" class="form-control" id="load_number" name="load_number">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="load_description" class="form-label">Load Description</label>
+                            <textarea class="form-control" id="load_description" name="load_description" rows="2" 
+                                      placeholder="Brief description of the load"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="additional_notes" class="form-label">Additional Notes</label>
+                            <textarea class="form-control" id="additional_notes" name="additional_notes" rows="3" 
+                                      placeholder="Any special requirements or additional information"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="card mb-4">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0"><i class="fas fa-phone me-2"></i>Contact Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="contact_name" class="form-label">Contact Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="contact_name" name="contact_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="preferred_contact" class="form-label">Preferred Contact Method <span class="text-danger">*</span></label>
+                            <select class="form-select" id="preferred_contact" name="preferred_contact" required>
+                                <option value="">Select preferred contact method</option>
+                                <option value="Phone">Phone</option>
+                                <option value="Email">Email</option>
+                                <option value="Text">Text Message</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="phone_number" class="form-label">Phone Number <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="phone_number" name="phone_number" 
+                                   value="{{ user.phone_number if user else '' }}" 
+                                   placeholder="(555) 123-4567" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   value="{{ user.email if user else '' }}" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Information -->
+                <div class="card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="fas fa-credit-card me-2"></i>Payment Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="po_number" class="form-label">PO Number</label>
+                            <input type="text" class="form-control" id="po_number" name="po_number">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Payment Method <span class="text-danger">*</span></label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="payment_method" id="credit_card" value="credit_card" required>
+                                <label class="form-check-label" for="credit_card">
+                                    Credit Card <small class="text-muted">(4% processing fee applies)</small>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="terms_agreed" name="terms_agreed" required>
+                                <label class="form-check-label" for="terms_agreed">
+                                    I agree to the payment terms <span class="text-danger">*</span>
+                                </label>
+                            </div>
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    <strong>Payment Terms:</strong> Credit Card Authorization: We'll temporarily set aside an estimated amount on your card. 
+                                    After service completion, we'll adjust to match the final invoice total.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="card">
+                    <div class="card-body text-center">
+                        <button type="submit" class="btn btn-primary btn-lg" id="submitButton">
+                            <i class="fas fa-paper-plane me-2"></i>Submit Order
+                        </button>
+                        <div class="mt-2">
+                            <small class="text-muted">You will be contacted within 1 hour of order submission</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="successModalLabel">
+                    <i class="fas fa-check-circle me-2"></i>Order Submitted Successfully!
+                </h5>
+            </div>
+            <div class="modal-body text-center">
+                <p id="successMessage"></p>
+                <p class="text-muted">You will receive a confirmation email shortly.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" onclick="window.location.reload()">Submit Another Order</button>
+                {% if user %}
+                <button type="button" class="btn btn-primary" onclick="window.location.href='/my-orders'">View My Orders</button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('pilotCarOrderForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Validate pilot car positions
+    const positions = document.querySelectorAll('.pilot-car-position:checked');
+    if (positions.length === 0) {
+        alert('Please select at least one pilot car position.');
+        return;
+    }
+    
+    // Get all selected positions
+    const selectedPositions = Array.from(positions).map(pos => pos.value);
+    
+    const submitButton = document.getElementById('submitButton');
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Submitting...';
+    
+    // Prepare form data
+    const formData = {
+        company_name: document.getElementById('company_name').value,
+        dot_number: document.getElementById('dot_number').value,
+        pickup_address: document.getElementById('pickup_address').value,
+        delivery_address: document.getElementById('delivery_address').value,
+        pickup_date: document.getElementById('pickup_date').value,
+        pickup_time: document.getElementById('pickup_time').value,
+        pilot_car_positions: selectedPositions,
+        driver_name: document.getElementById('driver_name').value,
+        driver_phone: document.getElementById('driver_phone').value,
+        length: document.getElementById('length').value,
+        width: document.getElementById('width').value,
+        height: document.getElementById('height').value,
+        weight: document.getElementById('weight').value,
+        truck_number: document.getElementById('truck_number').value,
+        load_number: document.getElementById('load_number').value,
+        load_description: document.getElementById('load_description').value,
+        additional_notes: document.getElementById('additional_notes').value,
+        contact_name: document.getElementById('contact_name').value,
+        preferred_contact: document.getElementById('preferred_contact').value,
+        phone_number: document.getElementById('phone_number').value,
+        email: document.getElementById('email').value,
+        po_number: document.getElementById('po_number').value,
+        payment_method: document.querySelector('input[name="payment_method"]:checked').value,
+        terms_agreed: document.getElementById('terms_agreed').checked
+    };
+    
+    fetch('/submit-pilot-car-order', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('successMessage').textContent = data.message;
+            new bootstrap.Modal(document.getElementById('successModal')).show();
+        } else {
+            alert('Error: ' + data.error);
+            submitButton.disabled = false;
+            submitButton.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Submit Order';
+        }
+    })
+    .catch(error => {
+        alert('Error: ' + error);
+        submitButton.disabled = false;
+        submitButton.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Submit Order';
+    });
+});
+
+// Set minimum date to today
+document.getElementById('pickup_date').min = new Date().toISOString().split('T')[0];
+</script>
+{% endblock %} 

@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - My PEVO{% endblock %}
+
+{% block extra_head %}
+<style>
+  .admin-card {
+    border-radius: 15px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+  }
+  .admin-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  }
+  .admin-card-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+  .stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+  }
+  .admin-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 10px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    <div class="col-12">
+      <h2><i class="fas fa-user-shield me-2"></i>Admin Dashboard</h2>
+      <p class="text-muted">Manage My PEVO services and monitor customer activity</p>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="row mb-5">
+    <div class="col-lg-3 col-md-6 mb-4">
+      <div class="admin-card bg-primary text-white p-4 text-center">
+        <i class="fas fa-users admin-card-icon"></i>
+        <div class="stat-number">{{ users|length }}</div>
+        <p class="mb-0">Total Customers</p>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-4">
+      <div class="admin-card bg-success text-white p-4 text-center">
+        <i class="fas fa-route admin-card-icon"></i>
+        <div class="stat-number">{{ total_routes }}</div>
+        <p class="mb-0">Load Plans Created</p>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-4">
+      <div class="admin-card bg-info text-white p-4 text-center">
+        <i class="fas fa-file-invoice-dollar admin-card-icon"></i>
+        <div class="stat-number">{{ total_quotes }}</div>
+        <p class="mb-0">Quotes Generated</p>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-4">
+      <div class="admin-card bg-warning text-white p-4 text-center">
+        <i class="fas fa-map-marker-alt admin-card-icon"></i>
+        <div class="stat-number">{{ active_vendor_locations }}</div>
+        <p class="mb-0">Active Vendors</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Management Sections -->
+  <div class="row">
+    <div class="col-lg-3 mb-4">
+      <div class="admin-card h-100 p-4" onclick="location.href='/admin/customers'">
+        <div class="text-center">
+          <i class="fas fa-users text-primary admin-card-icon"></i>
+          <h4>Customer Management</h4>
+          <p class="text-muted">View and manage customer accounts, contact information, and DOT numbers</p>
+          <div class="mt-3">
+            <span class="badge bg-primary">{{ users|length }} Customers</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 mb-4">
+      <div class="admin-card h-100 p-4" onclick="location.href='/admin/quotes'">
+        <div class="text-center">
+          <i class="fas fa-file-invoice-dollar text-success admin-card-icon"></i>
+          <h4>Quote Management</h4>
+          <p class="text-muted">Review customer quotes with detailed breakdowns and pricing analysis</p>
+          <div class="mt-3">
+            <span class="badge bg-success">{{ total_quotes }} Quotes</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 mb-4">
+      <div class="admin-card h-100 p-4" onclick="location.href='/admin/load-plans'">
+        <div class="text-center">
+          <i class="fas fa-route text-info admin-card-icon"></i>
+          <h4>Load Plan Management</h4>
+          <p class="text-muted">Monitor customer load plans and escort requirements across states</p>
+          <div class="mt-3">
+            <span class="badge bg-info">{{ total_routes }} Plans</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 mb-4">
+      <div class="admin-card h-100 p-4" onclick="location.href='/admin/vendor-locations'">
+        <div class="text-center">
+          <i class="fas fa-map-marker-alt text-warning admin-card-icon"></i>
+          <h4>Vendor Locations</h4>
+          <p class="text-muted">View active vendor locations and search for nearby escort services</p>
+          <div class="mt-3">
+            <span class="badge bg-warning">{{ active_vendor_locations }} Active</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="row mt-4">
+    <div class="col-lg-6">
+      <div class="admin-section p-4">
+        <h5><i class="fas fa-clock me-2"></i>Recent Quotes</h5>
+        {% if all_quotes[:5] %}
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Route</th>
+                <th>Value</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for quote, user in all_quotes[:5] %}
+              <tr>
+                <td>{{ user.company_name }}</td>
+                <td><small>{{ quote.pickup_state }} → {{ quote.delivery_state }}</small></td>
+                <td><strong>${{ "%.0f"|format(quote.total_cost) if quote.total_cost else '0' }}</strong></td>
+                <td><small>{{ quote.created_at.strftime('%m/%d') }}</small></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p class="text-muted">No quotes yet</p>
+        {% endif %}
+        <div class="text-end">
+          <a href="/admin/quotes" class="btn btn-outline-primary btn-sm">View All</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="admin-section p-4">
+        <h5><i class="fas fa-route me-2"></i>Recent Load Plans</h5>
+        {% if all_routes[:5] %}
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Route</th>
+                <th>Load Type</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for route, user in all_routes[:5] %}
+              <tr>
+                <td>{{ user.company_name }}</td>
+                <td><small>{{ route.origin[:20] }}... → {{ route.destination[:20] }}...</small></td>
+                <td><span class="badge bg-secondary">{{ route.road_type }}</span></td>
+                <td><small>{{ route.created_at.strftime('%m/%d') }}</small></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p class="text-muted">No load plans yet</p>
+        {% endif %}
+        <div class="text-end">
+          <a href="/admin/load-plans" class="btn btn-outline-info btn-sm">View All</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- System Information -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="admin-section p-4">
+        <h5><i class="fas fa-info-circle me-2"></i>System Information</h5>
+        <div class="row">
+          <div class="col-md-6">
+            <p><strong>Database Status:</strong> <span class="text-success">Online</span></p>
+            <p><strong>Google Maps API:</strong> <span class="text-success">Active</span></p>
+            <p><strong>Last Database Update:</strong> {{ current_time }}</p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Active Sessions:</strong> {{ users|selectattr('is_admin', 'false')|list|length }} customers</p>
+            <p><strong>Admin Users:</strong> {{ users|selectattr('is_admin', 'true')|list|length }}</p>
+            <p><strong>Server Status:</strong> <span class="text-success">Running</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Add hover effects and click handlers
+  const cards = document.querySelectorAll('.admin-card[onclick]');
+  cards.forEach(card => {
+    card.style.cursor = 'pointer';
+  });
+});
+</script>
+{% endblock %} 

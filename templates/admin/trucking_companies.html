@@ -1,0 +1,365 @@
+{% extends 'base.html' %}
+
+{% block title %}Trucking Companies Management - My PEVO Admin{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2><i class="fas fa-truck me-2"></i>Trucking Companies Management</h2>
+          <p class="text-muted">Approve, manage, and monitor trucking company accounts</p>
+        </div>
+        <div>
+          <a href="/admin" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card bg-warning text-white">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <div>
+              <h5>{{ trucking_companies | selectattr('is_approved', 'equalto', false) | list | length }}</h5>
+              <small>Pending Approval</small>
+            </div>
+            <i class="fas fa-hourglass-half fa-2x"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-success text-white">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <div>
+              <h5>{{ trucking_companies | selectattr('is_approved', 'equalto', true) | selectattr('is_suspended', 'equalto', false) | list | length }}</h5>
+              <small>Active Companies</small>
+            </div>
+            <i class="fas fa-check-circle fa-2x"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-danger text-white">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <div>
+              <h5>{{ trucking_companies | selectattr('is_suspended', 'equalto', true) | list | length }}</h5>
+              <small>Suspended</small>
+            </div>
+            <i class="fas fa-ban fa-2x"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-info text-white">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <div>
+              <h5>{{ trucking_companies | length }}</h5>
+              <small>Total Companies</small>
+            </div>
+            <i class="fas fa-building fa-2x"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Companies Table -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          {% if trucking_companies %}
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Company Details</th>
+                  <th>Contact Info</th>
+                  <th>DOT Number</th>
+                  <th>Status</th>
+                  <th>Activity</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for company in trucking_companies %}
+                <tr class="{% if not company.is_approved %}table-warning{% elif company.is_suspended %}table-danger{% endif %}">
+                  <td>
+                    <div>
+                      <strong>{{ company.company_name }}</strong>
+                      <br><small class="text-muted">ID: #{{ company.id }}</small>
+                      <br><small class="text-muted">Registered: {{ company.created_at.strftime('%m/%d/%Y') }}</small>
+                    </div>
+                  </td>
+                  <td>
+                    <div>
+                      <i class="fas fa-envelope text-info me-1"></i>
+                      <a href="mailto:{{ company.email }}">{{ company.email }}</a><br>
+                      {% if company.phone_number %}
+                        <i class="fas fa-phone text-success me-1"></i>
+                        <a href="tel:{{ company.phone_number }}">{{ company.phone_number }}</a>
+                      {% else %}
+                        <span class="text-muted">No phone</span>
+                      {% endif %}
+                    </div>
+                  </td>
+                  <td>
+                    {% if company.dot_number %}
+                      <span class="badge bg-success">{{ company.dot_number }}</span>
+                    {% else %}
+                      <span class="badge bg-warning">No DOT#</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if company.is_suspended %}
+                      <span class="badge bg-danger">Suspended</span>
+                    {% elif not company.is_approved %}
+                      <span class="badge bg-warning">Pending Approval</span>
+                    {% else %}
+                      <span class="badge bg-success">Active</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <div class="small">
+                      <strong>{{ company.routes|length }}</strong> Load Plans<br>
+                      <strong>{{ company.quotes|length }}</strong> Quotes<br>
+                      {% if company.quotes %}
+                        Last: {{ company.quotes[-1].created_at.strftime('%m/%d/%Y') }}
+                      {% else %}
+                        <span class="text-muted">No activity</span>
+                      {% endif %}
+                    </div>
+                  </td>
+                  <td>
+                    <div class="btn-group-vertical btn-group-sm" role="group">
+                      {% if not company.is_approved %}
+                        <button type="button" class="btn btn-success btn-sm" 
+                                onclick="approveUser({{ company.id }}, '{{ company.company_name }}')" 
+                                title="Approve Company">
+                          <i class="fas fa-check me-1"></i>Approve
+                        </button>
+                      {% endif %}
+                      
+                      {% if not company.is_suspended %}
+                        <button type="button" class="btn btn-warning btn-sm" 
+                                onclick="suspendUser({{ company.id }}, '{{ company.company_name }}')" 
+                                title="Suspend Company">
+                          <i class="fas fa-ban me-1"></i>Suspend
+                        </button>
+                      {% else %}
+                        <button type="button" class="btn btn-info btn-sm" 
+                                onclick="unsuspendUser({{ company.id }}, '{{ company.company_name }}')" 
+                                title="Unsuspend Company">
+                          <i class="fas fa-check-circle me-1"></i>Unsuspend
+                        </button>
+                      {% endif %}
+                      
+                      <button type="button" class="btn btn-outline-primary btn-sm" 
+                              onclick="viewCompany({{ company.id }})" title="View Details">
+                        <i class="fas fa-eye me-1"></i>Details
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="text-center py-5">
+            <i class="fas fa-truck text-muted" style="font-size: 4rem;"></i>
+            <h4 class="mt-3 text-muted">No trucking companies yet</h4>
+            <p class="text-muted">Trucking company registrations will appear here</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Company Details Modal -->
+<div class="modal fade" id="companyModal" tabindex="-1" aria-labelledby="companyModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="companyModalLabel">Company Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="companyModalBody">
+        <!-- Company details will be loaded here -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Company data for JavaScript functions
+const companies = [
+  {% for company in trucking_companies %}
+  {
+    id: {{ company.id }},
+    company_name: "{{ company.company_name }}",
+    email: "{{ company.email }}",
+    phone_number: "{{ company.phone_number or '' }}",
+    dot_number: "{{ company.dot_number or '' }}",
+    created_at: "{{ company.created_at.strftime('%m/%d/%Y %I:%M %p') }}",
+    is_approved: {{ company.is_approved|lower }},
+    is_suspended: {{ company.is_suspended|lower }},
+    routes_count: {{ company.routes|length }},
+    quotes_count: {{ company.quotes|length }}
+  },
+  {% endfor %}
+];
+
+function approveUser(userId, companyName) {
+  if (confirm(`Are you sure you want to approve ${companyName}?`)) {
+    fetch(`/admin/approve-user/${userId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert(data.message);
+        location.reload();
+      } else {
+        alert('Error: ' + data.error);
+      }
+    })
+    .catch(error => {
+      alert('Error: ' + error);
+    });
+  }
+}
+
+function suspendUser(userId, companyName) {
+  if (confirm(`Are you sure you want to suspend ${companyName}? They will not be able to access their account.`)) {
+    fetch(`/admin/suspend-user/${userId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert(data.message);
+        location.reload();
+      } else {
+        alert('Error: ' + data.error);
+      }
+    })
+    .catch(error => {
+      alert('Error: ' + error);
+    });
+  }
+}
+
+function unsuspendUser(userId, companyName) {
+  if (confirm(`Are you sure you want to unsuspend ${companyName}?`)) {
+    fetch(`/admin/unsuspend-user/${userId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert(data.message);
+        location.reload();
+      } else {
+        alert('Error: ' + data.error);
+      }
+    })
+    .catch(error => {
+      alert('Error: ' + error);
+    });
+  }
+}
+
+function viewCompany(companyId) {
+  const company = companies.find(c => c.id === companyId);
+  if (!company) {
+    alert('Company not found');
+    return;
+  }
+  
+  const modalBody = document.getElementById('companyModalBody');
+  modalBody.innerHTML = `
+    <div class="row">
+      <div class="col-md-6">
+        <h6>Company Information</h6>
+        <table class="table table-sm">
+          <tr>
+            <td><strong>Company ID:</strong></td>
+            <td>#${company.id}</td>
+          </tr>
+          <tr>
+            <td><strong>Company Name:</strong></td>
+            <td>${company.company_name}</td>
+          </tr>
+          <tr>
+            <td><strong>DOT Number:</strong></td>
+            <td>${company.dot_number || '<span class="text-muted">Not provided</span>'}</td>
+          </tr>
+          <tr>
+            <td><strong>Registration Date:</strong></td>
+            <td>${company.created_at}</td>
+          </tr>
+          <tr>
+            <td><strong>Status:</strong></td>
+            <td>${company.is_suspended ? '<span class="badge bg-danger">Suspended</span>' : 
+                   !company.is_approved ? '<span class="badge bg-warning">Pending Approval</span>' : 
+                   '<span class="badge bg-success">Active</span>'}</td>
+          </tr>
+        </table>
+      </div>
+      
+      <div class="col-md-6">
+        <h6>Contact & Activity</h6>
+        <table class="table table-sm">
+          <tr>
+            <td><strong>Email:</strong></td>
+            <td><a href="mailto:${company.email}">${company.email}</a></td>
+          </tr>
+          <tr>
+            <td><strong>Phone:</strong></td>
+            <td>${company.phone_number ? '<a href="tel:' + company.phone_number + '">' + company.phone_number + '</a>' : '<span class="text-muted">Not provided</span>'}</td>
+          </tr>
+          <tr>
+            <td><strong>Load Plans:</strong></td>
+            <td>${company.routes_count}</td>
+          </tr>
+          <tr>
+            <td><strong>Quotes:</strong></td>
+            <td>${company.quotes_count}</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  `;
+  
+  new bootstrap.Modal(document.getElementById('companyModal')).show();
+}
+</script>
+{% endblock %} 

@@ -1,0 +1,416 @@
+{% extends 'base.html' %}
+
+{% block title %}Quote Management - My PEVO Admin{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2><i class="fas fa-file-invoice-dollar me-2"></i>Quote Management</h2>
+          <p class="text-muted">Review customer quotes with detailed breakdowns and pricing analysis</p>
+        </div>
+        <div>
+          <a href="/admin" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          {% if quotes %}
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Quote ID</th>
+                  <th>Customer</th>
+                  <th>Route Details</th>
+                  <th>Services Requested</th>
+                  <th>Trip Analysis</th>
+                  <th>Total Cost</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for quote, user in quotes %}
+                <tr>
+                  <td><strong>#{{ quote.id }}</strong></td>
+                  <td>
+                    <div>
+                      <strong>{{ user.company_name }}</strong><br>
+                      <small class="text-muted">{{ user.email }}</small><br>
+                      {% if user.phone_number %}
+                        <small><i class="fas fa-phone me-1"></i>{{ user.phone_number }}</small><br>
+                      {% endif %}
+                      {% if user.dot_number %}
+                        <small><i class="fas fa-truck me-1"></i>DOT: {{ user.dot_number }}</small>
+                      {% endif %}
+                    </div>
+                  </td>
+                  <td>
+                    <div class="small">
+                      <i class="fas fa-map-marker-alt text-success"></i> <strong>From:</strong> {{ quote.pickup_location }}, {{ quote.pickup_state }}<br>
+                      <i class="fas fa-flag-checkered text-danger"></i> <strong>To:</strong> {{ quote.delivery_location }}, {{ quote.delivery_state }}<br>
+                      <i class="fas fa-route text-info"></i> <strong>Distance:</strong> {{ quote.distance_miles|round(1) if quote.distance_miles else 'N/A' }} miles<br>
+                      <i class="fas fa-calendar text-warning"></i> <strong>Pickup:</strong> {{ quote.pickup_date.strftime('%m/%d/%Y') }} at {{ quote.pickup_time }}
+                    </div>
+                  </td>
+                  <td>
+                    {% set car_types = quote.car_types|from_json %}
+                    {% if car_types %}
+                      {% for car_type in car_types %}
+                        <span class="badge bg-primary me-1 mb-1">{{ car_type }}</span>
+                      {% endfor %}
+                      <br>
+                      {% if quote.is_superload %}
+                        <span class="badge bg-danger">SUPERLOAD</span>
+                      {% endif %}
+                    {% else %}
+                      <span class="text-muted">No services specified</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <div class="small">
+                      <strong>Region:</strong> {{ quote.region }}<br>
+                      <strong>Rate Type:</strong> 
+                      {% if quote.rate_type == 'premium' %}
+                        <span class="badge bg-warning text-dark">Premium</span>
+                      {% else %}
+                        <span class="badge bg-success">Standard</span>
+                      {% endif %}<br>
+                      <strong>Trip Days:</strong> 
+                      {% set breakdown = quote.quote_breakdown|from_json %}
+                      {% if breakdown %}
+                        {% set max_days = 0 %}
+                        {% for car_type, details in breakdown.items() %}
+                          {% if details.daily_breakdown %}
+                            {% set days = details.daily_breakdown|length %}
+                            {% if days > max_days %}
+                              {% set max_days = days %}
+                            {% endif %}
+                          {% endif %}
+                        {% endfor %}
+                        {{ max_days }} day(s)
+                      {% else %}
+                        N/A
+                      {% endif %}
+                    </div>
+                  </td>
+                  <td>
+                    <div class="text-center">
+                      <h5 class="text-success mb-0">${{ "%.2f"|format(quote.total_cost) if quote.total_cost else '0.00' }}</h5>
+                      <small class="text-muted">Total Quote</small>
+                    </div>
+                  </td>
+                  <td>{{ quote.created_at.strftime('%m/%d/%Y %H:%M') }}</td>
+                  <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                      <button type="button" class="btn btn-outline-primary" 
+                              onclick="viewQuoteDetails({{ quote.id }})" title="View Details">
+                        <i class="fas fa-search"></i>
+                      </button>
+                      <a href="mailto:{{ user.email }}?subject=Quote #{{ quote.id }} - Pilot Car Services&body=Hello {{ user.company_name }},%0D%0A%0D%0AThank you for requesting a quote for pilot car services.%0D%0A%0D%0AQuote Details:%0D%0A- Quote ID: #{{ quote.id }}%0D%0A- Route: {{ quote.pickup_location }}, {{ quote.pickup_state }} to {{ quote.delivery_location }}, {{ quote.delivery_state }}%0D%0A- Total Cost: ${{ '%.2f'|format(quote.total_cost) }}%0D%0A%0D%0AWe're ready to provide professional escort services for your shipment. Please let me know if you'd like to proceed.%0D%0A%0D%0ABest regards,%0D%0AMy PEVO Team" 
+                         class="btn btn-outline-success" title="Contact Customer">
+                        <i class="fas fa-envelope"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="text-center py-5">
+            <i class="fas fa-file-invoice-dollar text-muted" style="font-size: 4rem;"></i>
+            <h4 class="mt-3 text-muted">No quotes yet</h4>
+            <p class="text-muted">Customer quotes will appear here when they request pricing</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quote Details Modal -->
+<div class="modal fade" id="quoteModal" tabindex="-1" aria-labelledby="quoteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="quoteModalLabel">Quote Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="quoteModalBody">
+        <!-- Quote details will be loaded here -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" onclick="contactCustomerFromQuote()">
+          <i class="fas fa-envelope me-2"></i>Contact Customer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function viewQuoteDetails(quoteId) {
+  // Quote data for detailed view
+  const quotes = [
+    {% for quote, user in quotes %}
+    {
+      id: {{ quote.id }},
+      customer: {
+        company_name: "{{ user.company_name }}",
+        email: "{{ user.email }}",
+        phone_number: "{{ user.phone_number or '' }}",
+        dot_number: "{{ user.dot_number or '' }}"
+      },
+      pickup_date: "{{ quote.pickup_date.strftime('%m/%d/%Y') }}",
+      pickup_time: "{{ quote.pickup_time }}",
+      pickup_location: "{{ quote.pickup_location }}",
+      pickup_state: "{{ quote.pickup_state }}",
+      delivery_location: "{{ quote.delivery_location }}",
+      delivery_state: "{{ quote.delivery_state }}",
+      car_types: {{ quote.car_types|safe }},
+      is_superload: {{ quote.is_superload|lower }},
+      distance_miles: {{ quote.distance_miles or 0 }},
+      rate_type: "{{ quote.rate_type }}",
+      region: "{{ quote.region }}",
+      total_cost: {{ quote.total_cost or 0 }},
+      breakdown: {{ quote.quote_breakdown|safe if quote.quote_breakdown else '{}' }},
+      created_at: "{{ quote.created_at.strftime('%m/%d/%Y %I:%M %p') }}"
+    },
+    {% endfor %}
+  ];
+  
+  const quote = quotes.find(q => q.id === quoteId);
+  if (!quote) {
+    alert('Quote not found');
+    return;
+  }
+  
+  const modalBody = document.getElementById('quoteModalBody');
+  modalBody.innerHTML = `
+    <div class="row">
+      <div class="col-12">
+        <h6><i class="fas fa-info-circle me-2"></i>Quote Overview</h6>
+        <div class="table-responsive mb-4">
+          <table class="table table-sm table-bordered">
+            <tbody>
+              <tr>
+                <td class="bg-light" style="width: 20%;"><strong>Quote ID</strong></td>
+                <td style="width: 30%;">#${quote.id}</td>
+                <td class="bg-light" style="width: 20%;"><strong>Customer</strong></td>
+                <td style="width: 30%;">${quote.customer.company_name}</td>
+              </tr>
+              <tr>
+                <td class="bg-light"><strong>Email</strong></td>
+                <td><a href="mailto:${quote.customer.email}">${quote.customer.email}</a></td>
+                <td class="bg-light"><strong>Phone</strong></td>
+                <td>${quote.customer.phone_number ? '<a href="tel:' + quote.customer.phone_number + '">' + quote.customer.phone_number + '</a>' : 'Not provided'}</td>
+              </tr>
+              <tr>
+                <td class="bg-light"><strong>DOT Number</strong></td>
+                <td>${quote.customer.dot_number ? '<span class="badge bg-success">' + quote.customer.dot_number + '</span>' : 'Not provided'}</td>
+                <td class="bg-light"><strong>Created</strong></td>
+                <td>${quote.created_at}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <h6><i class="fas fa-route me-2"></i>Trip Details</h6>
+        <div class="table-responsive mb-4">
+          <table class="table table-sm table-bordered">
+            <tbody>
+              <tr>
+                <td class="bg-light" style="width: 20%;"><strong>Pickup Date/Time</strong></td>
+                <td style="width: 30%;">${quote.pickup_date} at ${quote.pickup_time}</td>
+                <td class="bg-light" style="width: 20%;"><strong>Distance</strong></td>
+                <td style="width: 30%;">${quote.distance_miles.toFixed(1)} miles</td>
+              </tr>
+              <tr>
+                <td class="bg-light"><strong>From</strong></td>
+                <td>${quote.pickup_location}, ${quote.pickup_state}</td>
+                <td class="bg-light"><strong>To</strong></td>
+                <td>${quote.delivery_location}, ${quote.delivery_state}</td>
+              </tr>
+              <tr>
+                <td class="bg-light"><strong>Services</strong></td>
+                <td>${quote.car_types.map(type => '<span class="badge bg-primary me-1">' + type + '</span>').join('')}</td>
+                <td class="bg-light"><strong>Special Status</strong></td>
+                <td>${quote.is_superload ? '<span class="badge bg-danger">SUPERLOAD</span>' : '<span class="badge bg-success">Standard Load</span>'}</td>
+              </tr>
+              <tr>
+                <td class="bg-light"><strong>Region</strong></td>
+                <td>${quote.region}</td>
+                <td class="bg-light"><strong>Rate Type</strong></td>
+                <td><span class="badge bg-${quote.rate_type === 'premium' ? 'warning' : 'success'}">${quote.rate_type.charAt(0).toUpperCase() + quote.rate_type.slice(1)}</span></td>
+              </tr>
+              <tr>
+                <td class="bg-light"><strong>Total Cost</strong></td>
+                <td><h5 class="text-success mb-0">$${quote.total_cost.toFixed(2)}</h5></td>
+                <td class="bg-light"><strong>Priority</strong></td>
+                <td><span class="badge bg-${quote.total_cost > 1000 ? 'danger' : quote.total_cost > 500 ? 'warning' : 'info'}">${quote.total_cost > 1000 ? 'HIGH' : quote.total_cost > 500 ? 'MEDIUM' : 'STANDARD'}</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    
+    <hr>
+    
+    <div class="row">
+      <div class="col-12">
+        <h6><i class="fas fa-calculator me-2"></i>Pricing Breakdown</h6>
+  `;
+  
+  // Add detailed breakdown table
+  if (quote.breakdown && Object.keys(quote.breakdown).length > 0) {
+    modalBody.innerHTML += `
+        <div class="table-responsive">
+          <table class="table table-bordered">
+            <thead class="table-light">
+              <tr>
+                <th>Service Type</th>
+                <th>Rate Structure</th>
+                <th>Daily Breakdown</th>
+                <th>Calculation Method</th>
+                <th>Total Cost</th>
+              </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    Object.entries(quote.breakdown).forEach(([carType, details]) => {
+      const isMultiDay = details.daily_breakdown && details.daily_breakdown.length > 1;
+      const calculationMethod = isMultiDay ? 'Day Rate + Overnight Fees' : 'Mileage vs Day Rate (Higher)';
+      
+      modalBody.innerHTML += `
+              <tr>
+                <td><strong>${carType}</strong></td>
+                <td>
+                  <small>
+                    Mileage: $${details.mile_rate}/mile<br>
+                    Day Rate: $${details.day_rate}/day
+                  </small>
+                </td>
+                <td>
+      `;
+      
+      if (details.daily_breakdown) {
+        details.daily_breakdown.forEach(day => {
+          modalBody.innerHTML += `
+                  <small>
+                    <strong>Day ${day.day}:</strong> ${day.miles} miles<br>
+                    Mileage Cost: $${day.mileage_cost} | Day Rate: $${day.day_rate}<br>
+                    Daily Cost: $${day.daily_cost}${day.overnight_fee > 0 ? ' (includes $' + day.overnight_fee + ' overnight)' : ''}<br>
+                  </small>
+          `;
+        });
+      }
+      
+      modalBody.innerHTML += `
+                </td>
+                <td>
+                  <span class="badge bg-${isMultiDay ? 'warning' : 'info'}">${calculationMethod}</span>
+                  ${isMultiDay ? '<br><small class="text-muted">Multi-day trips use day rates with overnight fees</small>' : '<br><small class="text-muted">Single day uses higher of mileage or day rate</small>'}
+                </td>
+                <td class="text-end">
+                  <strong>$${details.total}</strong>
+                </td>
+              </tr>
+      `;
+    });
+    
+    modalBody.innerHTML += `
+            </tbody>
+          </table>
+        </div>
+    `;
+  } else {
+    modalBody.innerHTML += `
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle me-2"></i>
+          No detailed breakdown available for this quote.
+        </div>
+    `;
+  }
+  
+  modalBody.innerHTML += `
+      </div>
+    </div>
+    
+    <hr>
+    
+    <div class="row">
+      <div class="col-md-6">
+        <h6>Business Analysis</h6>
+        <div class="card ${quote.total_cost > 1000 ? 'bg-success' : quote.total_cost > 500 ? 'bg-warning' : 'bg-info'} text-dark">
+          <div class="card-body">
+            <h5 class="card-title">
+              <i class="fas fa-chart-line"></i>
+              ${quote.total_cost > 1000 ? 'High Value Quote' : quote.total_cost > 500 ? 'Medium Value Quote' : 'Standard Quote'}
+            </h5>
+            <p class="card-text">
+              Quote value: $${quote.total_cost.toFixed(2)}<br>
+              ${quote.rate_type === 'premium' ? 'Premium rates applied due to timing or superload status' : 'Standard rates applied'}<br>
+              ${quote.is_superload ? 'SUPERLOAD - requires special handling' : 'Standard load requirements'}
+            </p>
+            <small><strong>Follow-up Priority:</strong> ${quote.total_cost > 1000 ? 'HIGH' : quote.total_cost > 500 ? 'MEDIUM' : 'STANDARD'}</small>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-6">
+        <h6>Next Steps</h6>
+        <div class="d-grid gap-2">
+          <a href="mailto:${quote.customer.email}?subject=Quote #${quote.id} Follow-up&body=Hello ${quote.customer.company_name},%0D%0A%0D%0AFollowing up on your quote request #${quote.id}.%0D%0A%0D%0AQuote Summary:%0D%0A- Services: ${quote.car_types.join(', ')}%0D%0A- Route: ${quote.pickup_location}, ${quote.pickup_state} to ${quote.delivery_location}, ${quote.delivery_state}%0D%0A- Total: $${quote.total_cost.toFixed(2)}%0D%0A%0D%0AWe're ready to provide professional escort services. When would you like to proceed?%0D%0A%0D%0ABest regards,%0D%0AMy PEVO Team" 
+             class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-envelope me-2"></i>Send Follow-up Email
+          </a>
+          ${quote.customer.phone_number ? `
+          <a href="tel:${quote.customer.phone_number}" class="btn btn-outline-success btn-sm">
+            <i class="fas fa-phone me-2"></i>Call Customer
+          </a>
+          ` : ''}
+          <button class="btn btn-outline-warning btn-sm" onclick="createContract(${quote.id})">
+            <i class="fas fa-file-contract me-2"></i>Create Contract
+          </button>
+          <button class="btn btn-outline-info btn-sm" onclick="exportQuote(${quote.id})">
+            <i class="fas fa-download me-2"></i>Export Quote
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Show modal
+  const modal = new bootstrap.Modal(document.getElementById('quoteModal'));
+  modal.show();
+}
+
+function createContract(quoteId) {
+  alert('Contract creation functionality will be implemented. This would generate a service agreement based on the quote details.');
+}
+
+function exportQuote(quoteId) {
+  alert('Quote export functionality will be implemented');
+}
+
+function contactCustomerFromQuote() {
+  alert('Contact customer functionality will be implemented');
+}
+</script>
+{% endblock %} 

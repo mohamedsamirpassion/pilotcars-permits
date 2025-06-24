@@ -1,3 +1,5 @@
+from dotenv import load_dotenv
+load_dotenv()
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -9,11 +11,12 @@ import math
 import re
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///mypevo.db')
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
+
 
 # Add custom Jinja filters
 @app.template_filter('from_json')
@@ -1440,6 +1443,14 @@ def update_order_status(order_id):
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
+        # Print the list of tables for debugging
+        print('Database tables:', db.inspect(db.engine).get_table_names())
+        print('Database URI:', app.config['SQLALCHEMY_DATABASE_URI'])
+        print('Environment variables:', {
+            'SECRET_KEY': os.environ.get('SECRET_KEY'),
+            'GOOGLE_MAPS_API_KEY': os.environ.get('GOOGLE_MAPS_API_KEY'),
+            'DATABASE_URL': os.environ.get('DATABASE_URL')
+        })
         
         # Create default admin user if it doesn't exist
         admin = User.query.filter_by(email='admin@mypevo.com').first()

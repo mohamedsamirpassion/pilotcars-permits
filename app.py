@@ -12,8 +12,8 @@ import re
 from geopy.geocoders import Nominatim
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+app.config['SECRET_KEY'] = 'your_secret_key'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mypevo.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -570,7 +570,7 @@ def get_regional_rates():
 def calculate_distance_google_api(origin, destination):
     """Calculate distance using Google Maps Distance Matrix API"""
     try:
-        api_key = os.environ.get('GOOGLE_MAPS_API_KEY') # changed 
+        api_key = "AIzaSyB_b3YxUhXGg6fgStYFUjZ9qwdtTy8OPLU" 
         url = f"https://maps.googleapis.com/maps/api/distancematrix/json"
         
         params = {

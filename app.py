@@ -71,13 +71,19 @@ def get_city_state_from_coordinates(latitude, longitude):
                 state = (address_parts.get('state') or 
                         address_parts.get('state_district') or 
                         address_parts.get('region') or
-                        address_parts.get('province'))
+                        address_parts.get('province') or
+                        address_parts.get('country'))  # Use country as fallback for state
+                
+                # Handle case where we have city but no state/region info
+                if city and not state:
+                    # Try to get country as state fallback
+                    state = address_parts.get('country', 'Unknown Region')
                 
                 # If we got non-English results, try to get English names
-                if city and state:
+                if city:  # Only require city, state is optional
                     # Check if the result contains non-Latin characters (likely non-English)
                     import re
-                    if re.search(r'[^\x00-\x7F]', city) or re.search(r'[^\x00-\x7F]', state):
+                    if re.search(r'[^\x00-\x7F]', city) or (state and re.search(r'[^\x00-\x7F]', state)):
                         # Try to get English name from alternative sources
                         english_city, english_state = get_english_place_names(latitude, longitude, city, state)
                         if english_city:
@@ -144,6 +150,9 @@ def get_english_place_names(latitude, longitude, original_city, original_state):
             'المنصورة': 'Mansoura',
             'أسوان': 'Aswan',
             'الأقصر': 'Luxor',
+            'الرياض': 'Riyadh',
+            'جدة': 'Jeddah',
+            'الدمام': 'Dammam',
             
             # Spanish locations
             'Ciudad de México': 'Mexico City',
@@ -156,16 +165,42 @@ def get_english_place_names(latitude, longitude, original_city, original_state):
             '北京': 'Beijing',
             '上海': 'Shanghai',
             '广州': 'Guangzhou',
+            '深圳': 'Shenzhen',
+            '杭州': 'Hangzhou',
             
             # Japanese locations
             '東京': 'Tokyo',
             '大阪': 'Osaka',
+            '京都': 'Kyoto',
+            '横浜': 'Yokohama',
+            
+            # Russian locations
+            'Москва': 'Moscow',
+            'Санкт-Петербург': 'Saint Petersburg',
+            
+            # Korean locations
+            '서울': 'Seoul',
+            '부산': 'Busan',
             
             # Add more mappings as needed
         }
         
         english_city = english_mappings.get(original_city)
         english_state = english_mappings.get(original_state)
+        
+        # Method 3: If we still have non-English names, try transliteration
+        if not english_city and original_city:
+            # For places not in our mapping, use a fallback strategy
+            import re
+            if re.search(r'[^\x00-\x7F]', original_city):
+                # Keep the original non-English name but add a note
+                # This preserves the data while indicating it needs manual review
+                english_city = f"{original_city}"
+        
+        if not english_state and original_state:
+            import re
+            if re.search(r'[^\x00-\x7F]', original_state):
+                english_state = f"{original_state}"
         
         return english_city, english_state
         

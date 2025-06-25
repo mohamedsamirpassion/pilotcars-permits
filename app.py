@@ -9,6 +9,7 @@ import json
 import requests
 import math
 import re
+from geopy.geocoders import Nominatim
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
@@ -33,6 +34,144 @@ def from_json(value):
 def moment():
     """Make datetime available in templates"""
     return datetime
+
+# Helper function for reverse geocoding
+def get_city_state_from_coordinates(latitude, longitude):
+    """Get city and state from latitude and longitude coordinates in English"""
+    try:
+        # Use direct API call with SSL verification disabled to avoid macOS SSL issues
+        import urllib3
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        
+        # First try with English language preference
+        url = f"https://nominatim.openstreetmap.org/reverse?lat={latitude}&lon={longitude}&format=json&addressdetails=1&accept-language=en"
+        headers = {
+            'User-Agent': 'mypevo-pilot-car-app/1.0 (contact@mypevo.com)',
+            'Accept-Language': 'en-US,en;q=0.9'
+        }
+        
+        response = requests.get(url, headers=headers, verify=False, timeout=10)
+        
+        if response.status_code == 200:
+            data = response.json()
+            
+            if 'address' in data:
+                address_parts = data['address']
+                
+                # Try multiple possible keys for city
+                city = (address_parts.get('city') or 
+                       address_parts.get('town') or 
+                       address_parts.get('village') or 
+                       address_parts.get('hamlet') or 
+                       address_parts.get('county') or
+                       address_parts.get('municipality') or
+                       address_parts.get('suburb'))
+                
+                # Try multiple possible keys for state
+                state = (address_parts.get('state') or 
+                        address_parts.get('state_district') or 
+                        address_parts.get('region') or
+                        address_parts.get('province'))
+                
+                # If we got non-English results, try to get English names
+                if city and state:
+                    # Check if the result contains non-Latin characters (likely non-English)
+                    import re
+                    if re.search(r'[^\x00-\x7F]', city) or re.search(r'[^\x00-\x7F]', state):
+                        # Try to get English name from alternative sources
+                        english_city, english_state = get_english_place_names(latitude, longitude, city, state)
+                        if english_city:
+                            city = english_city
+                        if english_state:
+                            state = english_state
+                
+                return city, state
+                
+    except Exception as e:
+        print(f"Geocoding error: {e}")
+    
+    return None, None
+
+def get_english_place_names(latitude, longitude, original_city, original_state):
+    """Try to get English names for places using additional methods"""
+    try:
+        import urllib3
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        
+        # Try different approaches to get English names
+        
+        # Method 1: Try with different zoom levels to get broader region names
+        url = f"https://nominatim.openstreetmap.org/reverse?lat={latitude}&lon={longitude}&format=json&zoom=10&accept-language=en"
+        headers = {
+            'User-Agent': 'mypevo-pilot-car-app/1.0 (contact@mypevo.com)',
+            'Accept-Language': 'en-US,en;q=0.9'
+        }
+        
+        response = requests.get(url, headers=headers, verify=False, timeout=10)
+        
+        if response.status_code == 200:
+            data = response.json()
+            if 'address' in data:
+                address_parts = data['address']
+                
+                city = (address_parts.get('city') or 
+                       address_parts.get('town') or 
+                       address_parts.get('village') or 
+                       address_parts.get('hamlet') or 
+                       address_parts.get('county') or
+                       address_parts.get('municipality') or
+                       address_parts.get('suburb'))
+                
+                state = (address_parts.get('state') or 
+                        address_parts.get('state_district') or 
+                        address_parts.get('region') or
+                        address_parts.get('province'))
+                
+                # Check if we got English results this time
+                import re
+                if city and not re.search(r'[^\x00-\x7F]', city):
+                    if state and not re.search(r'[^\x00-\x7F]', state):
+                        return city, state
+        
+        # Method 2: Try manual mapping for common non-English place names
+        english_mappings = {
+            # Arabic locations
+            'مدينة نصر': 'Nasr City',
+            'القاهرة': 'Cairo',
+            'الجيزة': 'Giza',
+            'الإسكندرية': 'Alexandria',
+            'شبرا الخيمة': 'Shubra El Kheima',
+            'المنصورة': 'Mansoura',
+            'أسوان': 'Aswan',
+            'الأقصر': 'Luxor',
+            
+            # Spanish locations
+            'Ciudad de México': 'Mexico City',
+            'Ciudad Autónoma de Buenos Aires': 'Buenos Aires',
+            
+            # French locations
+            'Île-de-France': 'Île-de-France',
+            
+            # Chinese locations  
+            '北京': 'Beijing',
+            '上海': 'Shanghai',
+            '广州': 'Guangzhou',
+            
+            # Japanese locations
+            '東京': 'Tokyo',
+            '大阪': 'Osaka',
+            
+            # Add more mappings as needed
+        }
+        
+        english_city = english_mappings.get(original_city)
+        english_state = english_mappings.get(original_state)
+        
+        return english_city, english_state
+        
+    except Exception as e:
+        print(f"English name lookup error: {e}")
+        return None, None
 
 # Database Models
 class User(db.Model):
@@ -1087,6 +1226,21 @@ def submit_vendor_location():
     try:
         data = request.get_json()
         
+        # Get latitude and longitude from the data
+        latitude = data.get('latitude')
+        longitude = data.get('longitude')
+        
+        # Calculate city and state from coordinates if not provided
+        location_city = data.get('location_city')
+        location_state = data.get('location_state')
+        
+        if latitude and longitude and (not location_city or not location_state):
+            calculated_city, calculated_state = get_city_state_from_coordinates(latitude, longitude)
+            if not location_city and calculated_city:
+                location_city = calculated_city
+            if not location_state and calculated_state:
+                location_state = calculated_state
+        
         # Calculate expiration time (48 hours from now)
         expires_at = datetime.utcnow() + timedelta(hours=48)
         
@@ -1105,10 +1259,10 @@ def submit_vendor_location():
             contact_name=data.get('contact_name'),
             email=data.get('email'),
             phone=data.get('phone'),
-            location_city=data.get('location_city'),
-            location_state=data.get('location_state'),
-            latitude=data.get('latitude'),
-            longitude=data.get('longitude'),
+            location_city=location_city,
+            location_state=location_state,
+            latitude=latitude,
+            longitude=longitude,
             coverage_radius=int(data.get('coverage_radius', 100)),
             services_provided=json.dumps(data.get('services_provided', [])),
             notes=data.get('notes', ''),
@@ -1443,14 +1597,6 @@ def update_order_status(order_id):
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-        # Print the list of tables for debugging
-        print('Database tables:', db.inspect(db.engine).get_table_names())
-        print('Database URI:', app.config['SQLALCHEMY_DATABASE_URI'])
-        print('Environment variables:', {
-            'SECRET_KEY': os.environ.get('SECRET_KEY'),
-            'GOOGLE_MAPS_API_KEY': os.environ.get('GOOGLE_MAPS_API_KEY'),
-            'DATABASE_URL': os.environ.get('DATABASE_URL')
-        })
         
         # Create default admin user if it doesn't exist
         admin = User.query.filter_by(email='admin@mypevo.com').first()
@@ -1466,4 +1612,4 @@ if __name__ == '__main__':
             db.session.add(admin)
             db.session.commit()
     
-    app.run(debug=True) 
+    app.run(debug=True)

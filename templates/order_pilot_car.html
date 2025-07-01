@@ -4,6 +4,29 @@
 
 {% block content %}
 <div class="container py-4">
+    <!-- Pre-fill notification banner -->
+    {% if prefill_data and source %}
+        {% if source == 'load_plan' %}
+            <div class="alert alert-info alert-dismissible fade show">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Pre-filled from Load Plan:</strong> Form has been populated with your load planning data.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% elif source == 'quote' %}
+            <div class="alert alert-success alert-dismissible fade show">
+                <i class="fas fa-dollar-sign me-2"></i>
+                <strong>Pre-filled from Quote:</strong> Form has been populated with your quote data.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% elif source == 'clone' %}
+            <div class="alert alert-warning alert-dismissible fade show">
+                <i class="fas fa-copy me-2"></i>
+                <strong>Cloning Order #{{ prefill_data.clone_order_id }}:</strong> Form has been populated with data from your previous order. Please review and modify as needed before submitting.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endif %}
+    {% endif %}
+
     <div class="row">
         <div class="col-12">
             <div class="text-center mb-4">
@@ -32,12 +55,12 @@
                         <div class="mb-3">
                             <label for="company_name" class="form-label">Company Name <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="company_name" name="company_name" 
-                                   value="{{ user.company_name if user else '' }}" required>
+                                   value="{{ prefill_data.company_name if prefill_data and prefill_data.company_name else (user.company_name if user else '') }}" required>
                         </div>
                         <div class="mb-3">
                             <label for="dot_number" class="form-label">DOT Number</label>
                             <input type="text" class="form-control" id="dot_number" name="dot_number" 
-                                   value="{{ user.dot_number if user else '' }}">
+                                   value="{{ prefill_data.dot_number if prefill_data and prefill_data.dot_number else (user.dot_number if user else '') }}">
                         </div>
                     </div>
                 </div>
@@ -51,12 +74,12 @@
                         <div class="mb-3">
                             <label for="pickup_address" class="form-label">Pickup Address <span class="text-danger">*</span></label>
                             <textarea class="form-control" id="pickup_address" name="pickup_address" rows="3" 
-                                      placeholder="Complete pickup address including city, state, and zip code" required></textarea>
+                                      placeholder="Complete pickup address including city, state, and zip code" required>{{ prefill_data.pickup_address if prefill_data and prefill_data.pickup_address else '' }}</textarea>
                         </div>
                         <div class="mb-3">
                             <label for="delivery_address" class="form-label">Delivery Address <span class="text-danger">*</span></label>
                             <textarea class="form-control" id="delivery_address" name="delivery_address" rows="3" 
-                                      placeholder="Complete delivery address including city, state, and zip code" required></textarea>
+                                      placeholder="Complete delivery address including city, state, and zip code" required>{{ prefill_data.delivery_address if prefill_data and prefill_data.delivery_address else '' }}</textarea>
                         </div>
                     </div>
                 </div>
@@ -70,11 +93,13 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="pickup_date" class="form-label">Pickup Date <span class="text-danger">*</span></label>
-                                <input type="date" class="form-control" id="pickup_date" name="pickup_date" required>
+                                <input type="date" class="form-control" id="pickup_date" name="pickup_date" 
+                                       value="{{ prefill_data.pickup_date if prefill_data and prefill_data.pickup_date else '' }}" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="pickup_time" class="form-label">Pickup Time <span class="text-danger">*</span></label>
-                                <input type="time" class="form-control" id="pickup_time" name="pickup_time" required>
+                                <input type="time" class="form-control" id="pickup_time" name="pickup_time" 
+                                       value="{{ prefill_data.pickup_time if prefill_data and prefill_data.pickup_time else '' }}" required>
                             </div>
                         </div>
                         <div class="mb-3">
@@ -82,25 +107,30 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-check">
-                                        <input class="form-check-input pilot-car-position" type="checkbox" value="Chase" id="chase">
+                                        <input class="form-check-input pilot-car-position" type="checkbox" value="Chase" id="chase"
+                                               {{ 'checked' if prefill_data and prefill_data.pilot_car_positions and 'Chase' in prefill_data.pilot_car_positions else '' }}>
                                         <label class="form-check-label" for="chase">Chase</label>
                                     </div>
                                     <div class="form-check">
-                                        <input class="form-check-input pilot-car-position" type="checkbox" value="Lead" id="lead">
+                                        <input class="form-check-input pilot-car-position" type="checkbox" value="Lead" id="lead"
+                                               {{ 'checked' if prefill_data and prefill_data.pilot_car_positions and 'Lead' in prefill_data.pilot_car_positions else '' }}>
                                         <label class="form-check-label" for="lead">Lead</label>
                                     </div>
                                     <div class="form-check">
-                                        <input class="form-check-input pilot-car-position" type="checkbox" value="Height Pole" id="height_pole">
+                                        <input class="form-check-input pilot-car-position" type="checkbox" value="Height Pole" id="height_pole"
+                                               {{ 'checked' if prefill_data and prefill_data.pilot_car_positions and 'Height Pole' in prefill_data.pilot_car_positions else '' }}>
                                         <label class="form-check-label" for="height_pole">Height Pole</label>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-check">
-                                        <input class="form-check-input pilot-car-position" type="checkbox" value="Steer" id="steer">
+                                        <input class="form-check-input pilot-car-position" type="checkbox" value="Steer" id="steer"
+                                               {{ 'checked' if prefill_data and prefill_data.pilot_car_positions and 'Steer' in prefill_data.pilot_car_positions else '' }}>
                                         <label class="form-check-label" for="steer">Steer</label>
                                     </div>
                                     <div class="form-check">
-                                        <input class="form-check-input pilot-car-position" type="checkbox" value="Route Survey" id="route_survey">
+                                        <input class="form-check-input pilot-car-position" type="checkbox" value="Route Survey" id="route_survey"
+                                               {{ 'checked' if prefill_data and prefill_data.pilot_car_positions and 'Route Survey' in prefill_data.pilot_car_positions else '' }}>
                                         <label class="form-check-label" for="route_survey">Route Survey</label>
                                     </div>
                                 </div>
@@ -117,11 +147,13 @@
                     <div class="card-body">
                         <div class="mb-3">
                             <label for="driver_name" class="form-label">Driver Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="driver_name" name="driver_name" required>
+                            <input type="text" class="form-control" id="driver_name" name="driver_name" 
+                                   value="{{ prefill_data.driver_name if prefill_data and prefill_data.driver_name else '' }}" required>
                         </div>
                         <div class="mb-3">
                             <label for="driver_phone" class="form-label">Driver Phone <span class="text-danger">*</span></label>
                             <input type="tel" class="form-control" id="driver_phone" name="driver_phone" 
+                                   value="{{ prefill_data.driver_phone if prefill_data and prefill_data.driver_phone else '' }}"
                                    placeholder="(555) 123-4567" required>
                         </div>
                     </div>
@@ -140,11 +172,13 @@
                             <div class="col-md-6 mb-3">
                                 <label for="length" class="form-label">Length <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="length" name="length" 
+                                       value="{{ prefill_data.length if prefill_data and prefill_data.length else '' }}"
                                        placeholder="e.g., 80 ft" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="width" class="form-label">Width <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="width" name="width" 
+                                       value="{{ prefill_data.width if prefill_data and prefill_data.width else '' }}"
                                        placeholder="e.g., 12 ft" required>
                             </div>
                         </div>
@@ -152,33 +186,37 @@
                             <div class="col-md-6 mb-3">
                                 <label for="height" class="form-label">Height <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="height" name="height" 
+                                       value="{{ prefill_data.height if prefill_data and prefill_data.height else '' }}"
                                        placeholder="e.g., 13.6 ft" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="weight" class="form-label">Weight <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="weight" name="weight" 
+                                       value="{{ prefill_data.weight if prefill_data and prefill_data.weight else '' }}"
                                        placeholder="e.g., 80,000 lbs" required>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="truck_number" class="form-label">Truck Number</label>
-                                <input type="text" class="form-control" id="truck_number" name="truck_number">
+                                <input type="text" class="form-control" id="truck_number" name="truck_number"
+                                       value="{{ prefill_data.truck_number if prefill_data and prefill_data.truck_number else '' }}">
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="load_number" class="form-label">Load Number</label>
-                                <input type="text" class="form-control" id="load_number" name="load_number">
+                                <input type="text" class="form-control" id="load_number" name="load_number"
+                                       value="{{ prefill_data.load_number if prefill_data and prefill_data.load_number else '' }}">
                             </div>
                         </div>
                         <div class="mb-3">
                             <label for="load_description" class="form-label">Load Description</label>
                             <textarea class="form-control" id="load_description" name="load_description" rows="2" 
-                                      placeholder="Brief description of the load"></textarea>
+                                      placeholder="Brief description of the load">{{ prefill_data.load_description if prefill_data and prefill_data.load_description else '' }}</textarea>
                         </div>
                         <div class="mb-3">
                             <label for="additional_notes" class="form-label">Additional Notes</label>
                             <textarea class="form-control" id="additional_notes" name="additional_notes" rows="3" 
-                                      placeholder="Any special requirements or additional information"></textarea>
+                                      placeholder="Any special requirements or additional information">{{ prefill_data.additional_notes if prefill_data and prefill_data.additional_notes else '' }}</textarea>
                         </div>
                     </div>
                 </div>
@@ -191,7 +229,8 @@
                     <div class="card-body">
                         <div class="mb-3">
                             <label for="contact_name" class="form-label">Contact Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="contact_name" name="contact_name" required>
+                            <input type="text" class="form-control" id="contact_name" name="contact_name" 
+                                   value="{{ prefill_data.contact_name if prefill_data and prefill_data.contact_name else '' }}" required>
                         </div>
                         <div class="mb-3">
                             <label for="preferred_contact" class="form-label">Preferred Contact Method <span class="text-danger">*</span></label>
@@ -205,13 +244,13 @@
                         <div class="mb-3">
                             <label for="phone_number" class="form-label">Phone Number <span class="text-danger">*</span></label>
                             <input type="tel" class="form-control" id="phone_number" name="phone_number" 
-                                   value="{{ user.phone_number if user else '' }}" 
+                                   value="{{ prefill_data.phone_number if prefill_data and prefill_data.phone_number else (user.phone_number if user else '') }}" 
                                    placeholder="(555) 123-4567" required>
                         </div>
                         <div class="mb-3">
                             <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
                             <input type="email" class="form-control" id="email" name="email" 
-                                   value="{{ user.email if user else '' }}" required>
+                                   value="{{ prefill_data.email if prefill_data and prefill_data.email else (user.email if user else '') }}" required>
                         </div>
                     </div>
                 </div>
@@ -224,7 +263,8 @@
                     <div class="card-body">
                         <div class="mb-3">
                             <label for="po_number" class="form-label">PO Number</label>
-                            <input type="text" class="form-control" id="po_number" name="po_number">
+                            <input type="text" class="form-control" id="po_number" name="po_number"
+                                   value="{{ prefill_data.po_number if prefill_data and prefill_data.po_number else '' }}">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Payment Method <span class="text-danger">*</span></label>
@@ -292,6 +332,23 @@
 </div>
 
 <script>
+// Pre-fill cloned order data when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Pre-select preferred contact method
+    {% if prefill_data and prefill_data.preferred_contact %}
+    const preferredContact = document.getElementById('preferred_contact');
+    preferredContact.value = "{{ prefill_data.preferred_contact }}";
+    {% endif %}
+    
+    // Pre-select payment method
+    {% if prefill_data and prefill_data.payment_method %}
+    const paymentMethod = document.querySelector('input[name="payment_method"][value="{{ prefill_data.payment_method }}"]');
+    if (paymentMethod) {
+        paymentMethod.checked = true;
+    }
+    {% endif %}
+});
+
 document.getElementById('pilotCarOrderForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
@@ -364,5 +421,35 @@ document.getElementById('pilotCarOrderForm').addEventListener('submit', function
 
 // Set minimum date to today
 document.getElementById('pickup_date').min = new Date().toISOString().split('T')[0];
+
+// Pre-fill additional notes if coming from load plan or quote
+{% if prefill_data and source %}
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Adding additional info from {{ source }}');
+    
+    {% if source == 'load_plan' %}
+        // Add load plan summary to additional notes
+        {% if prefill_data.route_states %}
+            const additionalNotes = document.getElementById('additional_notes');
+            const routeInfo = `Route States: {{ prefill_data.route_states }}\nRoad Type: {{ prefill_data.road_type }}`;
+            additionalNotes.value = routeInfo + (additionalNotes.value ? '\n\n' + additionalNotes.value : '');
+        {% endif %}
+        
+    {% elif source == 'quote' %}
+        // Add quote reference to additional notes
+        {% if prefill_data.quote_id %}
+            const additionalNotes = document.getElementById('additional_notes');
+            const quoteRef = `Quote Reference: #{{ prefill_data.quote_id }}`;
+            additionalNotes.value = quoteRef + (additionalNotes.value ? '\n\n' + additionalNotes.value : '');
+        {% endif %}
+        
+        {% if prefill_data.is_superload %}
+            const additionalNotes = document.getElementById('additional_notes');
+            const superloadNote = 'Superload: Yes - Special handling required';
+            additionalNotes.value = additionalNotes.value + '\n' + superloadNote;
+        {% endif %}
+    {% endif %}
+});
+{% endif %}
 </script>
 {% endblock %} 

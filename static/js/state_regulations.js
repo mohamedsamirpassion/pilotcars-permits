@@ -583,7 +583,7 @@ const stateRegulations = [
     "state": "Georgia",
     "road_type": "Interstate",
     "width_min": "12'1\"",
-    "width_max": "16'0\"",
+    "width_max": "14'0\"",
     "width_escorts": "1 Rear",
     "length_min": "75'0\"",
     "length_max": "125'0\"",
@@ -599,7 +599,7 @@ const stateRegulations = [
   {
     "state": "Georgia",
     "road_type": "Non-Interstate",
-    "width_min": "12'1\"",
+    "width_min": "14'1\"",
     "width_max": "16'0\"",
     "width_escorts": "1 Rear + 1 Front",
     "length_min": "75'0\"",

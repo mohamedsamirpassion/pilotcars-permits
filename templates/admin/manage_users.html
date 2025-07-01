@@ -26,60 +26,116 @@
     <!-- Statistics Cards -->
     <div class="row mb-4">
         <div class="col-md-3">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
+            <div class="card border">
+                <div class="card-body py-3">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h5 class="card-title">Trucking Companies</h5>
-                            <h3>{{ trucking_companies|length }}</h3>
+                            <h6 class="card-title mb-1 text-dark">Trucking Companies</h6>
+                            <h4 class="mb-0 text-dark">{{ trucking_companies|length }}</h4>
                         </div>
                         <div class="align-self-center">
-                            <i class="fas fa-truck fa-2x"></i>
+                            <i class="fas fa-truck fa-2x text-primary"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card bg-success text-white">
-                <div class="card-body">
+            <div class="card border">
+                <div class="card-body py-3">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h5 class="card-title">Vendors</h5>
-                            <h3>{{ vendors|length }}</h3>
+                            <h6 class="card-title mb-1 text-dark">Vendors</h6>
+                            <h4 class="mb-0 text-dark">{{ vendors|length }}</h4>
                         </div>
                         <div class="align-self-center">
-                            <i class="fas fa-car fa-2x"></i>
+                            <i class="fas fa-car fa-2x text-primary"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card bg-warning text-dark">
-                <div class="card-body">
+            <div class="card border">
+                <div class="card-body py-3">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h5 class="card-title">Pending Approval</h5>
-                            <h3>{{ trucking_companies|selectattr('is_approved', 'false')|list|length }}</h3>
+                            <h6 class="card-title mb-1 text-dark">Pending Approval</h6>
+                            <h4 class="mb-0 text-dark">{{ trucking_companies|selectattr('is_approved', 'false')|list|length }}</h4>
                         </div>
                         <div class="align-self-center">
-                            <i class="fas fa-clock fa-2x"></i>
+                            <i class="fas fa-clock fa-2x text-primary"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card bg-danger text-white">
-                <div class="card-body">
+            <div class="card border">
+                <div class="card-body py-3">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h5 class="card-title">Suspended Users</h5>
-                            <h3>{{ (trucking_companies + vendors)|selectattr('is_suspended', 'true')|list|length }}</h3>
+                            <h6 class="card-title mb-1 text-dark">Suspended Users</h6>
+                            <h4 class="mb-0 text-dark">{{ (trucking_companies + vendors)|selectattr('is_suspended', 'true')|list|length }}</h4>
                         </div>
                         <div class="align-self-center">
-                            <i class="fas fa-ban fa-2x"></i>
+                            <i class="fas fa-ban fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-white border-bottom">
+                    <h6 class="mb-0 text-dark"><i class="fas fa-filter me-2 text-primary"></i>Filters</h6>
+                </div>
+                <div class="card-body py-3">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label for="searchInput" class="form-label small">Search</label>
+                            <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="Company name, email...">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="userTypeFilter" class="form-label small">User Type</label>
+                            <select class="form-select form-select-sm" id="userTypeFilter">
+                                <option value="">All Types</option>
+                                <option value="trucking_company">Trucking Companies</option>
+                                <option value="vendor">Vendors</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="statusFilter" class="form-label small">Status</label>
+                            <select class="form-select form-select-sm" id="statusFilter">
+                                <option value="">All Status</option>
+                                <option value="approved">Approved</option>
+                                <option value="pending">Pending</option>
+                                <option value="suspended">Suspended</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="entriesPerPage" class="form-label small">Show</label>
+                            <select class="form-select form-select-sm" id="entriesPerPage">
+                                <option value="10">10 entries</option>
+                                <option value="25">25 entries</option>
+                                <option value="50">50 entries</option>
+                                <option value="100">100 entries</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small">&nbsp;</label>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary btn-sm" onclick="applyFilters()">
+                                    <i class="fas fa-search me-1"></i>Apply
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm" onclick="clearFilters()">
+                                    <i class="fas fa-times me-1"></i>Clear
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -91,188 +147,176 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="fas fa-truck me-2"></i>Trucking Companies</h5>
+                <div class="card-header bg-white border-bottom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 text-dark"><i class="fas fa-users me-2 text-primary"></i>All Users</h5>
+                        <span class="badge bg-primary" id="totalUsersCount">{{ (trucking_companies|length) + (vendors|length) }} total</span>
+                    </div>
                 </div>
                 <div class="card-body">
-                    {% if trucking_companies %}
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Company Details</th>
-                                        <th>Contact Information</th>
-                                        <th>DOT Number</th>
-                                        <th>Registration Date</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for company in trucking_companies %}
-                                        <tr id="user-{{ company.id }}">
-                                            <td>
-                                                <div>
-                                                    <strong>{{ company.company_name }}</strong><br>
-                                                    <small class="text-muted">ID: #{{ company.id }}</small>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div>
-                                                    <i class="fas fa-envelope text-info me-1"></i>
-                                                    <a href="mailto:{{ company.email }}">{{ company.email }}</a><br>
-                                                    {% if company.phone_number %}
-                                                        <i class="fas fa-phone text-primary me-1"></i>
-                                                        <a href="tel:{{ company.phone_number }}">{{ company.phone_number }}</a>
-                                                    {% else %}
-                                                        <span class="text-muted">No phone number</span>
-                                                    {% endif %}
-                                                </div>
-                                            </td>
-                                            <td>
-                                                {% if company.dot_number %}
-                                                    <span class="badge bg-success">{{ company.dot_number }}</span>
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="truckingCompaniesTable">
+                            <thead>
+                                <tr>
+                                    <th>Company Details</th>
+                                    <th>Contact Information</th>
+                                    <th>DOT Number</th>
+                                    <th>Registration Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="truckingCompaniesBody">
+                                {% for company in trucking_companies %}
+                                    <tr class="user-row" data-user-type="trucking_company" data-status="{% if company.is_suspended %}suspended{% elif company.is_approved %}approved{% else %}pending{% endif %}" data-search-text="{{ company.company_name|lower }} {{ company.email|lower }}">
+                                        <td>
+                                            <div>
+                                                <strong>{{ company.company_name }}</strong><br>
+                                                <small class="text-muted">ID: #{{ company.id }}</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <i class="fas fa-envelope text-primary me-1"></i>
+                                                <a href="mailto:{{ company.email }}">{{ company.email }}</a><br>
+                                                {% if company.phone_number %}
+                                                    <i class="fas fa-phone text-primary me-1"></i>
+                                                    <a href="tel:{{ company.phone_number }}">{{ company.phone_number }}</a>
                                                 {% else %}
-                                                    <span class="badge bg-warning">No DOT#</span>
+                                                    <span class="text-muted">No phone number</span>
                                                 {% endif %}
-                                            </td>
-                                            <td>{{ company.created_at.strftime('%m/%d/%Y') }}</td>
-                                            <td>
-                                                {% if company.is_suspended %}
-                                                    <span class="badge bg-danger">Suspended</span>
-                                                {% elif company.is_approved %}
-                                                    <span class="badge bg-success">Approved</span>
-                                                {% else %}
-                                                    <span class="badge bg-warning">Pending Approval</span>
-                                                {% endif %}
-                                            </td>
-                                            <td>
-                                                <div class="btn-group" role="group">
-                                                    {% if not company.is_approved and not company.is_suspended %}
-                                                        <button class="btn btn-sm btn-success" onclick="approveUser({{ company.id }})">
-                                                            <i class="fas fa-check"></i> Approve
-                                                        </button>
-                                                    {% endif %}
-                                                    
-                                                    {% if company.is_suspended %}
-                                                        <button class="btn btn-sm btn-warning" onclick="unsuspendUser({{ company.id }})">
-                                                            <i class="fas fa-undo"></i> Unsuspend
-                                                        </button>
-                                                    {% else %}
-                                                        <button class="btn btn-sm btn-danger" onclick="suspendUser({{ company.id }})">
-                                                            <i class="fas fa-ban"></i> Suspend
-                                                        </button>
-                                                    {% endif %}
-                                                    
-                                                    <button class="btn btn-sm btn-info" onclick="viewUserDetails({{ company.id }}, 'trucking')">
-                                                        <i class="fas fa-eye"></i> View
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if company.dot_number %}
+                                                <span class="badge bg-primary">{{ company.dot_number }}</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">No DOT#</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ company.created_at.strftime('%m/%d/%Y') }}</td>
+                                        <td>
+                                            {% if company.is_suspended %}
+                                                <span class="badge bg-secondary">Suspended</span>
+                                            {% elif company.is_approved %}
+                                                <span class="badge bg-primary">Approved</span>
+                                            {% else %}
+                                                <span class="badge bg-outline-primary">Pending Approval</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                {% if not company.is_approved and not company.is_suspended %}
+                                                    <button class="btn btn-sm btn-primary" onclick="approveUser({{ company.id }})">
+                                                        <i class="fas fa-check"></i> Approve
                                                     </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                                                {% endif %}
+                                                
+                                                {% if company.is_suspended %}
+                                                    <button class="btn btn-sm btn-outline-primary" onclick="unsuspendUser({{ company.id }})">
+                                                        <i class="fas fa-undo"></i> Unsuspend
+                                                    </button>
+                                                {% else %}
+                                                    <button class="btn btn-sm btn-outline-primary" onclick="suspendUser({{ company.id }})">
+                                                        <i class="fas fa-ban"></i> Suspend
+                                                    </button>
+                                                {% endif %}
+                                                
+                                                <button class="btn btn-sm btn-primary" onclick="viewUserDetails({{ company.id }}, 'trucking')">
+                                                    <i class="fas fa-eye"></i> View
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                {% for vendor in vendors %}
+                                    <tr class="user-row" data-user-type="vendor" data-status="{% if vendor.is_suspended %}suspended{% else %}approved{% endif %}" data-search-text="{{ vendor.company_name|lower }} {{ vendor.email|lower }}">
+                                        <td>
+                                            <div>
+                                                <strong>{{ vendor.company_name }}</strong><br>
+                                                <small class="text-muted">ID: #{{ vendor.id }} - Vendor</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <i class="fas fa-envelope text-primary me-1"></i>
+                                                <a href="mailto:{{ vendor.email }}">{{ vendor.email }}</a><br>
+                                                {% if vendor.phone_number %}
+                                                    <i class="fas fa-phone text-primary me-1"></i>
+                                                    <a href="tel:{{ vendor.phone_number }}">{{ vendor.phone_number }}</a>
+                                                {% else %}
+                                                    <span class="text-muted">No phone number</span>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">N/A</span>
+                                        </td>
+                                        <td>{{ vendor.created_at.strftime('%m/%d/%Y') }}</td>
+                                        <td>
+                                            {% if vendor.is_suspended %}
+                                                <span class="badge bg-secondary">Suspended</span>
+                                            {% else %}
+                                                <span class="badge bg-primary">Active</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                {% if vendor.is_suspended %}
+                                                    <button class="btn btn-sm btn-outline-primary" onclick="unsuspendUser({{ vendor.id }})">
+                                                        <i class="fas fa-undo"></i> Unsuspend
+                                                    </button>
+                                                {% else %}
+                                                    <button class="btn btn-sm btn-outline-primary" onclick="suspendUser({{ vendor.id }})">
+                                                        <i class="fas fa-ban"></i> Suspend
+                                                    </button>
+                                                {% endif %}
+                                                
+                                                <button class="btn btn-sm btn-primary" onclick="viewUserDetails({{ vendor.id }}, 'vendor')">
+                                                    <i class="fas fa-eye"></i> View
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div class="text-muted small" id="paginationInfo">
+                            Showing 1 to 10 of {{ (trucking_companies|length) + (vendors|length) }} entries
                         </div>
-                    {% else %}
-                        <div class="text-center py-4">
-                            <i class="fas fa-truck fa-3x text-muted mb-3"></i>
-                            <h5 class="text-muted">No Trucking Companies</h5>
-                            <p class="text-muted">No trucking companies have registered yet.</p>
-                        </div>
-                    {% endif %}
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination pagination-sm mb-0" id="paginationControls">
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" onclick="changePage('prev')">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item active">
+                                    <a class="page-link" href="#" onclick="changePage(1)">1</a>
+                                </li>
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" onclick="changePage('next')">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Vendors Section -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0"><i class="fas fa-car me-2"></i>Pilot Car Vendors</h5>
-                </div>
-                <div class="card-body">
-                    {% if vendors %}
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Company Details</th>
-                                        <th>Contact Information</th>
-                                        <th>Registration Date</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for vendor in vendors %}
-                                        <tr id="user-{{ vendor.id }}">
-                                            <td>
-                                                <div>
-                                                    <strong>{{ vendor.company_name }}</strong><br>
-                                                    <small class="text-muted">ID: #{{ vendor.id }}</small>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div>
-                                                    <i class="fas fa-envelope text-info me-1"></i>
-                                                    <a href="mailto:{{ vendor.email }}">{{ vendor.email }}</a><br>
-                                                    {% if vendor.phone_number %}
-                                                        <i class="fas fa-phone text-primary me-1"></i>
-                                                        <a href="tel:{{ vendor.phone_number }}">{{ vendor.phone_number }}</a>
-                                                    {% else %}
-                                                        <span class="text-muted">No phone number</span>
-                                                    {% endif %}
-                                                </div>
-                                            </td>
-                                            <td>{{ vendor.created_at.strftime('%m/%d/%Y') }}</td>
-                                            <td>
-                                                {% if vendor.is_suspended %}
-                                                    <span class="badge bg-danger">Suspended</span>
-                                                {% else %}
-                                                    <span class="badge bg-success">Active</span>
-                                                {% endif %}
-                                            </td>
-                                            <td>
-                                                <div class="btn-group" role="group">
-                                                    {% if vendor.is_suspended %}
-                                                        <button class="btn btn-sm btn-warning" onclick="unsuspendUser({{ vendor.id }})">
-                                                            <i class="fas fa-undo"></i> Unsuspend
-                                                        </button>
-                                                    {% else %}
-                                                        <button class="btn btn-sm btn-danger" onclick="suspendUser({{ vendor.id }})">
-                                                            <i class="fas fa-ban"></i> Suspend
-                                                        </button>
-                                                    {% endif %}
-                                                    
-                                                    <button class="btn btn-sm btn-info" onclick="viewUserDetails({{ vendor.id }}, 'vendor')">
-                                                        <i class="fas fa-eye"></i> View
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <div class="text-center py-4">
-                            <i class="fas fa-car fa-3x text-muted mb-3"></i>
-                            <h5 class="text-muted">No Vendors</h5>
-                            <p class="text-muted">No pilot car vendors have registered yet.</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
+
 </div>
 
 <!-- User Details Modal -->
 <div class="modal fade" id="userDetailsModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">User Details</h5>
@@ -362,27 +406,627 @@ function unsuspendUser(userId) {
 }
 
 function viewUserDetails(userId, userType) {
-    // This would fetch and display detailed user information
-    // For now, just show a placeholder
+    // Show loading state
     document.getElementById('userDetailsContent').innerHTML = `
         <div class="text-center py-4">
-            <i class="fas fa-info-circle fa-3x text-primary mb-3"></i>
-            <h5>User Details</h5>
-            <p>Detailed user information for ${userType} user ID: ${userId}</p>
-            <p class="text-muted">This feature can be expanded to show:</p>
-            <ul class="text-start">
-                <li>Complete registration details</li>
-                <li>Activity history</li>
-                <li>Load plans created (for trucking companies)</li>
-                <li>Location sharing history (for vendors)</li>
-                <li>Account statistics</li>
-            </ul>
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading user details...</p>
         </div>
     `;
     
     // Show the modal
     const modal = new bootstrap.Modal(document.getElementById('userDetailsModal'));
     modal.show();
+    
+    // Fetch user details
+    fetch(`/admin/user-details/${userId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const user = data.user;
+                let detailsHtml = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header bg-primary text-white">
+                                    <h6 class="mb-0"><i class="fas fa-user me-2"></i>Account Information</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Company:</strong></div>
+                                        <div class="col-8">${user.company_name}</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Contact:</strong></div>
+                                        <div class="col-8">${user.contact_name || 'Not specified'}</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Email:</strong></div>
+                                        <div class="col-8">${user.email}</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Phone:</strong></div>
+                                        <div class="col-8">${user.phone_number || 'Not specified'}</div>
+                                    </div>
+                                    ${user.dot_number ? `
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>DOT #:</strong></div>
+                                        <div class="col-8">${user.dot_number}</div>
+                                    </div>
+                                    ` : ''}
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Type:</strong></div>
+                                        <div class="col-8">
+                                            <span class="badge ${user.user_type === 'vendor' ? 'bg-success' : 'bg-info'}">${user.user_type === 'vendor' ? 'Pilot' : 'Trucking Company'}</span>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Status:</strong></div>
+                                        <div class="col-8">
+                                            ${user.is_suspended ? '<span class="badge bg-danger">Suspended</span>' : '<span class="badge bg-success">Active</span>'}
+                                            ${user.is_approved ? '<span class="badge bg-success ms-1">Approved</span>' : '<span class="badge bg-warning ms-1">Pending</span>'}
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Joined:</strong></div>
+                                        <div class="col-8">${user.created_at}</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Account Age:</strong></div>
+                                        <div class="col-8">${user.account_age_days} days</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header bg-info text-white">
+                                    <h6 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Activity Statistics</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>Total Logins:</strong></div>
+                                        <div class="col-6">${user.total_logins}</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>Last Login:</strong></div>
+                                        <div class="col-6">${user.last_login || 'Never'}</div>
+                                    </div>
+                `;
+                
+                // Add type-specific statistics
+                if (user.user_type === 'vendor') {
+                    detailsHtml += `
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>Locations Shared:</strong></div>
+                                        <div class="col-6">${user.activity_stats.total_locations_shared}</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>Active Locations:</strong></div>
+                                        <div class="col-6">${user.activity_stats.active_locations}</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>Last Location:</strong></div>
+                                        <div class="col-6">${user.activity_stats.last_location_share || 'Never'}</div>
+                                    </div>
+                    `;
+                } else if (user.user_type === 'trucking_company') {
+                    detailsHtml += `
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>Total Quotes:</strong></div>
+                                        <div class="col-6">${user.activity_stats.total_quotes}</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>Total Orders:</strong></div>
+                                        <div class="col-6">${user.activity_stats.total_orders}</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>Saved Routes:</strong></div>
+                                        <div class="col-6">${user.activity_stats.total_routes}</div>
+                                    </div>
+                    `;
+                }
+                
+                detailsHtml += `
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Audit History Tab -->
+                    <div class="mt-4">
+                        <ul class="nav nav-tabs" id="userDetailsTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="audit-tab" data-bs-toggle="tab" data-bs-target="#audit-pane" type="button" role="tab">
+                                    <i class="fas fa-history me-1"></i>Change History
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="login-tab" data-bs-toggle="tab" data-bs-target="#login-pane" type="button" role="tab">
+                                    <i class="fas fa-sign-in-alt me-1"></i>Login History
+                                </button>
+                            </li>
+                `;
+                
+                // Add activity tab for pilots
+                if (user.user_type === 'vendor') {
+                    detailsHtml += `
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="location-tab" data-bs-toggle="tab" data-bs-target="#location-pane" type="button" role="tab">
+                                    <i class="fas fa-map-marker-alt me-1"></i>Location History
+                                </button>
+                            </li>
+                    `;
+                } else if (user.user_type === 'trucking_company') {
+                    detailsHtml += `
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="activity-tab" data-bs-toggle="tab" data-bs-target="#activity-pane" type="button" role="tab">
+                                    <i class="fas fa-truck me-1"></i>Recent Activity
+                                </button>
+                            </li>
+                    `;
+                }
+                
+                detailsHtml += `
+                        </ul>
+                        <div class="tab-content" id="userDetailsTabContent">
+                            <!-- Audit History -->
+                            <div class="tab-pane fade show active" id="audit-pane" role="tabpanel">
+                                <div class="table-responsive mt-3" style="max-height: 300px; overflow-y: auto;">
+                                    <table class="table table-sm">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Action</th>
+                                                <th>Description</th>
+                                                <th>Changed By</th>
+                                                <th>When</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                `;
+                
+                if (user.audit_history.length > 0) {
+                    user.audit_history.forEach(log => {
+                        let actionBadge = 'bg-secondary';
+                        if (log.action_type === 'login') actionBadge = 'bg-success';
+                        else if (log.action_type === 'profile_update') actionBadge = 'bg-info';
+                        else if (log.action_type === 'status_change') actionBadge = 'bg-warning';
+                        else if (log.action_type === 'password_change') actionBadge = 'bg-danger';
+                        else if (log.action_type === 'location_share') actionBadge = 'bg-primary';
+                        
+                        detailsHtml += `
+                                            <tr>
+                                                <td><span class="badge ${actionBadge}">${log.action_type}</span></td>
+                                                <td>${log.action_description}</td>
+                                                <td>${log.changed_by_admin ? log.admin_name : 'Self'}</td>
+                                                <td>${log.time_ago}</td>
+                                            </tr>
+                        `;
+                    });
+                } else {
+                    detailsHtml += `
+                                            <tr>
+                                                <td colspan="4" class="text-center text-muted">No activity history available</td>
+                                            </tr>
+                    `;
+                }
+                
+                detailsHtml += `
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- Login History -->
+                            <div class="tab-pane fade" id="login-pane" role="tabpanel">
+                                <div class="table-responsive mt-3" style="max-height: 300px; overflow-y: auto;">
+                                    <table class="table table-sm">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>IP Address</th>
+                                                <th>Login Time</th>
+                                                <th>Time Ago</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                `;
+                
+                if (user.login_history.length > 0) {
+                    user.login_history.forEach(login => {
+                        detailsHtml += `
+                                            <tr>
+                                                <td>${login.ip_address}</td>
+                                                <td>${login.created_at}</td>
+                                                <td>${login.time_ago}</td>
+                                            </tr>
+                        `;
+                    });
+                } else {
+                    detailsHtml += `
+                                            <tr>
+                                                <td colspan="3" class="text-center text-muted">No login history available</td>
+                                            </tr>
+                    `;
+                }
+                
+                detailsHtml += `
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                `;
+                
+                // Add location history for pilots
+                if (user.user_type === 'vendor') {
+                    detailsHtml += `
+                            <!-- Location History -->
+                            <div class="tab-pane fade" id="location-pane" role="tabpanel">
+                                <div class="table-responsive mt-3" style="max-height: 300px; overflow-y: auto;">
+                                    <table class="table table-sm">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Location</th>
+                                                <th>Coverage</th>
+                                                <th>Status</th>
+                                                <th>Shared</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                    `;
+                    
+                    if (user.activity_stats.location_history.length > 0) {
+                        user.activity_stats.location_history.forEach(location => {
+                            detailsHtml += `
+                                                <tr>
+                                                    <td>${location.city}, ${location.state}</td>
+                                                    <td>${location.coverage_radius} miles</td>
+                                                    <td>${location.is_active ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-secondary">Expired</span>'}</td>
+                                                    <td>${location.time_ago}</td>
+                                                </tr>
+                            `;
+                        });
+                    } else {
+                        detailsHtml += `
+                                                <tr>
+                                                    <td colspan="4" class="text-center text-muted">No location history available</td>
+                                                </tr>
+                        `;
+                    }
+                    
+                    detailsHtml += `
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                    `;
+                }
+                
+                // Add activity history for trucking companies
+                if (user.user_type === 'trucking_company') {
+                    detailsHtml += `
+                            <!-- Activity History -->
+                            <div class="tab-pane fade" id="activity-pane" role="tabpanel">
+                                <div class="mt-3">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6>Recent Quotes</h6>
+                                            <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
+                                                <table class="table table-sm">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th>Route</th>
+                                                            <th>Cost</th>
+                                                            <th>Created</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                    `;
+                    
+                    if (user.activity_stats.quote_history.length > 0) {
+                        user.activity_stats.quote_history.forEach(quote => {
+                            detailsHtml += `
+                                                        <tr>
+                                                            <td><small>${quote.pickup_location} → ${quote.delivery_location}</small></td>
+                                                            <td>$${quote.total_cost}</td>
+                                                            <td>${quote.time_ago}</td>
+                                                        </tr>
+                            `;
+                        });
+                    } else {
+                        detailsHtml += `
+                                                        <tr>
+                                                            <td colspan="3" class="text-center text-muted">No quotes yet</td>
+                                                        </tr>
+                        `;
+                    }
+                    
+                    detailsHtml += `
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>Recent Orders</h6>
+                                            <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
+                                                <table class="table table-sm">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th>Route</th>
+                                                            <th>Status</th>
+                                                            <th>Created</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                    `;
+                    
+                    if (user.activity_stats.order_history.length > 0) {
+                        user.activity_stats.order_history.forEach(order => {
+                            let statusBadge = 'bg-secondary';
+                            if (order.status === 'confirmed') statusBadge = 'bg-success';
+                            else if (order.status === 'in_progress') statusBadge = 'bg-info';
+                            else if (order.status === 'completed') statusBadge = 'bg-primary';
+                            else if (order.status === 'cancelled') statusBadge = 'bg-danger';
+                            
+                            detailsHtml += `
+                                                        <tr>
+                                                            <td><small>${order.pickup_address} → ${order.delivery_address}</small></td>
+                                                            <td><span class="badge ${statusBadge}">${order.status}</span></td>
+                                                            <td>${order.time_ago}</td>
+                                                        </tr>
+                            `;
+                        });
+                    } else {
+                        detailsHtml += `
+                                                        <tr>
+                                                            <td colspan="3" class="text-center text-muted">No orders yet</td>
+                                                        </tr>
+                        `;
+                    }
+                    
+                    detailsHtml += `
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                    `;
+                }
+                
+                detailsHtml += `
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('userDetailsContent').innerHTML = detailsHtml;
+                
+                // Update modal title
+                document.querySelector('#userDetailsModal .modal-title').textContent = `${user.company_name} - User Details`;
+                
+            } else {
+                document.getElementById('userDetailsContent').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Error loading user details: ${data.error}
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('userDetailsContent').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Error loading user details. Please try again.
+                </div>
+            `;
+        });
 }
+
+// Pagination and filtering functionality
+let currentPage = 1;
+let entriesPerPage = 10;
+let filteredRows = [];
+let allRows = [];
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    allRows = Array.from(document.querySelectorAll('#truckingCompaniesBody .user-row'));
+    filteredRows = [...allRows];
+    updatePagination();
+});
+
+function applyFilters() {
+    const searchText = document.getElementById('searchInput').value.toLowerCase();
+    const userType = document.getElementById('userTypeFilter').value;
+    const status = document.getElementById('statusFilter').value;
+    entriesPerPage = parseInt(document.getElementById('entriesPerPage').value);
+    
+    filteredRows = allRows.filter(row => {
+        const rowSearchText = row.getAttribute('data-search-text');
+        const rowUserType = row.getAttribute('data-user-type');
+        const rowStatus = row.getAttribute('data-status');
+        
+        // Apply search filter
+        if (searchText && !rowSearchText.includes(searchText)) {
+            return false;
+        }
+        
+        // Apply user type filter
+        if (userType && rowUserType !== userType) {
+            return false;
+        }
+        
+        // Apply status filter
+        if (status && rowStatus !== status) {
+            return false;
+        }
+        
+        return true;
+    });
+    
+    currentPage = 1;
+    updatePagination();
+    updateStatistics();
+}
+
+function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('userTypeFilter').value = '';
+    document.getElementById('statusFilter').value = '';
+    document.getElementById('entriesPerPage').value = '10';
+    
+    entriesPerPage = 10;
+    filteredRows = [...allRows];
+    currentPage = 1;
+    updatePagination();
+    updateStatistics();
+}
+
+function updatePagination() {
+    const totalEntries = filteredRows.length;
+    const totalPages = Math.ceil(totalEntries / entriesPerPage);
+    const startIndex = (currentPage - 1) * entriesPerPage;
+    const endIndex = Math.min(startIndex + entriesPerPage, totalEntries);
+    
+    // Hide all rows
+    allRows.forEach(row => {
+        row.style.display = 'none';
+    });
+    
+    // Show current page rows
+    filteredRows.slice(startIndex, endIndex).forEach(row => {
+        row.style.display = '';
+    });
+    
+    // Update pagination info
+    const paginationInfo = document.getElementById('paginationInfo');
+    if (totalEntries === 0) {
+        paginationInfo.textContent = 'No entries found';
+    } else {
+        paginationInfo.textContent = `Showing ${startIndex + 1} to ${endIndex} of ${totalEntries} entries`;
+    }
+    
+    // Update pagination controls
+    updatePaginationControls(totalPages);
+}
+
+function updatePaginationControls(totalPages) {
+    const paginationControls = document.getElementById('paginationControls');
+    let paginationHtml = '';
+    
+    // Previous button
+    const prevDisabled = currentPage === 1 ? 'disabled' : '';
+    paginationHtml += `
+        <li class="page-item ${prevDisabled}">
+            <a class="page-link" href="#" onclick="changePage('prev')">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+        </li>
+    `;
+    
+    // Page numbers
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, currentPage + 2);
+    
+    if (startPage > 1) {
+        paginationHtml += `
+            <li class="page-item">
+                <a class="page-link" href="#" onclick="changePage(1)">1</a>
+            </li>
+        `;
+        if (startPage > 2) {
+            paginationHtml += `<li class="page-item disabled"><a class="page-link" href="#">...</a></li>`;
+        }
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        const active = i === currentPage ? 'active' : '';
+        paginationHtml += `
+            <li class="page-item ${active}">
+                <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+            </li>
+        `;
+    }
+    
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            paginationHtml += `<li class="page-item disabled"><a class="page-link" href="#">...</a></li>`;
+        }
+        paginationHtml += `
+            <li class="page-item">
+                <a class="page-link" href="#" onclick="changePage(${totalPages})">${totalPages}</a>
+            </li>
+        `;
+    }
+    
+    // Next button
+    const nextDisabled = currentPage === totalPages || totalPages === 0 ? 'disabled' : '';
+    paginationHtml += `
+        <li class="page-item ${nextDisabled}">
+            <a class="page-link" href="#" onclick="changePage('next')">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        </li>
+    `;
+    
+    paginationControls.innerHTML = paginationHtml;
+}
+
+function changePage(direction) {
+    const totalPages = Math.ceil(filteredRows.length / entriesPerPage);
+    
+    if (direction === 'prev' && currentPage > 1) {
+        currentPage--;
+    } else if (direction === 'next' && currentPage < totalPages) {
+        currentPage++;
+    } else if (typeof direction === 'number') {
+        currentPage = direction;
+    }
+    
+    updatePagination();
+}
+
+function updateStatistics() {
+    const truckingCompanies = filteredRows.filter(row => row.getAttribute('data-user-type') === 'trucking_company').length;
+    const vendors = filteredRows.filter(row => row.getAttribute('data-user-type') === 'vendor').length;
+    const pending = filteredRows.filter(row => row.getAttribute('data-status') === 'pending').length;
+    const suspended = filteredRows.filter(row => row.getAttribute('data-status') === 'suspended').length;
+    
+    // Update statistics cards
+    const statsCards = document.querySelectorAll('.row.mb-4 .card .card-body h4');
+    if (statsCards.length >= 4) {
+        statsCards[0].textContent = truckingCompanies;
+        statsCards[1].textContent = vendors;
+        statsCards[2].textContent = pending;
+        statsCards[3].textContent = suspended;
+    }
+    
+    // Update total count
+    const totalUsersCount = document.getElementById('totalUsersCount');
+    if (totalUsersCount) {
+        totalUsersCount.textContent = `${filteredRows.length} total`;
+    }
+}
+
+// Add real-time search
+document.getElementById('searchInput').addEventListener('input', function() {
+    applyFilters();
+});
+
+document.getElementById('userTypeFilter').addEventListener('change', function() {
+    applyFilters();
+});
+
+document.getElementById('statusFilter').addEventListener('change', function() {
+    applyFilters();
+});
+
+document.getElementById('entriesPerPage').addEventListener('change', function() {
+    applyFilters();
+});
 </script>
 {% endblock %} 

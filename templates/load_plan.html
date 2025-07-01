@@ -123,12 +123,6 @@
                     <p class="text-muted small">Select the states your load will travel through in order</p>
                     
                     <div class="route-builder">
-                        <div class="mb-3">
-                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="autoDetectStates()">
-                                <i class="fas fa-magic me-1"></i>Auto-Detect Route States
-                            </button>
-                            <small class="text-muted ms-2">Or manually select states below</small>
-                        </div>
                         
                         <!-- State Search Input -->
                         <div class="mb-3">
@@ -200,15 +194,20 @@
                 </div>
             </div>
 
-            <!-- Save Route -->
+            <!-- Action Buttons -->
             <div class="form-section">
                 <div class="row">
-                    <div class="col-md-8">
+                    <div class="col-md-4">
                         <input type="text" class="form-control" id="route-name" placeholder="Enter route name to save">
                     </div>
                     <div class="col-md-4">
                         <button type="button" class="btn btn-success w-100" onclick="saveRoute()">
                             <i class="fas fa-save me-2"></i>Save Route
+                        </button>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="button" class="btn btn-warning w-100" onclick="orderPilotCarFromLoadPlan()" id="orderPilotCarBtn" style="display: none;">
+                            <i class="fas fa-car me-2"></i>Order Pilot Car
                         </button>
                     </div>
                 </div>
@@ -291,7 +290,6 @@ function initAutocomplete() {
         const place = originAutocomplete.getPlace();
         if (place.formatted_address) {
             document.getElementById('origin').value = place.formatted_address;
-            calculateAndDisplayRoute();
         }
     });
     
@@ -299,7 +297,6 @@ function initAutocomplete() {
         const place = destinationAutocomplete.getPlace();
         if (place.formatted_address) {
             document.getElementById('destination').value = place.formatted_address;
-            calculateAndDisplayRoute();
         }
     });
 }
@@ -327,82 +324,18 @@ function calculateAndDisplayRoute() {
     }
 }
 
-// Update route states based on the current route
+// Update route display (removed auto-detection functionality)
 function updateRouteStates() {
-    if (!directionsRenderer.getDirections()) return;
-    
-    const route = directionsRenderer.getDirections().routes[0];
-    if (!route) return;
-    
-    // Extract states from the route legs
-    const routeStates = new Set();
-    
-    // Simple state detection based on origin and destination addresses
-    const origin = document.getElementById('origin').value;
-    const destination = document.getElementById('destination').value;
-    
-    // Extract state codes from addresses
-    const originState = extractStateFromAddress(origin);
-    const destState = extractStateFromAddress(destination);
-    
-    if (originState) routeStates.add(originState);
-    if (destState) routeStates.add(destState);
-    
-    // For more complex route analysis, we would need to geocode points along the route
-    // For now, let's suggest users manually select states they pass through
-    
-    if (routeStates.size > 0) {
-        console.log('Detected states:', Array.from(routeStates));
-        
-        // Auto-select detected states
-        document.querySelectorAll('.state-option').forEach(option => {
-            const state = option.dataset.state;
-            if (routeStates.has(state)) {
-                if (!option.classList.contains('selected')) {
-                    option.classList.add('selected');
-                    if (!selectedStates.includes(state)) {
-                        selectedStates.push(state);
-                    }
-                }
-            }
-        });
-        
-        updateRouteDisplay();
+    // This function previously auto-detected states from routes
+    // Now it only updates the visual route display
+    if (directionsRenderer && directionsRenderer.getDirections()) {
+        console.log('Route updated on map');
     }
 }
 
-// Extract state code from address string
-function extractStateFromAddress(address) {
-    if (!address) return null;
-    
-    const stateRegex = /\b(AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY)\b/i;
-    const match = address.match(stateRegex);
-    return match ? match[1].toUpperCase() : null;
-}
+// Function removed - was used for auto-detection
 
-// Auto-detect states button handler
-function autoDetectStates() {
-    const origin = document.getElementById('origin').value;
-    const destination = document.getElementById('destination').value;
-    
-    if (!origin || !destination) {
-        alert('Please enter both origin and destination first');
-        return;
-    }
-    
-    // Clear current selection
-    clearRoute();
-    
-    // Trigger route calculation which will auto-select states
-    calculateAndDisplayRoute();
-    
-    // Show a helpful message
-    setTimeout(() => {
-        if (selectedStates.length > 0) {
-            alert(`Detected ${selectedStates.length} states in your route: ${selectedStates.join(', ')}\n\nYou can manually add or remove states as needed.`);
-        }
-    }, 1000);
-}
+
 
 // State data for search functionality
 const stateData = [
@@ -439,10 +372,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize state search functionality
     initStateSearch();
-    
-    // Add event listeners for manual route calculation
-    document.getElementById('origin').addEventListener('blur', calculateAndDisplayRoute);
-    document.getElementById('destination').addEventListener('blur', calculateAndDisplayRoute);
 });
 
 // Initialize state search functionality
@@ -569,7 +498,7 @@ function calculateRoute() {
     }
     
     if (selectedStates.length === 0) {
-        alert('Please select at least one state for your route. Use the "Auto-Detect Route States" button or manually search and add states.');
+        alert('Please select at least one state for your route. Use the state search below to add states.');
         return;
     }
     
@@ -666,6 +595,12 @@ function displayResults(data) {
     
     // Show results
     document.getElementById('results-section').style.display = 'block';
+    
+    // Show Order Pilot Car button when results are displayed
+    const orderBtn = document.getElementById('orderPilotCarBtn');
+    if (orderBtn) {
+        orderBtn.style.display = 'block';
+    }
 }
 
 // Get current load data from form
@@ -790,6 +725,40 @@ function saveRoute() {
     .catch(error => {
         alert('Error saving route: ' + error);
     });
+}
+
+// Function to order pilot car with pre-filled data from load plan
+function orderPilotCarFromLoadPlan() {
+    if (!currentResults) {
+        alert('Please calculate route requirements first');
+        return;
+    }
+    
+    // Gather data from the load plan form
+    const loadPlanData = {
+        pickup_address: document.getElementById('origin').value,
+        delivery_address: document.getElementById('destination').value,
+        length: document.getElementById('length').value,
+        width: document.getElementById('width').value,
+        height: document.getElementById('height').value,
+        weight: document.getElementById('weight').value,
+        front_overhang: document.getElementById('front_overhang').value || '0',
+        rear_overhang: document.getElementById('rear_overhang').value || '0',
+        road_type: document.querySelector('input[name="road_type"]:checked')?.value || 'Interstate',
+        route_states: selectedStates.join(','),
+        escort_requirements: JSON.stringify(currentResults)
+    };
+    
+    // Create URL with parameters
+    const params = new URLSearchParams();
+    Object.keys(loadPlanData).forEach(key => {
+        if (loadPlanData[key]) {
+            params.append(key, loadPlanData[key]);
+        }
+    });
+    
+    // Navigate to order pilot car page with pre-filled data
+    window.location.href = `/order-pilot-car?source=load_plan&${params.toString()}`;
 }
 </script>
 {% endblock %} 

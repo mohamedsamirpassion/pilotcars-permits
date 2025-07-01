@@ -37,8 +37,8 @@
                         </a>
                     </li>
                     
-                    {% if not session.is_admin and session.user_type == 'trucking_company' %}
-                    <!-- Services Dropdown for Trucking Companies Only -->
+                    {% if session.user_type == 'trucking_company' or (session.user_type == 'admin' and session.get('admin_role') in ['admin', 'super_admin']) %}
+                    <!-- Services Dropdown for Trucking Companies and Admins (excluding dispatchers) -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                             <i class="fas fa-tools me-1"></i>Services
@@ -57,7 +57,7 @@
                         </ul>
                     </li>
                     
-                    <!-- My Account Dropdown for Trucking Companies Only -->
+                    <!-- My Account Dropdown for Trucking Companies and Admins (excluding dispatchers) -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                             <i class="fas fa-folder me-1"></i>My Account
@@ -72,19 +72,72 @@
                             <li><a class="dropdown-item" href="{{ url_for('my_orders') }}">
                                 <i class="fas fa-clipboard-list me-2"></i>My Orders
                             </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('view_profile') }}">
+                                <i class="fas fa-user me-2"></i>View Profile
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('edit_profile') }}">
+                                <i class="fas fa-edit me-2"></i>Edit Profile
+                            </a></li>
+                        </ul>
+                    </li>
+                    {% elif session.user_type == 'admin' and session.get('admin_role') == 'dispatcher' %}
+                    <!-- Limited Services for Dispatchers -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-tools me-1"></i>Services
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('load_plan') }}">
+                                <i class="fas fa-route me-2"></i>Load Plan Analysis
+                            </a></li>
+                        </ul>
+                    </li>
+                    
+                    <!-- Limited My Account for Dispatchers -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-folder me-1"></i>My Account
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('my_routes') }}">
+                                <i class="fas fa-route me-2"></i>My Load Plans
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('view_profile') }}">
+                                <i class="fas fa-user me-2"></i>View Profile
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('edit_profile') }}">
+                                <i class="fas fa-edit me-2"></i>Edit Profile
+                            </a></li>
                         </ul>
                     </li>
                     {% endif %}
                     
                     {% if session.user_type == 'vendor' %}
-                    <!-- Vendor Services -->
+                    <!-- Pilot Services -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-tools me-1"></i>Vendor Services
+                            <i class="fas fa-tools me-1"></i>Pilot Services
                         </a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{{ url_for('vendor_share_location') }}">
                                 <i class="fas fa-map-marker-alt me-2"></i>Share Location
+                            </a></li>
+                        </ul>
+                    </li>
+                    
+                    <!-- My Account for Vendors -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-folder me-1"></i>My Account
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('view_profile') }}">
+                                <i class="fas fa-user me-2"></i>View Profile
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('edit_profile') }}">
+                                <i class="fas fa-edit me-2"></i>Edit Profile
                             </a></li>
                         </ul>
                     </li>
@@ -101,14 +154,33 @@
                                 <i class="fas fa-tachometer-alt me-2"></i>Dashboard
                             </a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('admin_vendor_locations') }}">
-                                <i class="fas fa-map-marker-alt me-2"></i>Vendor Locations
+                            
+                                        <!-- Dispatcher and Higher: Vendor Locations and Load Planning -->
+            <li><a class="dropdown-item" href="{{ url_for('admin_vendor_locations') }}">
+                <i class="fas fa-map-marker-alt me-2"></i>Pilot Locations
+            </a></li>
+            <li><a class="dropdown-item" href="{{ url_for('load_plan') }}">
+                <i class="fas fa-route me-2"></i>Plan a Load
+            </a></li>
+            <li><a class="dropdown-item" href="{{ url_for('my_routes') }}">
+                <i class="fas fa-list me-2"></i>My Load Plans
+            </a></li>
+            
+            <!-- Admin and Super Admin: Quote Access -->
+            {% if session.get('admin_role') in ['admin', 'super_admin'] %}
+            <li><a class="dropdown-item" href="{{ url_for('my_quotes') }}">
+                <i class="fas fa-file-invoice-dollar me-2"></i>My Quotes
+            </a></li>
+            {% endif %}
+                            
+                            <!-- Admin and Super Admin Only -->
+                            {% if session.get('admin_role') in ['admin', 'super_admin'] %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin_manage_users') }}">
+                                <i class="fas fa-user-cog me-2"></i>User Management
                             </a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('admin_trucking_companies') }}">
-                                <i class="fas fa-truck me-2"></i>Trucking Companies
-                            </a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('admin_vendors') }}">
-                                <i class="fas fa-users-cog me-2"></i>Vendor Management
+                            <li><a class="dropdown-item" href="{{ url_for('admin_crm_dashboard') }}">
+                                <i class="fas fa-chart-line me-2"></i>Mini CRM
                             </a></li>
                             <li><a class="dropdown-item" href="{{ url_for('admin_quotes') }}">
                                 <i class="fas fa-file-invoice-dollar me-2"></i>Quote Management
@@ -116,21 +188,58 @@
                             <li><a class="dropdown-item" href="{{ url_for('admin_load_plans') }}">
                                 <i class="fas fa-route me-2"></i>Load Plan Management
                             </a></li>
-                            <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{{ url_for('admin_orders') }}">
                                 <i class="fas fa-clipboard-list me-2"></i>Order Management
                             </a></li>
+                            {% endif %}
+                            
+                            <!-- Super Admin Only -->
+                            {% if session.get('is_super_admin') %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin_management') }}">
+                                <i class="fas fa-users-cog me-2"></i>Admin Management
+                            </a></li>
+                            {% endif %}
                         </ul>
                     </li>
                     {% endif %}
                 </ul>
                 
                 <ul class="navbar-nav">
+                    <!-- Notifications Bell -->
+                    <li class="nav-item dropdown me-2">
+                        <a class="nav-link position-relative" href="#" role="button" data-bs-toggle="dropdown" id="notificationBell">
+                            <i class="fas fa-bell"></i>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notificationBadge" style="display: none;">
+                                0
+                            </span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end" style="width: 350px; max-height: 400px; overflow-y: auto;" id="notificationsDropdown">
+                            <div class="dropdown-header d-flex justify-content-between align-items-center">
+                                <span class="fw-bold">Notifications</span>
+                                <button class="btn btn-sm btn-outline-primary" id="markAllRead">Mark All Read</button>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <div id="notificationsList">
+                                <div class="dropdown-item-text text-center py-3">
+                                    <i class="fas fa-spinner fa-spin"></i> Loading...
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                             <i class="fas fa-user me-1"></i>{{ session.company_name }}
                         </a>
                         <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('view_profile') }}">
+                                <i class="fas fa-user me-1"></i>View Profile
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('edit_profile') }}">
+                                <i class="fas fa-edit me-1"></i>Edit Profile
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{{ url_for('logout') }}">
                                 <i class="fas fa-sign-out-alt me-1"></i>Logout
                             </a></li>
@@ -195,24 +304,402 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-dark text-light py-4 mt-5">
+    <footer class="bg-dark text-light py-5 mt-5">
         <div class="container">
-            <div class="row">
+            <div class="row g-4">
+                <!-- Company Info -->
+                <div class="col-lg-3 col-md-6">
+                    <h5 class="fw-bold mb-3">
+                        <i class="fas fa-truck me-2 text-primary"></i>My PEVO
+                    </h5>
+                    <p class="text-light mb-3">Professional Pilot Car Escort Services providing safe, reliable transportation solutions across the United States.</p>
+                    
+                    <!-- Social Media Links -->
+                    <div class="d-flex gap-2">
+                        <a href="https://www.facebook.com/MYPEVO.PilotCars" class="btn btn-primary btn-sm rounded-circle" target="_blank" rel="noopener">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="https://www.instagram.com/mypevo" class="btn btn-primary btn-sm rounded-circle" target="_blank" rel="noopener">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="https://www.linkedin.com/company/my-pevo/" class="btn btn-primary btn-sm rounded-circle" target="_blank" rel="noopener">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                    </div>
+                    
+                    <!-- Professional Memberships & Accreditation -->
+                    <div class="mt-3">
+                        <h6 class="fw-bold mb-2" style="font-size: 0.9rem;">Professional Memberships</h6>
+                        <div class="d-flex flex-column gap-2">
+                            <!-- BBB Accredited Business -->
+                            <a href="https://www.bbb.org/us/nc/charlotte/profile/pilot-car-services/my-pevo-0473-92029483?utm_campaign=bbb_seal&utm_content=My%20PEVO&utm_medium=website&utm_source=seal_click_92029483" 
+                               target="_blank" 
+                               rel="noopener"
+                               class="text-decoration-none">
+                                <div class="d-flex align-items-center gap-2 p-2 rounded" style="background-color: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">
+                                    <div class="bg-white rounded px-2 py-1">
+                                        <span class="fw-bold" style="color: #003366; font-size: 0.8rem;">BBB</span>
+                                    </div>
+                                    <div>
+                                        <div class="text-light fw-bold" style="font-size: 0.85rem;">Better Business Bureau®</div>
+                                        <div class="text-light" style="font-size: 0.75rem;">Accredited Business</div>
+                                    </div>
+                                </div>
+                            </a>
+                            
+                            <!-- SCRA Member -->
+                            <div class="d-flex align-items-center gap-2 p-2 rounded" style="background-color: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">
+                                <div class="bg-primary rounded px-2 py-1">
+                                    <span class="fw-bold text-white" style="font-size: 0.8rem;">SCRA</span>
+                                </div>
+                                <div>
+                                    <div class="text-light fw-bold" style="font-size: 0.85rem;">SC&RA Member</div>
+                                    <div class="text-light" style="font-size: 0.75rem;">Specialized Carriers & Rigging Association</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Contact Information -->
+                <div class="col-lg-3 col-md-6">
+                    <h5 class="fw-bold mb-3">
+                        <i class="fas fa-phone me-2 text-primary"></i>Contact
+                    </h5>
+                    <div class="mb-2">
+                        <strong>Phone:</strong><br>
+                        <a href="tel:+14782494902" class="text-light text-decoration-none">(478) 249-4902</a><br>
+                        <a href="tel:+19805808855" class="text-light text-decoration-none">(980) 580-8855</a><br>
+                        <a href="tel:+17047668664" class="text-light text-decoration-none">(704) 766-8664</a>
+                    </div>
+                    <div class="mb-2">
+                        <strong>Email:</strong><br>
+                        <a href="mailto:dispatch@mypevo.com" class="text-light text-decoration-none">dispatch@mypevo.com</a><br>
+                        <a href="mailto:permits@mypevo.com" class="text-light text-decoration-none">permits@mypevo.com</a>
+                    </div>
+                    <div>
+                        <strong>Address:</strong><br>
+                        P.O. Box 77866<br>
+                        Charlotte, NC 28271
+                    </div>
+                </div>
+                
+                <!-- Services -->
+                <div class="col-lg-3 col-md-6">
+                    <h5 class="fw-bold mb-3">
+                        <i class="fas fa-cogs me-2 text-primary"></i>Services
+                    </h5>
+                    <ul class="list-unstyled">
+                        {% if session.user_id and session.get('user_type') == 'trucking_company' %}
+                        <li class="mb-2">
+                            <a href="{{ url_for('order_pilot_car') }}" class="text-light text-decoration-none">
+                                <i class="fas fa-car me-2"></i>Pilot Car Services
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{{ url_for('get_quote') }}" class="text-light text-decoration-none">
+                                <i class="fas fa-calculator me-2"></i>Get a Quote
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{{ url_for('load_plan') }}" class="text-light text-decoration-none">
+                                <i class="fas fa-route me-2"></i>Load Planning
+                            </a>
+                        </li>
+                        {% elif session.user_id and session.get('user_type') == 'vendor' %}
+                        <li class="mb-2">
+                            <a href="{{ url_for('vendor_share_location') }}" class="text-light text-decoration-none">
+                                <i class="fas fa-map-marker-alt me-2"></i>Share Location
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{{ url_for('vendor_dashboard') }}" class="text-light text-decoration-none">
+                                <i class="fas fa-tachometer-alt me-2"></i>Pilot Dashboard
+                            </a>
+                        </li>
+                        {% else %}
+                        <!-- Guest users see general services -->
+                        <li class="mb-2">
+                            <a href="{{ url_for('order_pilot_car') }}" class="text-light text-decoration-none">
+                                <i class="fas fa-car me-2"></i>Pilot Car Services
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{{ url_for('vendor_share_location') }}" class="text-light text-decoration-none">
+                                <i class="fas fa-map-marker-alt me-2"></i>Share Location
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+                
+                <!-- Quick Links -->
+                <div class="col-lg-3 col-md-6">
+                    <h5 class="fw-bold mb-3">
+                        <i class="fas fa-link me-2 text-primary"></i>Quick Links
+                    </h5>
+                    <ul class="list-unstyled">
+                        {% if session.user_id and session.get('user_type') == 'trucking_company' %}
+                            <li class="mb-2">
+                                <a href="{{ url_for('dashboard') }}" class="text-light text-decoration-none">
+                                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                                </a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="{{ url_for('my_orders') }}" class="text-light text-decoration-none">
+                                    <i class="fas fa-clipboard-list me-2"></i>My Orders
+                                </a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="{{ url_for('my_quotes') }}" class="text-light text-decoration-none">
+                                    <i class="fas fa-file-invoice-dollar me-2"></i>My Quotes
+                                </a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="{{ url_for('my_routes') }}" class="text-light text-decoration-none">
+                                    <i class="fas fa-route me-2"></i>My Routes
+                                </a>
+                            </li>
+                        {% elif session.user_id and session.get('user_type') == 'vendor' %}
+                            <li class="mb-2">
+                                <a href="{{ url_for('vendor_dashboard') }}" class="text-light text-decoration-none">
+                                    <i class="fas fa-tachometer-alt me-2"></i>Pilot Dashboard
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="mb-2">
+                                <a href="{{ url_for('register') }}" class="text-light text-decoration-none">
+                                    <i class="fas fa-user-plus me-2"></i>Register
+                                </a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="{{ url_for('login') }}" class="text-light text-decoration-none">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Login
+                                </a>
+                            </li>
+                        {% endif %}
+                        <li class="mb-2">
+                            <a href="#" class="text-light text-decoration-none" data-bs-toggle="modal" data-bs-target="#privacyModal">
+                                <i class="fas fa-shield-alt me-2"></i>Privacy Policy
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <hr class="my-4 border-secondary">
+            
+            <!-- Bottom Footer -->
+            <div class="row align-items-center">
                 <div class="col-md-6">
-                    <h5><i class="fas fa-truck me-2"></i>My PEVO</h5>
-                    <p class="mb-0">Professional Pilot Car Escort Services</p>
+                    <p class="mb-0 text-muted">
+                        &copy; 2025 My PEVO. All rights reserved.
+                    </p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <p class="mb-0">&copy; 2024 My PEVO. All rights reserved.</p>
+                    <div class="d-flex justify-content-md-end justify-content-start align-items-center gap-3 mt-2 mt-md-0">
+                        <small class="text-muted">Licensed & Insured</small>
+                    </div>
                 </div>
             </div>
         </div>
     </footer>
 
+    <!-- Privacy Policy Modal -->
+    <div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="privacyModalLabel">Privacy Policy</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h6>Information We Collect</h6>
+                    <p>We collect information you provide directly to us, such as when you create an account, request services, or contact us for support.</p>
+                    
+                    <h6>How We Use Your Information</h6>
+                    <p>We use the information we collect to provide, maintain, and improve our services, process transactions, and communicate with you.</p>
+                    
+                    <h6>Information Sharing</h6>
+                    <p>We do not sell, trade, or otherwise transfer your personal information to third parties without your consent, except as described in this policy.</p>
+                    
+                    <h6>Security</h6>
+                    <p>We implement appropriate security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.</p>
+                    
+                    <h6>Contact Us</h6>
+                    <p>If you have questions about this Privacy Policy, please contact us at <a href="mailto:dispatch@mypevo.com">dispatch@mypevo.com</a>.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    {% if session.user_id %}
+    <!-- Notification System -->
+    <script>
+        let notificationCheckInterval;
+        
+        // Initialize notifications when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadNotifications();
+            updateUnreadCount();
+            
+            // Check for new notifications every 30 seconds
+            notificationCheckInterval = setInterval(updateUnreadCount, 30000);
+            
+            // Event listeners
+            document.getElementById('notificationBell').addEventListener('click', function() {
+                loadNotifications();
+            });
+            
+            document.getElementById('markAllRead').addEventListener('click', function() {
+                markAllNotificationsRead();
+            });
+        });
+        
+        function loadNotifications() {
+            fetch('/api/notifications')
+                .then(response => response.json())
+                .then(notifications => {
+                    displayNotifications(notifications);
+                })
+                .catch(error => {
+                    console.error('Error loading notifications:', error);
+                    document.getElementById('notificationsList').innerHTML = 
+                        '<div class="dropdown-item-text text-center py-3 text-danger">Error loading notifications</div>';
+                });
+        }
+        
+        function updateUnreadCount() {
+            fetch('/api/notifications/unread-count')
+                .then(response => response.json())
+                .then(data => {
+                    const badge = document.getElementById('notificationBadge');
+                    if (data.count > 0) {
+                        badge.textContent = data.count > 99 ? '99+' : data.count;
+                        badge.style.display = 'block';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                })
+                .catch(error => console.error('Error updating unread count:', error));
+        }
+        
+        function displayNotifications(notifications) {
+            const container = document.getElementById('notificationsList');
+            
+            if (notifications.length === 0) {
+                container.innerHTML = '<div class="dropdown-item-text text-center py-3 text-muted">No notifications</div>';
+                return;
+            }
+            
+            let html = '';
+            notifications.forEach(notification => {
+                const isUnread = !notification.is_read;
+                const bgClass = isUnread ? 'bg-light' : '';
+                const boldClass = isUnread ? 'fw-bold' : '';
+                
+                // Determine icon based on notification type
+                let icon = 'fas fa-bell';
+                let iconColor = 'text-primary';
+                
+                switch (notification.type) {
+                    case 'location_expired':
+                        icon = 'fas fa-map-marker-alt';
+                        iconColor = 'text-warning';
+                        break;
+                    case 'order_status_changed':
+                        icon = 'fas fa-clipboard-list';
+                        iconColor = 'text-info';
+                        break;
+                    case 'new_quote':
+                        icon = 'fas fa-dollar-sign';
+                        iconColor = 'text-success';
+                        break;
+                    case 'new_load_plan':
+                        icon = 'fas fa-route';
+                        iconColor = 'text-info';
+                        break;
+                    case 'new_order':
+                        icon = 'fas fa-car';
+                        iconColor = 'text-primary';
+                        break;
+                }
+                
+                html += `
+                    <div class="dropdown-item ${bgClass}" style="cursor: pointer;" onclick="handleNotificationClick(${notification.id}, '${notification.action_url}')">
+                        <div class="d-flex align-items-start">
+                            <div class="me-2 mt-1">
+                                <i class="${icon} ${iconColor}"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="${boldClass}">${notification.title}</div>
+                                <div class="text-muted small">${notification.message}</div>
+                                <div class="text-muted small">${notification.time_ago}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function handleNotificationClick(notificationId, actionUrl) {
+            // Mark as read
+            fetch(`/api/notifications/${notificationId}/mark-read`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateUnreadCount();
+                    loadNotifications();
+                    
+                    // Navigate to action URL if provided
+                    if (actionUrl && actionUrl !== 'null') {
+                        window.location.href = actionUrl;
+                    }
+                }
+            })
+            .catch(error => console.error('Error marking notification as read:', error));
+        }
+        
+        function markAllNotificationsRead() {
+            fetch('/api/notifications/mark-all-read', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateUnreadCount();
+                    loadNotifications();
+                }
+            })
+            .catch(error => console.error('Error marking all notifications as read:', error));
+        }
+        
+        // Clean up interval when page unloads
+        window.addEventListener('beforeunload', function() {
+            if (notificationCheckInterval) {
+                clearInterval(notificationCheckInterval);
+            }
+        });
+    </script>
+    {% endif %}
     
     {% block extra_scripts %}{% endblock %}
 </body>

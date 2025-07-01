@@ -1,0 +1,151 @@
+<!-- Quick Stats -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="dashboard-card p-4 text-center">
+            <div class="card-icon mb-3">
+                <i class="fas fa-route"></i>
+            </div>
+            <h4>{{ user.routes|length }}</h4>
+            <p class="text-muted mb-0">Total Routes</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="dashboard-card p-4 text-center">
+            <div class="card-icon mb-3">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+            <h4>{{ user.quotes|length }}</h4>
+            <p class="text-muted mb-0">Total Quotes</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="dashboard-card p-4 text-center">
+            <div class="card-icon mb-3">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h4>{% if user.user_type == 'admin' %}Admin{% else %}Approved{% endif %}</h4>
+            <p class="text-muted mb-0">Account Status</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="dashboard-card p-4 text-center">
+            <div class="card-icon mb-3">
+                <i class="fas fa-truck"></i>
+            </div>
+            <h4>{{ user.dot_number or 'N/A' }}</h4>
+            <p class="text-muted mb-0">DOT Number</p>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Routes -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="dashboard-card p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5><i class="fas fa-history me-2"></i>Recent Routes</h5>
+                <a href="{{ url_for('my_routes') }}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            
+            {% if recent_routes %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Route Name</th>
+                            <th>Origin → Destination</th>
+                            <th>Road Type</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for route in recent_routes %}
+                        <tr>
+                            <td><strong>{{ route.route_name }}</strong></td>
+                            <td>{{ route.origin }} → {{ route.destination }}</td>
+                            <td>
+                                <span class="badge bg-info">{{ route.road_type }}</span>
+                            </td>
+                            <td>{{ route.created_at.strftime('%m/%d/%Y') }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary" onclick="viewRoute({{ route.id }})">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-route text-muted" style="font-size: 3rem;"></i>
+                <h5 class="mt-3 text-muted">No routes yet</h5>
+                <p class="text-muted">Create your first load plan to get started</p>
+                <a href="{{ url_for('load_plan') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Create Load Plan
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="dashboard-card p-4">
+            <h5><i class="fas fa-info-circle me-2"></i>Quick Start</h5>
+            <div class="list-group list-group-flush">
+                <a href="{{ url_for('load_plan') }}" class="list-group-item list-group-item-action border-0">
+                    <i class="fas fa-route me-2 text-primary"></i>
+                    Create New Load Plan
+                </a>
+                <a href="{{ url_for('get_quote') }}" class="list-group-item list-group-item-action border-0">
+                    <i class="fas fa-dollar-sign me-2 text-success"></i>
+                    Get Price Quote
+                </a>
+                <a href="{{ url_for('my_routes') }}" class="list-group-item list-group-item-action border-0">
+                    <i class="fas fa-history me-2 text-primary"></i>
+                    View My Routes
+                </a>
+                <a href="{{ url_for('my_quotes') }}" class="list-group-item list-group-item-action border-0">
+                    <i class="fas fa-file-invoice-dollar me-2 text-info"></i>
+                    View My Quotes
+                </a>
+                {% if user.user_type == 'admin' %}
+                <a href="{{ url_for('admin_dashboard') }}" class="list-group-item list-group-item-action border-0">
+                    <i class="fas fa-cog me-2 text-info"></i>
+                    Admin Panel
+                </a>
+                {% endif %}
+                <div class="list-group-item border-0">
+                    <i class="fas fa-phone me-2 text-primary"></i>
+                    Contact Support
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-card p-4 mt-4">
+            <h5><i class="fas fa-lightbulb me-2"></i>Tips</h5>
+            <ul class="list-unstyled">
+                <li class="mb-2">
+                    <i class="fas fa-check-circle text-success me-2"></i>
+                    Always verify load dimensions before planning
+                </li>
+                <li class="mb-2">
+                    <i class="fas fa-check-circle text-success me-2"></i>
+                    Check state-specific escort requirements
+                </li>
+                <li class="mb-2">
+                    <i class="fas fa-check-circle text-success me-2"></i>
+                    Save frequently used routes for quick access
+                </li>
+                {% if user.user_type == 'admin' %}
+                <li class="mb-2">
+                    <i class="fas fa-check-circle text-success me-2"></i>
+                    Use admin features to manage users and orders
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</div> 

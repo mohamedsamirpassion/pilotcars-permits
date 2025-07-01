@@ -1,266 +1,273 @@
-# My PEVO - Load Plan Service
+# My PEVO - Comprehensive Pilot Car Escort Service Platform
 
-A comprehensive web application for pilot car escort services that helps trucking companies plan routes and determine escort requirements for oversized loads.
+A professional web application providing complete pilot car escort services, load planning, customer relationship management, and business operations for trucking companies and pilot car vendors.
 
-## Overview
+## 🌟 Overview
 
-My PEVO is a professional load planning service designed specifically for trucking companies that transport oversized loads. The application provides:
+My PEVO is a full-featured business platform designed for the pilot car escort industry. It serves trucking companies, pilot car vendors, and administrative teams with comprehensive tools for:
 
-- **Route Planning**: Interactive mapping with state-by-state route customization
-- **Regulatory Compliance**: Automated escort requirement calculations based on load dimensions
-- **State Regulations**: Comprehensive database of escort requirements by state
-- **User Management**: Multi-user system with company-based accounts
-- **Route History**: Save and manage previously planned routes
+- **Load Planning & Route Analysis**
+- **Pilot Car Service Coordination** 
+- **Customer Relationship Management (CRM)**
+- **Quote Generation & Management**
+- **Vendor Location Sharing**
+- **Multi-role User Management**
+- **Email Notifications & Communications**
 
-## Features
+## 🚀 Features
 
-### For Trucking Companies
-- Plan routes with custom state selection
-- Calculate escort requirements (Front, Rear, Height Pole, Police, Route Survey)
-- View detailed state-specific regulations and notes
+### 👥 User Types & Roles
+
+#### **Trucking Companies**
+- Plan routes with escort requirement calculations
+- Generate and manage quotes for pilot car services
+- Order pilot car services
+- View service history and manage profiles
+- Access to load planning tools
+
+#### **Pilot Car Vendors**
+- Share location and service availability
+- Manage service coverage areas
+- Receive service requests and notifications
+- Update contact information and services offered
+
+#### **Administrative Teams**
+**Super Admins:**
+- Complete system access and oversight
+- User management and role assignment
+- System-wide CRM and analytics
+- Admin user management
+- Email system configuration
+
+**Regular Admins/Lead Dispatchers:**
+- CRM lead management and assignment
+- Customer quote and order oversight
+- Vendor location management
+- Performance tracking
+
+**Dispatchers:**
+- Load planning assistance
+- Vendor location access
+- Limited administrative functions
+
+### 🔧 Core Functionality
+
+#### **Load Planning System**
+- Interactive route mapping with state-by-state analysis
+- Automated escort requirement calculations
+- Comprehensive state regulations database
+- Custom route planning with dimension analysis
 - Save and manage route history
-- Interactive map visualization
 
-### For Administrators
-- User management and analytics
-- System monitoring and maintenance
-- Route data oversight
-- Comprehensive admin dashboard
+#### **Mini CRM System**
+- Automatic lead generation from customer activities
+- Lead assignment and status tracking
+- Action logging and follow-up management
+- Performance metrics and conversion tracking
+- Team collaboration tools
 
-## Technology Stack
+#### **Quote Management**
+- Real-time quote generation with distance calculation
+- Regional pricing with premium/standard rates
+- Quote history and customer management
+- Automated lead creation from quote requests
+
+#### **Pilot Car Services**
+- Service ordering with detailed load information
+- Vendor matching and assignment
+- Order status tracking and management
+- Communication between customers and vendors
+
+#### **Communication & Notifications**
+- Email notification system
+- In-app notification management
+- CRM action tracking
+- System alerts and updates
+
+#### **Profile & User Management**
+- Comprehensive user profiles with audit logging
+- Password management and security
+- Role-based access control
+- User activity tracking
+
+## 🛠 Technology Stack
 
 - **Backend**: Python 3.10 + Flask 2.3.3
 - **Database**: SQLite (development) / PostgreSQL (production ready)
 - **Frontend**: HTML5, CSS3, JavaScript, Bootstrap 5
 - **Mapping**: Leaflet.js with OpenStreetMap
-- **Authentication**: Session-based with secure password hashing
+- **Email**: Flask-Mail with SMTP support
+- **Authentication**: Session-based with bcrypt password hashing
+- **Deployment**: Heroku-ready with Gunicorn
 
-## Installation
+## ⚡ Quick Start
 
 ### Prerequisites
-- Python 3.10 (Note: Not compatible with Python 3.13)
+- Python 3.10+ (Note: Not compatible with Python 3.13)
 - pip (Python package manager)
+- SMTP email server (for notifications)
 
-### Setup Instructions
+### Installation
 
-1. **Clone or download the application files**
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd mypevo
+   ```
 
 2. **Install dependencies**
    ```bash
    pip install -r requirements.txt
    ```
 
-3. **Run the application**
+3. **Environment Setup** (Optional - for email features)
+   Create a `.env` file:
+   ```env
+   MAIL_SERVER=your-smtp-server.com
+   MAIL_PORT=587
+   MAIL_USE_TLS=True
+   MAIL_USERNAME=your-email@domain.com
+   MAIL_PASSWORD=your-email-password
+   ADMIN_EMAIL=admin@yourdomain.com
+   ```
+
+4. **Run the application**
    ```bash
    python app.py
    ```
 
-4. **Access the application**
-   - Open your web browser
-   - Navigate to: `http://localhost:5000`
+5. **Access the application**
+   - Open browser to: `http://localhost:5000`
 
-## Default Login Credentials
+## 👤 Getting Started
 
-**Admin Account:**
-- Email: `admin@mypevo.com`
-- Password: `admin123`
+### Initial Setup
+1. **Register** as a trucking company or vendor
+2. **Admin Approval** - Contact system administrator for account approval
+3. **Profile Setup** - Complete your company profile and contact information
+4. **Start Using** - Begin with load planning, quotes, or vendor services
 
-## User Guide
+### For Trucking Companies
+1. **Plan Routes** - Use the load planning tool to calculate escort requirements
+2. **Get Quotes** - Request quotes for pilot car services
+3. **Order Services** - Place orders for pilot car escort services
+4. **Track History** - Monitor quotes, orders, and route plans
 
-### Getting Started
+### For Vendors
+1. **Share Location** - Register your service area and availability
+2. **Update Services** - Specify services offered and coverage radius
+3. **Manage Availability** - Keep location information current
 
-1. **Create an Account**
-   - Click "Create Account" on the login page
-   - Enter your company name, email, and password
-   - Log in with your new credentials
+### For Administrators
+1. **CRM Management** - Assign and track customer leads
+2. **User Oversight** - Manage user accounts and permissions
+3. **System Monitoring** - Monitor quotes, orders, and vendor activity
 
-2. **Plan Your First Route**
-   - Navigate to "Load Plan" from the dashboard
-   - Enter trip information (origin and destination)
-   - Select road type (Interstate or Non-Interstate)
-   - Input load dimensions (length, width, height, weight)
-   - Optionally add overhang measurements
-   - Select custom route states if needed
-   - Click "Calculate Escort Requirements"
+## 📊 CRM System Guide
 
-3. **Review Results**
-   - View the route summary
-   - Check escort requirements for each state
-   - Read state-specific notes and regulations
-   - Save the route for future reference
+### Lead Management
+- **Automatic Lead Creation** - Leads generated from quotes and load plans
+- **Lead Assignment** - Assign leads to team members
+- **Status Tracking** - Monitor lead progression (Pending → Assigned → In Progress → Converted/Lost)
+- **Action Logging** - Track all customer interactions and follow-ups
 
-### Load Dimensions Input
+### Performance Metrics
+- **Individual Performance** - Personal conversion rates for each admin
+- **Team Overview** - System-wide performance for super admins
+- **Revenue Tracking** - Monitor converted lead values
 
-**Dimensions should include the complete unit:**
-- **Length**: Total length including tractor and trailer
-- **Width**: Maximum width of the load
-- **Height**: Total height from ground to highest point
-- **Weight**: Gross vehicle weight including load
-- **Overhang**: Front and rear overhang from truck centers (optional)
+### Follow-up Management
+- **Scheduled Follow-ups** - Set and track follow-up dates
+- **Overdue Alerts** - Identify missed follow-up opportunities
+- **Team Coordination** - Collaborative lead management
 
-### Escort Types Explained
-
-- **None Required**: Load is within legal limits
-- **Rear**: Pilot car following the load
-- **Front**: Pilot car preceding the load
-- **Height Pole**: Height measuring device required
-- **Police**: Police escort required
-- **Route Survey**: Pre-trip route analysis required
-
-## State Regulations
-
-The application includes comprehensive regulations for major states including:
-- Virginia (VA)
-- North Carolina (NC)
-- South Carolina (SC)
-- Georgia (GA)
-- Alabama (AL)
-- Florida (FL)
-- Texas (TX)
-- California (CA)
-
-Each state entry includes:
-- Width, height, length, and weight limits
-- Corresponding escort requirements
-- Special notes and permit information
-
-## File Structure
+## 🗂 File Structure
 
 ```
 mypevo/
-├── app.py                      # Main Flask application
-├── requirements.txt            # Python dependencies
-├── README.md                  # This file
-├── templates/                 # HTML templates
-│   ├── base.html             # Base template
-│   ├── login.html            # Login page
-│   ├── register.html         # Registration page
-│   ├── dashboard.html        # User dashboard
-│   ├── load_plan.html        # Main load planning interface
-│   ├── my_routes.html        # Route history
-│   └── admin.html            # Admin dashboard
-└── static/                   # Static assets
-    ├── css/
-    │   └── style.css         # Custom styles
-    └── js/
-        └── state_regulations.js  # State regulations database
+├── app.py                          # Main Flask application
+├── admin_roles.py                  # Admin role management utilities
+├── requirements.txt                # Python dependencies
+├── Procfile                       # Heroku deployment configuration
+├── README.md                      # Documentation (this file)
+├── templates/                     # HTML templates
+│   ├── base.html                 # Base template with navigation
+│   ├── index.html                # Landing page
+│   ├── login.html & register.html # Authentication
+│   ├── dashboard.html            # User dashboard
+│   ├── get_quote.html            # Quote request form
+│   ├── load_plan.html            # Load planning interface
+│   ├── order_pilot_car.html      # Service ordering
+│   ├── my_*.html                 # User history pages
+│   ├── admin/                    # Admin interface templates
+│   │   ├── crm_dashboard.html    # CRM overview
+│   │   ├── crm_leads.html        # Lead management
+│   │   ├── crm_lead_detail.html  # Individual lead details
+│   │   ├── admin_management.html # Admin user management
+│   │   └── *.html                # Other admin interfaces
+│   ├── vendor/                   # Vendor interface templates
+│   ├── profile/                  # Profile management templates
+│   └── errors/                   # Error page templates
+├── static/                       # Static assets
+│   ├── css/style.css            # Custom styles
+│   ├── js/state_regulations.js  # State regulations database
+│   └── images/                   # Application images
+└── Documentation Files:
+    ├── EMAIL_SYSTEM_SUMMARY.md     # Email system documentation
+    ├── MINI_CRM_SYSTEM.md          # CRM system guide
+    ├── NOTIFICATION_SYSTEM.md      # Notification system details
+    ├── USER_AUDIT_SYSTEM.md        # User audit documentation
+    └── ERROR_PAGES_SUMMARY.md      # Error handling guide
 ```
 
-## API Endpoints
+## 🔐 Security Features
 
-### Authentication
-- `GET /` - Login page
-- `POST /login` - User authentication
-- `POST /register` - User registration
-- `GET /logout` - User logout
+- **Role-based Access Control** - Granular permissions by user type
+- **Password Security** - Bcrypt hashing with salt
+- **Session Management** - Secure session handling
+- **User Audit Logging** - Complete activity tracking
+- **Input Validation** - Protection against common vulnerabilities
+- **CSRF Protection** - Built-in Flask security features
 
-### Application Routes
-- `GET /dashboard` - User dashboard
-- `GET /load-plan` - Load planning interface
-- `POST /calculate-route` - Calculate escort requirements
-- `POST /save-route` - Save route to database
-- `GET /my-routes` - View saved routes
-- `GET /admin` - Admin dashboard (admin only)
+## 📧 Email System
 
-## Database Schema
+### Features
+- **Welcome Emails** - New user registration notifications
+- **Lead Notifications** - Automated CRM alerts
+- **Order Updates** - Service status notifications
+- **Admin Alerts** - System and user activity notifications
 
-### Users Table
-- `id`: Primary key
-- `company_name`: Company name
-- `email`: Login email (unique)
-- `password_hash`: Hashed password
-- `is_admin`: Admin flag
-- `created_at`: Registration timestamp
+### Configuration
+See `email_setup_production.md` for detailed email system setup instructions.
 
-### SavedRoute Table
-- `id`: Primary key
-- `user_id`: Foreign key to Users
-- `route_name`: User-defined route name
-- `origin/destination`: Trip endpoints
-- `road_type`: Interstate or Non-Interstate
-- `length/width/height/weight`: Load dimensions
-- `front_overhang/rear_overhang`: Overhang measurements
-- `custom_route`: JSON array of state codes
-- `route_results`: JSON array of calculated results
-- `created_at`: Save timestamp
+## 🚀 Deployment
 
-## Development Notes
+### Heroku Deployment
+The application is Heroku-ready with:
+- `Procfile` configured for Gunicorn
+- Environment variable support
+- PostgreSQL database compatibility
+- Static file handling
 
-### Adding New States
-To add new state regulations:
+### Production Considerations
+- Set up proper SMTP email service
+- Configure environment variables
+- Use PostgreSQL for production database
+- Enable HTTPS/SSL
+- Set up backup procedures
 
-1. Edit `static/js/state_regulations.js`
-2. Add new state object with appropriate limits
-3. Include all escort types and notes
-4. Update state selector in load plan template
+## 🤝 Contributing
 
-### Security Considerations
-- Change the secret key in production
-- Use HTTPS in production
-- Consider implementing rate limiting
-- Regular backup of user data
-- Update dependencies regularly
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
-## Production Deployment
+## 📄 License
 
-For production deployment:
+This project is proprietary software. All rights reserved.
 
-1. **Database**: Switch to PostgreSQL
-   ```python
-   app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://user:pass@localhost/mypevo'
-   ```
+## 📞 Support
 
-2. **Security**: Update the secret key
-   ```python
-   app.config['SECRET_KEY'] = 'your-secure-production-key'
-   ```
-
-3. **Web Server**: Use Gunicorn or similar WSGI server
-   ```bash
-   pip install gunicorn
-   gunicorn -w 4 app:app
-   ```
-
-4. **Reverse Proxy**: Configure Nginx or Apache
-5. **SSL Certificate**: Implement HTTPS
-6. **Environment Variables**: Use environment-based configuration
-
-## Support and Maintenance
-
-### Regular Maintenance Tasks
-- Update state regulations as laws change
-- Monitor user activity and system performance
-- Regular database backups
-- Security updates for dependencies
-
-### Troubleshooting
-- Check browser console for JavaScript errors
-- Verify all form fields are completed
-- Ensure state regulations file is properly formatted
-- Check database connectivity
-
-## Future Enhancements
-
-Planned features for future releases:
-- **Vendor Service**: Pilot car availability and booking
-- **Quote Service**: Automated pricing for escort services
-- **Mobile App**: Native iOS and Android applications
-- **API Integration**: Third-party mapping and traffic services
-- **Advanced Analytics**: Route optimization and cost analysis
-
-## License
-
-Copyright © 2024 My PEVO. All rights reserved.
-
-This software is proprietary and confidential. Unauthorized copying, distribution, or use is strictly prohibited.
-
-## Contact
-
-For technical support or business inquiries:
-- Website: [Your Website]
-- Email: [Your Email]
-- Phone: [Your Phone]
-
----
-
-**My PEVO** - Professional Pilot Car Escort Services 
+For technical support or questions, please contact the development team or system administrator. 

@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Page Not Found - My PEVO{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="text-center">
+                <!-- Error Icon -->
+                <div class="mb-4">
+                    <i class="fas fa-route" style="font-size: 120px; color: #1e5799; opacity: 0.3;"></i>
+                </div>
+                
+                <!-- Error Message -->
+                <h1 class="display-1 fw-bold text-primary mb-0">404</h1>
+                <h2 class="h3 fw-bold text-dark mb-3">Route Not Found</h2>
+                <p class="lead text-muted mb-4">
+                    Looks like this page took a wrong turn! The route you're looking for doesn't exist in our navigation system.
+                </p>
+                
+                <!-- Additional Info -->
+                <div class="bg-light rounded p-4 mb-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="fas fa-map-signs me-2 text-primary"></i>
+                        Get Back on Track
+                    </h5>
+                    <div class="row g-3">
+                        {% if session.user_id %}
+                            {% if session.get('user_type') == 'trucking_company' %}
+                                <div class="col-md-6">
+                                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary w-100">
+                                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                                    </a>
+                                </div>
+                                <div class="col-md-6">
+                                    <a href="{{ url_for('get_quote') }}" class="btn btn-outline-primary w-100">
+                                        <i class="fas fa-calculator me-2"></i>Get Quote
+                                    </a>
+                                </div>
+                                <div class="col-md-6">
+                                    <a href="{{ url_for('my_orders') }}" class="btn btn-outline-primary w-100">
+                                        <i class="fas fa-clipboard-list me-2"></i>My Orders
+                                    </a>
+                                </div>
+                                <div class="col-md-6">
+                                    <a href="{{ url_for('load_plan') }}" class="btn btn-outline-primary w-100">
+                                        <i class="fas fa-route me-2"></i>Load Planning
+                                    </a>
+                                </div>
+                            {% elif session.get('user_type') == 'vendor' %}
+                                <div class="col-md-6">
+                                    <a href="{{ url_for('vendor_dashboard') }}" class="btn btn-outline-primary w-100">
+                                        <i class="fas fa-tachometer-alt me-2"></i>Pilot Dashboard
+                                    </a>
+                                </div>
+                                <div class="col-md-6">
+                                    <a href="{{ url_for('vendor_share_location') }}" class="btn btn-outline-primary w-100">
+                                        <i class="fas fa-map-marker-alt me-2"></i>Share Location
+                                    </a>
+                                </div>
+                            {% elif session.get('is_admin') %}
+                                <div class="col-md-6">
+                                    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-primary w-100">
+                                        <i class="fas fa-cogs me-2"></i>Admin Dashboard
+                                    </a>
+                                </div>
+                                <div class="col-md-6">
+                                    <a href="{{ url_for('admin_orders') }}" class="btn btn-outline-primary w-100">
+                                        <i class="fas fa-clipboard-list me-2"></i>Manage Orders
+                                    </a>
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="col-md-4">
+                                <a href="{{ url_for('index') }}" class="btn btn-outline-primary w-100">
+                                    <i class="fas fa-home me-2"></i>Home
+                                </a>
+                            </div>
+                            <div class="col-md-4">
+                                <a href="{{ url_for('order_pilot_car') }}" class="btn btn-outline-primary w-100">
+                                    <i class="fas fa-car me-2"></i>Order Pilot Car
+                                </a>
+                            </div>
+                            <div class="col-md-4">
+                                <a href="{{ url_for('vendor_share_location') }}" class="btn btn-outline-primary w-100">
+                                    <i class="fas fa-map-marker-alt me-2"></i>Share Location
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Primary Action -->
+                <div class="d-flex flex-column flex-md-row gap-3 justify-content-center">
+                    <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-home me-2"></i>Return Home
+                    </a>
+                    <button onclick="history.back()" class="btn btn-outline-secondary btn-lg">
+                        <i class="fas fa-arrow-left me-2"></i>Go Back
+                    </button>
+                </div>
+                
+                <!-- Contact Info -->
+                <div class="mt-5 pt-4 border-top">
+                    <h6 class="fw-bold mb-3">Need Help?</h6>
+                    <p class="text-muted mb-2">
+                        If you believe this is an error, please contact our support team:
+                    </p>
+                    <div class="d-flex flex-column flex-md-row gap-3 justify-content-center align-items-center">
+                        <a href="tel:+14782494902" class="text-decoration-none">
+                            <i class="fas fa-phone me-2 text-primary"></i>(478) 249-4902
+                        </a>
+                        <span class="d-none d-md-inline text-muted">|</span>
+                        <a href="mailto:dispatch@mypevo.com" class="text-decoration-none">
+                            <i class="fas fa-envelope me-2 text-primary"></i>dispatch@mypevo.com
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.btn-outline-primary:hover {
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+
+.display-1 {
+    font-size: 8rem;
+    line-height: 1;
+}
+
+@media (max-width: 768px) {
+    .display-1 {
+        font-size: 6rem;
+    }
+}
+</style>
+{% endblock %} 

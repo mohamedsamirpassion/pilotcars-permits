@@ -141,7 +141,6 @@
 
 <script>
 function viewQuote(quoteId) {
-  // This would fetch and display quote details in a modal
   const modalBody = document.getElementById('quoteModalBody');
   modalBody.innerHTML = `
     <div class="text-center py-4">
@@ -156,28 +155,132 @@ function viewQuote(quoteId) {
   const modal = new bootstrap.Modal(document.getElementById('quoteModal'));
   modal.show();
   
-  // Simulate loading quote details (in a real implementation, you'd fetch from server)
-  setTimeout(() => {
-    modalBody.innerHTML = `
-      <div class="alert alert-info">
-        <strong>Quote #${quoteId}</strong> - Detailed view functionality will be implemented
-      </div>
-      <p>This would show:</p>
-      <ul>
-        <li>Complete trip details</li>
-        <li>Detailed cost breakdown</li>
-        <li>Regional pricing information</li>
-        <li>Terms and conditions</li>
-      </ul>
-    `;
-  }, 1000);
+  // Fetch quote details from server
+  fetch(`/quote-details/${quoteId}`)
+    .then(response => response.json())
+    .then(quote => {
+      modalBody.innerHTML = `
+        <div class="row">
+          <div class="col-12">
+            <h6><i class="fas fa-info-circle me-2"></i>Quote Overview</h6>
+            <div class="table-responsive mb-4">
+              <table class="table table-sm table-bordered">
+                <tbody>
+                  <tr>
+                    <td class="bg-light" style="width: 20%;"><strong>Quote ID</strong></td>
+                    <td style="width: 30%;">#${quote.id}</td>
+                    <td class="bg-light" style="width: 20%;"><strong>Company</strong></td>
+                    <td style="width: 30%;">${quote.customer.company_name}</td>
+                  </tr>
+                  <tr>
+                    <td class="bg-light"><strong>Email</strong></td>
+                    <td><a href="mailto:${quote.customer.email}">${quote.customer.email}</a></td>
+                    <td class="bg-light"><strong>Phone</strong></td>
+                    <td>${quote.customer.phone_number ? '<a href="tel:' + quote.customer.phone_number + '">' + quote.customer.phone_number + '</a>' : 'Not provided'}</td>
+                  </tr>
+                  <tr>
+                    <td class="bg-light"><strong>DOT Number</strong></td>
+                    <td>${quote.customer.dot_number ? '<span class="badge bg-success">' + quote.customer.dot_number + '</span>' : 'Not provided'}</td>
+                    <td class="bg-light"><strong>Created</strong></td>
+                    <td>${quote.created_at}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            
+            <h6><i class="fas fa-route me-2"></i>Trip Details</h6>
+            <div class="table-responsive mb-4">
+              <table class="table table-sm table-bordered">
+                <tbody>
+                  <tr>
+                    <td class="bg-light" style="width: 20%;"><strong>Pickup Date/Time</strong></td>
+                    <td style="width: 30%;">${quote.pickup_date} at ${quote.pickup_time}</td>
+                    <td class="bg-light" style="width: 20%;"><strong>Distance</strong></td>
+                    <td style="width: 30%;">${quote.distance_miles.toFixed(1)} miles</td>
+                  </tr>
+                  <tr>
+                    <td class="bg-light"><strong>From</strong></td>
+                    <td>${quote.pickup_location}, ${quote.pickup_state}</td>
+                    <td class="bg-light"><strong>To</strong></td>
+                    <td>${quote.delivery_location}, ${quote.delivery_state}</td>
+                  </tr>
+                  <tr>
+                    <td class="bg-light"><strong>Services</strong></td>
+                    <td>${quote.car_types.map(type => '<span class="badge bg-primary me-1">' + type + '</span>').join('')}</td>
+                    <td class="bg-light"><strong>Special Status</strong></td>
+                    <td>${quote.is_superload ? '<span class="badge bg-danger">SUPERLOAD</span>' : '<span class="badge bg-success">Standard Load</span>'}</td>
+                  </tr>
+                  <tr>
+                    <td class="bg-light"><strong>Region</strong></td>
+                    <td>${quote.region}</td>
+                    <td class="bg-light"><strong>Rate Type</strong></td>
+                    <td><span class="badge bg-${quote.rate_type === 'premium' ? 'warning' : 'success'}">${quote.rate_type.charAt(0).toUpperCase() + quote.rate_type.slice(1)}</span></td>
+                  </tr>
+                  <tr>
+                    <td class="bg-light"><strong>Total Cost</strong></td>
+                    <td><h5 class="text-success mb-0">$${quote.total_cost.toFixed(2)}</h5></td>
+                    <td class="bg-light"><strong>Priority</strong></td>
+                    <td><span class="badge bg-${quote.total_cost > 1000 ? 'danger' : quote.total_cost > 500 ? 'warning' : 'info'}">${quote.total_cost > 1000 ? 'HIGH' : quote.total_cost > 500 ? 'MEDIUM' : 'STANDARD'}</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        
+        <hr>
+        
+        <div class="row">
+          <div class="col-12 text-center">
+            <div class="alert alert-success">
+              <h6><i class="fas fa-truck me-2"></i>Ready to Order Pilot Car Services?</h6>
+              <p class="mb-2">Convert this quote into an order with pre-filled information</p>
+              <button type="button" class="btn btn-success" onclick="orderFromQuote(${quote.id})">
+                <i class="fas fa-shopping-cart me-2"></i>Order Pilot Car Services
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    })
+    .catch(error => {
+      console.error('Error fetching quote details:', error);
+      modalBody.innerHTML = `
+        <div class="alert alert-danger">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          Error loading quote details. Please try again.
+        </div>
+      `;
+    });
+}
+
+function orderFromQuote(quoteId) {
+  // Get quote data from the current view to build the order URL
+  fetch(`/quote-details/${quoteId}`)
+    .then(response => response.json())
+    .then(quote => {
+      const orderUrl = `/order-pilot-car?source=quote&pickup_address=${encodeURIComponent(quote.pickup_location + ', ' + quote.pickup_state)}&delivery_address=${encodeURIComponent(quote.delivery_location + ', ' + quote.delivery_state)}&pickup_date=${quote.pickup_date.replace(/\//g, '-')}&pickup_time=${quote.pickup_time}&pilot_car_positions=${encodeURIComponent(quote.car_types.join(' / '))}&quote_id=${quote.id}`;
+      window.location.href = orderUrl;
+    })
+    .catch(error => {
+      console.error('Error fetching quote for order:', error);
+      alert('Error preparing order. Please try again.');
+    });
 }
 
 function duplicateQuote(quoteId) {
   if (confirm('This will create a new quote based on Quote #' + quoteId + '. Continue?')) {
-    // This would redirect to the get-quote page with pre-filled data
-    alert('Duplicate functionality will redirect to Get Quote page with pre-filled data');
-    // window.location.href = '/get-quote?duplicate=' + quoteId;
+    // Fetch quote details and redirect to get-quote with pre-filled data
+    fetch(`/quote-details/${quoteId}`)
+      .then(response => response.json())
+      .then(quote => {
+        const quoteUrl = `/get-quote?duplicate=${quoteId}&pickup_location=${encodeURIComponent(quote.pickup_location)}&pickup_state=${quote.pickup_state}&delivery_location=${encodeURIComponent(quote.delivery_location)}&delivery_state=${quote.delivery_state}&pickup_date=${quote.pickup_date.replace(/\//g, '-')}&pickup_time=${quote.pickup_time}&car_types=${encodeURIComponent(JSON.stringify(quote.car_types))}&is_superload=${quote.is_superload}`;
+        window.location.href = quoteUrl;
+      })
+      .catch(error => {
+        console.error('Error fetching quote for duplication:', error);
+        alert('Error duplicating quote. Please try again.');
+      });
   }
 }
 

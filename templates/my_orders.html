@@ -76,10 +76,16 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <button type="button" class="btn btn-outline-primary btn-sm" 
-                                                onclick="viewOrder({{ order.id }})" title="View Details">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
+                                        <div class="btn-group-vertical btn-group-sm" role="group">
+                                            <button type="button" class="btn btn-outline-primary btn-sm" 
+                                                    onclick="viewOrder({{ order.id }})" title="View Details">
+                                                <i class="fas fa-eye me-1"></i>View
+                                            </button>
+                                            <button type="button" class="btn btn-outline-success btn-sm" 
+                                                    onclick="cloneOrder({{ order.id }})" title="Clone Order">
+                                                <i class="fas fa-copy me-1"></i>Clone
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -132,44 +138,46 @@ const orders = [
     {% for order in orders %}
     {
         id: {{ order.id }},
-        company_name: "{{ order.company_name }}",
-        dot_number: "{{ order.dot_number or '' }}",
-        pickup_address: "{{ order.pickup_address }}",
-        delivery_address: "{{ order.delivery_address }}",
-        pickup_date: "{{ order.pickup_date.strftime('%m/%d/%Y') }}",
-        pickup_time: "{{ order.pickup_time }}",
-        pilot_car_positions: {{ order.pilot_car_positions | safe }},
-        driver_name: "{{ order.driver_name }}",
-        driver_phone: "{{ order.driver_phone }}",
-        length: "{{ order.length }}",
-        width: "{{ order.width }}",
-        height: "{{ order.height }}",
-        weight: "{{ order.weight }}",
-        truck_number: "{{ order.truck_number or '' }}",
-        load_number: "{{ order.load_number or '' }}",
-        load_description: "{{ order.load_description or '' }}",
-        additional_notes: "{{ order.additional_notes or '' }}",
-        contact_name: "{{ order.contact_name }}",
-        preferred_contact: "{{ order.preferred_contact }}",
-        phone_number: "{{ order.phone_number }}",
-        email: "{{ order.email }}",
-        po_number: "{{ order.po_number or '' }}",
-        payment_method: "{{ order.payment_method }}",
-        status: "{{ order.status }}",
-        admin_notes: "{{ order.admin_notes or '' }}",
+        company_name: {{ order.company_name | tojson | safe }},
+        dot_number: {{ (order.dot_number or '') | tojson | safe }},
+        pickup_address: {{ order.pickup_address | tojson | safe }},
+        delivery_address: {{ order.delivery_address | tojson | safe }},
+        pickup_date: {{ order.pickup_date.strftime('%m/%d/%Y') | tojson | safe }},
+        pickup_time: {{ order.pickup_time | tojson | safe }},
+        pilot_car_positions: {{ order.pilot_car_positions | from_json | tojson | safe }},
+        driver_name: {{ order.driver_name | tojson | safe }},
+        driver_phone: {{ order.driver_phone | tojson | safe }},
+        length: {{ order.length | tojson | safe }},
+        width: {{ order.width | tojson | safe }},
+        height: {{ order.height | tojson | safe }},
+        weight: {{ order.weight | tojson | safe }},
+        truck_number: {{ (order.truck_number or '') | tojson | safe }},
+        load_number: {{ (order.load_number or '') | tojson | safe }},
+        load_description: {{ (order.load_description or '') | tojson | safe }},
+        additional_notes: {{ (order.additional_notes or '') | tojson | safe }},
+        contact_name: {{ order.contact_name | tojson | safe }},
+        preferred_contact: {{ order.preferred_contact | tojson | safe }},
+        phone_number: {{ order.phone_number | tojson | safe }},
+        email: {{ order.email | tojson | safe }},
+        po_number: {{ (order.po_number or '') | tojson | safe }},
+        payment_method: {{ order.payment_method | tojson | safe }},
+        status: {{ order.status | tojson | safe }},
+        admin_notes: {{ (order.admin_notes or '') | tojson | safe }},
         estimated_cost: {{ order.estimated_cost or 'null' }},
         final_cost: {{ order.final_cost or 'null' }},
-        created_at: "{{ order.created_at.strftime('%m/%d/%Y %I:%M %p') }}"
-    },
+        created_at: {{ order.created_at.strftime('%m/%d/%Y %I:%M %p') | tojson | safe }}
+    }{% if not loop.last %},{% endif %}
     {% endfor %}
 ];
 
 function viewOrder(orderId) {
+    console.log('viewOrder called with ID:', orderId);
     const order = orders.find(o => o.id === orderId);
     if (!order) {
         alert('Order not found');
         return;
     }
+    console.log('Order found:', order);
     
     const modalBody = document.getElementById('orderModalBody');
     
@@ -301,7 +309,90 @@ function viewOrder(orderId) {
         ` : ''}
     `;
     
-    new bootstrap.Modal(document.getElementById('orderModal')).show();
+    // Try to use Bootstrap modal - fallback if bootstrap object not available
+    try {
+        const orderModal = new bootstrap.Modal(document.getElementById('orderModal'));
+        orderModal.show();
+    } catch (error) {
+        // Fallback: try jQuery/direct DOM manipulation
+        console.error('Bootstrap modal error:', error);
+        const modalElement = document.getElementById('orderModal');
+        modalElement.style.display = 'block';
+        modalElement.classList.add('show');
+        document.body.classList.add('modal-open');
+    }
+}
+
+function cloneOrder(orderId) {
+    console.log('cloneOrder called with ID:', orderId);
+    const order = orders.find(o => o.id === orderId);
+    if (!order) {
+        alert('Order not found');
+        return;
+    }
+    
+    // Show confirmation dialog
+    if (!confirm('Do you want to create a new order based on this existing order? You will be able to review and modify the details before submitting.')) {
+        return;
+    }
+    
+    // Create a form to submit the order data to the pilot car order page
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/order-pilot-car';
+    form.style.display = 'none';
+    
+    // Add all the order data as hidden fields
+    const fields = {
+        'clone_order_id': order.id,
+        'company_name': order.company_name,
+        'dot_number': order.dot_number,
+        'pickup_address': order.pickup_address,
+        'delivery_address': order.delivery_address,
+        'pickup_date': order.pickup_date,
+        'pickup_time': order.pickup_time,
+        'pilot_car_positions': JSON.stringify(order.pilot_car_positions),
+        'driver_name': order.driver_name,
+        'driver_phone': order.driver_phone,
+        'length': order.length,
+        'width': order.width,
+        'height': order.height,
+        'weight': order.weight,
+        'truck_number': order.truck_number,
+        'load_number': order.load_number,
+        'load_description': order.load_description,
+        'additional_notes': order.additional_notes,
+        'contact_name': order.contact_name,
+        'preferred_contact': order.preferred_contact,
+        'phone_number': order.phone_number,
+        'email': order.email,
+        'po_number': order.po_number,
+        'payment_method': order.payment_method
+    };
+    
+    // Create hidden input fields
+    for (const [key, value] of Object.entries(fields)) {
+        if (value !== null && value !== undefined && value !== '') {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = value;
+            form.appendChild(input);
+        }
+    }
+    
+    // Add CSRF token if available
+    const csrfToken = document.querySelector('meta[name="csrf-token"]');
+    if (csrfToken) {
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrf_token';
+        csrfInput.value = csrfToken.getAttribute('content');
+        form.appendChild(csrfInput);
+    }
+    
+    document.body.appendChild(form);
+    form.submit();
 }
 </script>
 {% endblock %} 

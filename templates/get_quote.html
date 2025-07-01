@@ -198,9 +198,18 @@
           </div>
           
           <div class="text-center mt-4">
-            <button type="button" id="saveQuoteButton" class="btn btn-primary">
-              <i class="fas fa-save me-2"></i>Save Quote
-            </button>
+            <div class="row">
+              <div class="col-6">
+                <button type="button" id="saveQuoteButton" class="btn btn-primary w-100">
+                  <i class="fas fa-save me-2"></i>Save Quote
+                </button>
+              </div>
+              <div class="col-6">
+                <button type="button" id="orderPilotCarBtn" class="btn btn-warning w-100" onclick="orderPilotCarFromQuote()">
+                  <i class="fas fa-car me-2"></i>Order Pilot Car
+                </button>
+              </div>
+            </div>
           </div>
         </div>
         
@@ -322,10 +331,66 @@
       }
     });
 
-    // Set default date to tomorrow
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    document.getElementById('pickupDate').value = tomorrow.toISOString().split('T')[0];
+    // Check for URL parameters (for quote duplication)
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Pre-fill form if duplicating a quote
+    if (urlParams.get('duplicate')) {
+      // Pre-fill basic fields
+      if (urlParams.get('pickup_location')) {
+        document.getElementById('pickupLocation').value = urlParams.get('pickup_location');
+      }
+      if (urlParams.get('pickup_state')) {
+        document.getElementById('pickupState').value = urlParams.get('pickup_state');
+      }
+      if (urlParams.get('delivery_location')) {
+        document.getElementById('deliveryLocation').value = urlParams.get('delivery_location');
+      }
+      if (urlParams.get('delivery_state')) {
+        document.getElementById('deliveryState').value = urlParams.get('delivery_state');
+      }
+      if (urlParams.get('pickup_date')) {
+        document.getElementById('pickupDate').value = urlParams.get('pickup_date').replace(/-/g, '-');
+      }
+      if (urlParams.get('pickup_time')) {
+        document.getElementById('pickupTime').value = urlParams.get('pickup_time');
+      }
+      
+      // Pre-fill car types
+      if (urlParams.get('car_types')) {
+        try {
+          const carTypes = JSON.parse(decodeURIComponent(urlParams.get('car_types')));
+          carTypes.forEach(carType => {
+            const checkbox = document.querySelector(`input[value="${carType}"]`);
+            if (checkbox) {
+              checkbox.checked = true;
+            }
+          });
+        } catch (e) {
+          console.error('Error parsing car types:', e);
+        }
+      }
+      
+      // Pre-fill superload
+      if (urlParams.get('is_superload') === 'true') {
+        document.getElementById('superload').checked = true;
+      }
+      
+      // Show banner that this is a duplicate
+      const duplicateBanner = document.createElement('div');
+      duplicateBanner.className = 'alert alert-info alert-dismissible fade show mt-3';
+      duplicateBanner.innerHTML = `
+        <i class="fas fa-copy me-2"></i>
+        <strong>Duplicating Quote #${urlParams.get('duplicate')}</strong> - Form has been pre-filled with the original quote data.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      `;
+      document.querySelector('.container .row .col-12').appendChild(duplicateBanner);
+    } else {
+      // Set default date to tomorrow only if not duplicating
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      document.getElementById('pickupDate').value = tomorrow.toISOString().split('T')[0];
+    }
 
     // Calculate button click event
     document.getElementById('calculateButton').addEventListener('click', function() {
@@ -452,5 +517,43 @@
       document.getElementById('quoteResult').classList.remove('d-none');
     }
   });
+
+  // Function to order pilot car with pre-filled data from quote
+  function orderPilotCarFromQuote() {
+    // Check if quote has been calculated
+    if (!window.currentQuoteId) {
+      alert('Please calculate a quote first');
+      return;
+    }
+
+    // Gather data from the quote form
+    const carTypes = [];
+    document.querySelectorAll('input[name="car_types[]"]:checked').forEach(checkbox => {
+      carTypes.push(checkbox.value);
+    });
+
+    const quoteData = {
+      pickup_address: document.getElementById('pickupLocation').value + ', ' + 
+                     document.getElementById('pickupState').value,
+      delivery_address: document.getElementById('deliveryLocation').value + ', ' + 
+                       document.getElementById('deliveryState').value,
+      pickup_date: document.getElementById('pickupDate').value,
+      pickup_time: document.getElementById('pickupTime').value,
+      pilot_car_positions: carTypes.join(','),
+      is_superload: document.getElementById('superload').checked,
+      quote_id: window.currentQuoteId
+    };
+
+    // Create URL with parameters
+    const params = new URLSearchParams();
+    Object.keys(quoteData).forEach(key => {
+      if (quoteData[key]) {
+        params.append(key, quoteData[key]);
+      }
+    });
+
+    // Navigate to order pilot car page with pre-filled data
+    window.location.href = `/order-pilot-car?source=quote&${params.toString()}`;
+  }
 </script>
 {% endblock %}

@@ -1,0 +1,350 @@
+{% extends 'base.html' %}
+
+{% block title %}Order #{{ order.id }} Details - My PEVO Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-clipboard-list me-2"></i>Order #{{ order.id }} Details</h2>
+                    <p class="text-muted">View complete order information and manage status</p>
+                </div>
+                <div>
+                    <a href="/admin/orders" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Orders
+                    </a>
+                    <button type="button" class="btn btn-warning" onclick="updateOrderStatus({{ order.id }})">
+                        <i class="fas fa-edit me-2"></i>Update Status
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Order Information -->
+                        <div class="col-md-4">
+                            <h6>Order Information</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Order #:</strong></td>
+                                    <td>#{{ order.id }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Status:</strong></td>
+                                    <td>
+                                        {% if order.status == 'pending' %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% elif order.status == 'confirmed' %}
+                                            <span class="badge bg-info">Confirmed</span>
+                                        {% elif order.status == 'completed' %}
+                                            <span class="badge bg-success">Completed</span>
+                                        {% elif order.status == 'cancelled' %}
+                                            <span class="badge bg-danger">Cancelled</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Order Date:</strong></td>
+                                    <td>{{ order.created_at.strftime('%m/%d/%Y %I:%M %p') }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Customer Type:</strong></td>
+                                    <td>
+                                        {% if order.user_id %}
+                                            <span class="badge bg-success">Registered</span>
+                                        {% else %}
+                                            <span class="badge bg-info">Guest</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <h6>Company Information</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Company:</strong></td>
+                                    <td>{{ order.company_name }}</td>
+                                </tr>
+                                {% if order.dot_number %}
+                                <tr>
+                                    <td><strong>DOT Number:</strong></td>
+                                    <td>{{ order.dot_number }}</td>
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    <td><strong>Contact:</strong></td>
+                                    <td>{{ order.contact_name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Phone:</strong></td>
+                                    <td><a href="tel:{{ order.phone_number }}">{{ order.phone_number }}</a></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Email:</strong></td>
+                                    <td><a href="mailto:{{ order.email }}">{{ order.email }}</a></td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- Service Details -->
+                        <div class="col-md-4">
+                            <h6>Service Details</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Pickup Date:</strong></td>
+                                    <td>{{ order.pickup_date.strftime('%m/%d/%Y') }} at {{ order.pickup_time }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Pilot Car Types:</strong></td>
+                                    <td>
+                                        {% set positions = order.pilot_car_positions | from_json %}
+                                        {% for position in positions %}
+                                            {% if position == 'Chase' %}
+                                                <span class="badge bg-primary">Chase</span>
+                                            {% elif position == 'Height Pole' %}
+                                                <span class="badge bg-warning">HP (Height Pole)</span>
+                                            {% elif position == 'Route Survey' %}
+                                                <span class="badge bg-info">Route Survey</span>
+                                            {% elif position == 'Steer' %}
+                                                <span class="badge bg-success">Steer</span>
+                                            {% else %}
+                                                <span class="badge bg-info">{{ position }}</span>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Driver:</strong></td>
+                                    <td>{{ order.driver_name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Driver Phone:</strong></td>
+                                    <td><a href="tel:{{ order.driver_phone }}">{{ order.driver_phone }}</a></td>
+                                </tr>
+                            </table>
+                            
+                            <h6>Route</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Pickup:</strong></td>
+                                    <td>{{ order.pickup_address }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Delivery:</strong></td>
+                                    <td>{{ order.delivery_address }}</td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- Load Information -->
+                        <div class="col-md-4">
+                            <h6>Load Information</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Length:</strong></td>
+                                    <td>{{ order.length }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Width:</strong></td>
+                                    <td>{{ order.width }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Height:</strong></td>
+                                    <td>{{ order.height }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Weight:</strong></td>
+                                    <td>{{ order.weight }}</td>
+                                </tr>
+                                {% if order.truck_number %}
+                                <tr>
+                                    <td><strong>Truck #:</strong></td>
+                                    <td>{{ order.truck_number }}</td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td><strong>Truck #:</strong></td>
+                                    <td>Not provided</td>
+                                </tr>
+                                {% endif %}
+                                {% if order.load_number %}
+                                <tr>
+                                    <td><strong>Load #:</strong></td>
+                                    <td>{{ order.load_number }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if order.po_number %}
+                                <tr>
+                                    <td><strong>PO Number:</strong></td>
+                                    <td>{{ order.po_number }}</td>
+                                </tr>
+                                {% endif %}
+                            </table>
+
+                            {% if order.estimated_cost or order.final_cost %}
+                            <h6>Pricing</h6>
+                            <table class="table table-sm">
+                                {% if order.estimated_cost %}
+                                <tr>
+                                    <td><strong>Estimated Cost:</strong></td>
+                                    <td>${{ "%.2f"|format(order.estimated_cost) }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if order.final_cost %}
+                                <tr>
+                                    <td><strong>Final Cost:</strong></td>
+                                    <td>${{ "%.2f"|format(order.final_cost) }}</td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if order.load_description %}
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h6>Load Description</h6>
+                            <div class="alert alert-light">
+                                {{ order.load_description }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if order.additional_notes %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6>Additional Notes</h6>
+                            <div class="alert alert-light">
+                                {{ order.additional_notes }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if order.admin_notes %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6>Admin Notes</h6>
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                {{ order.admin_notes }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Update Status Modal -->
+<div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updateModalLabel">Update Order Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="updateForm">
+                    <input type="hidden" id="updateOrderId" value="{{ order.id }}">
+                    <div class="mb-3">
+                        <label for="orderStatus" class="form-label">Status</label>
+                        <select class="form-select" id="orderStatus">
+                            <option value="pending" {% if order.status == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="confirmed" {% if order.status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                            <option value="completed" {% if order.status == 'completed' %}selected{% endif %}>Completed</option>
+                            <option value="cancelled" {% if order.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="estimatedCost" class="form-label">Estimated Cost ($)</label>
+                        <input type="number" class="form-control" id="estimatedCost" step="0.01" 
+                               value="{% if order.estimated_cost %}{{ order.estimated_cost }}{% endif %}"
+                               placeholder="Enter estimated cost">
+                    </div>
+                    <div class="mb-3">
+                        <label for="finalCost" class="form-label">Final Cost ($)</label>
+                        <input type="number" class="form-control" id="finalCost" step="0.01"
+                               value="{% if order.final_cost %}{{ order.final_cost }}{% endif %}"
+                               placeholder="Enter final cost">
+                    </div>
+                    <div class="mb-3">
+                        <label for="adminNotes" class="form-label">Admin Notes</label>
+                        <textarea class="form-control" id="adminNotes" rows="3" 
+                                  placeholder="Add notes about the order status or any issues...">{% if order.admin_notes %}{{ order.admin_notes }}{% endif %}</textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveOrderUpdate()">Update Order</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateOrderStatus(orderId) {
+    // Try to use Bootstrap modal - fallback if bootstrap object not available
+    try {
+        const updateModal = new bootstrap.Modal(document.getElementById('updateModal'));
+        updateModal.show();
+    } catch (error) {
+        // Fallback: try jQuery/direct DOM manipulation
+        console.error('Bootstrap modal error:', error);
+        const modalElement = document.getElementById('updateModal');
+        modalElement.style.display = 'block';
+        modalElement.classList.add('show');
+        document.body.classList.add('modal-open');
+    }
+}
+
+function saveOrderUpdate() {
+    const orderId = document.getElementById('updateOrderId').value;
+    const status = document.getElementById('orderStatus').value;
+    const estimatedCost = document.getElementById('estimatedCost').value;
+    const finalCost = document.getElementById('finalCost').value;
+    const adminNotes = document.getElementById('adminNotes').value;
+    
+    const updateData = {
+        status: status,
+        admin_notes: adminNotes
+    };
+    
+    if (estimatedCost) updateData.estimated_cost = estimatedCost;
+    if (finalCost) updateData.final_cost = finalCost;
+    
+    fetch(`/admin/update-order-status/${orderId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updateData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Error: ' + error);
+    });
+}
+</script>
+
+{% endblock %} 

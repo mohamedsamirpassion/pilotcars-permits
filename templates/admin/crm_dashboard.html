@@ -1,0 +1,402 @@
+{% extends 'base.html' %}
+
+{% block title %}Mini CRM Dashboard - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <h1 class="mb-4">
+        <i class="fas fa-chart-line text-success"></i> Mini CRM Dashboard
+    </h1>
+    
+    <!-- Performance Overview Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-success">My Performance</h5>
+                    <h2 class="text-success">{{ "%.1f"|format(performance.conversion_rate) }}%</h2>
+                    <p class="text-muted">
+                        {% if session.is_super_admin %}
+                            Overall Conversion Rate
+                        {% else %}
+                            My Conversion Rate
+                        {% endif %}
+                    </p>
+                    <small>{{ performance.conversions }}/{{ performance.total_leads }} leads</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-primary">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-primary">Pending Leads</h5>
+                    <h2 class="text-primary">{{ pending_leads|length }}</h2>
+                    <p class="text-muted">Available to assign</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-warning">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-warning">My Active Leads</h5>
+                    <h2 class="text-warning">{{ my_leads|length }}</h2>
+                    <p class="text-muted">Assigned to me</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-info">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-info">Total Value</h5>
+                    <h2 class="text-info">${{ "%.2f"|format(performance.total_value) }}</h2>
+                    <p class="text-muted">
+                        {% if session.is_super_admin %}
+                            Total Revenue Generated
+                        {% else %}
+                            My Revenue Generated
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-bolt"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{{ url_for('admin_crm_leads') }}" class="btn btn-primary me-2">
+                        <i class="fas fa-list"></i> View All Leads
+                    </a>
+                    <a href="{{ url_for('admin_crm_leads', status='pending') }}" class="btn btn-success me-2">
+                        <i class="fas fa-plus-circle"></i> Assign Pending Leads
+                    </a>
+                    <a href="{{ url_for('admin_crm_leads', admin_id=current_user.id) }}" class="btn btn-warning me-2">
+                        <i class="fas fa-user"></i> My Leads
+                    </a>
+                    <a href="{{ url_for('admin_crm_follow_ups') }}" class="btn btn-info me-2">
+                        <i class="fas fa-calendar-check"></i> Follow-ups
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Leads Table -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-clock"></i> Recent Pending Leads</h5>
+                    <a href="{{ url_for('admin_crm_leads', status='pending') }}" class="btn btn-light btn-sm">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if pending_leads %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Company</th>
+                                    <th>Lead Source</th>
+                                    <th>Estimated Value</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for lead in pending_leads %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ lead.company.company_name }}</strong><br>
+                                        <small class="text-muted">{{ lead.company.email }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ lead.lead_source.replace('_', ' ').title() }}</span>
+                                    </td>
+                                    <td>
+                                        {% if lead.estimated_value %}
+                                            <span class="text-success">${{ "%.2f"|format(lead.estimated_value) }}</span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small>{{ lead.created_at.strftime('%m/%d/%Y %I:%M %p') }}</small>
+                                    </td>
+                                    <td>
+                                        {% if not lead.assigned_admin_id %}
+                                        <button class="btn btn-success btn-sm assign-lead-btn" 
+                                                data-lead-id="{{ lead.id }}" 
+                                                data-company="{{ lead.company.company_name }}">
+                                            <i class="fas fa-hand-paper"></i> Assign to Me
+                                        </button>
+                                        {% endif %}
+                                        <a href="{{ url_for('admin_crm_lead_detail', lead_id=lead.id) }}" 
+                                           class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="fas fa-inbox fa-3x mb-3"></i>
+                        <p>No pending leads available</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- My Active Leads -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-user-tie"></i> My Active Leads</h5>
+                    <a href="{{ url_for('admin_crm_leads', admin_id=current_user.id) }}" class="btn btn-dark btn-sm">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if my_leads %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Company</th>
+                                    <th>Status</th>
+                                    <th>Estimated Value</th>
+                                    <th>Last Updated</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for lead in my_leads %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ lead.company.company_name }}</strong><br>
+                                        <small class="text-muted">{{ lead.lead_source.replace('_', ' ').title() }}</small>
+                                    </td>
+                                    <td>
+                                        {% if lead.status == 'assigned' %}
+                                            <span class="badge bg-info">Assigned</span>
+                                        {% elif lead.status == 'in_progress' %}
+                                            <span class="badge bg-warning">In Progress</span>
+                                        {% elif lead.status == 'converted' %}
+                                            <span class="badge bg-success">Converted</span>
+                                        {% elif lead.status == 'lost' %}
+                                            <span class="badge bg-danger">Lost</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if lead.estimated_value %}
+                                            <span class="text-success">${{ "%.2f"|format(lead.estimated_value) }}</span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small>{{ lead.updated_at.strftime('%m/%d/%Y %I:%M %p') }}</small>
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('admin_crm_lead_detail', lead_id=lead.id) }}" 
+                                           class="btn btn-primary btn-sm">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                        {% if lead.status not in ['converted', 'lost'] %}
+                                        <button class="btn btn-success btn-sm convert-lead-btn"
+                                                data-lead-id="{{ lead.id }}"
+                                                data-company="{{ lead.company.company_name }}">
+                                            <i class="fas fa-check"></i> Convert
+                                        </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="fas fa-user-plus fa-3x mb-3"></i>
+                        <p>No leads assigned to you yet</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Performance (Super Admin Only) -->
+    {% if session.is_super_admin and team_performance %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="fas fa-users"></i> Team Performance</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Admin</th>
+                                    <th>Total Leads</th>
+                                    <th>Conversions</th>
+                                    <th>Conversion Rate</th>
+                                    <th>Total Value</th>
+                                    <th>Avg per Conversion</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for admin_perf in team_performance %}
+                                <tr {% if admin_perf.admin_id == current_user.id %}class="table-success"{% endif %}>
+                                    <td>
+                                        <strong>{{ admin_perf.admin_name }}</strong>
+                                        {% if admin_perf.admin_id == current_user.id %}
+                                            <span class="badge bg-primary ms-1">You</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ admin_perf.total_leads }}</td>
+                                    <td>{{ admin_perf.conversions }}</td>
+                                    <td>
+                                        <span class="badge {% if admin_perf.conversion_rate >= 30 %}bg-success{% elif admin_perf.conversion_rate >= 15 %}bg-warning{% else %}bg-danger{% endif %}">
+                                            {{ admin_perf.conversion_rate }}%
+                                        </span>
+                                    </td>
+                                    <td>${{ "%.2f"|format(admin_perf.total_value) }}</td>
+                                    <td>${{ "%.2f"|format(admin_perf.avg_value_per_conversion) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Assign Lead Modal -->
+<div class="modal fade" id="assignLeadModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Assign Lead to Myself</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to assign the lead from <strong id="assign-company-name"></strong> to yourself?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="confirm-assign-btn">
+                    <i class="fas fa-hand-paper"></i> Assign to Me
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Convert Lead Modal -->
+<div class="modal fade" id="convertLeadModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Convert Lead</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Mark lead from <strong id="convert-company-name"></strong> as converted:</p>
+                <div class="mb-3">
+                    <label for="conversion-value" class="form-label">Conversion Value ($)</label>
+                    <input type="number" class="form-control" id="conversion-value" step="0.01" min="0">
+                </div>
+                <div class="mb-3">
+                    <label for="conversion-notes" class="form-label">Notes</label>
+                    <textarea class="form-control" id="conversion-notes" rows="3" placeholder="Details about the conversion..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="confirm-convert-btn">
+                    <i class="fas fa-check"></i> Mark as Converted
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let currentLeadId = null;
+
+    // Assign lead functionality
+    document.querySelectorAll('.assign-lead-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            currentLeadId = this.dataset.leadId;
+            document.getElementById('assign-company-name').textContent = this.dataset.company;
+            new bootstrap.Modal(document.getElementById('assignLeadModal')).show();
+        });
+    });
+
+    document.getElementById('confirm-assign-btn').addEventListener('click', function() {
+        if (currentLeadId) {
+            fetch(`/admin/crm/assign-lead/${currentLeadId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'admin_id='
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            });
+        }
+    });
+
+    // Convert lead functionality
+    document.querySelectorAll('.convert-lead-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            currentLeadId = this.dataset.leadId;
+            document.getElementById('convert-company-name').textContent = this.dataset.company;
+            new bootstrap.Modal(document.getElementById('convertLeadModal')).show();
+        });
+    });
+
+    document.getElementById('confirm-convert-btn').addEventListener('click', function() {
+        if (currentLeadId) {
+            const formData = new FormData();
+            formData.append('conversion_value', document.getElementById('conversion-value').value);
+            formData.append('conversion_notes', document.getElementById('conversion-notes').value);
+
+            fetch(`/admin/crm/convert-lead/${currentLeadId}`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %} 

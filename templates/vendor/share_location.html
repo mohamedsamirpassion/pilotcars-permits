@@ -13,7 +13,7 @@
                         <p class="text-muted">Share your current location and availability to receive job opportunities.</p>
                         <div class="alert alert-success">
                             <i class="fas fa-check-circle me-2"></i>
-                            <strong>Registered Vendor:</strong> You are logged in as a registered vendor. Your locations will be marked as verified.
+                            <strong>Registered Pilot:</strong> You are logged in as a registered pilot. Your locations will be marked as verified.
                         </div>
                     {% else %}
                         <p class="text-muted">Share your current location and availability to receive job opportunities.</p>
@@ -25,7 +25,7 @@
                         <i class="fas fa-sign-in-alt me-2"></i>Login
                     </a>
                     <a href="{{ url_for('register') }}" class="btn btn-primary">
-                        <i class="fas fa-user-plus me-2"></i>Register as Vendor
+                        <i class="fas fa-user-plus me-2"></i>Register as Pilot
                     </a>
                 </div>
                 {% else %}
@@ -78,6 +78,7 @@
                         <div class="mb-3">
                             <label for="contact_name" class="form-label">Contact Name</label>
                             <input type="text" class="form-control" id="contact_name" name="contact_name" 
+                                   value="{% if user and user.contact_name %}{{ user.contact_name }}{% endif %}"
                                    placeholder="Driver/Operator name">
                         </div>
 
@@ -176,7 +177,7 @@
                     {% if not user %}
                     <div class="text-center mt-3">
                         <p class="text-muted">Want to manage your locations more easily? 
-                            <a href="{{ url_for('register') }}">Register as a vendor</a>
+                            <a href="{{ url_for('register') }}">Register as a pilot</a>
                         </p>
                     </div>
                     {% endif %}
@@ -219,7 +220,7 @@
                         </div>
                         <div class="col-md-6">
                             <h6 class="text-primary">Privacy</h6>
-                            <p class="small">Your location is only visible to My PEVO admin coordinators, not to other vendors or trucking companies.</p>
+                            <p class="small">Your location is only visible to My PEVO admin coordinators, not to other pilots or trucking companies.</p>
 
                             <h6 class="text-primary mt-3">Service Types</h6>
                             <ul class="small">

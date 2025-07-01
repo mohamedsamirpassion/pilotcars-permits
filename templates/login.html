@@ -3,48 +3,127 @@
 {% block title %}Login - My PEVO{% endblock %}
 
 {% block content %}
-<div class="auth-container d-flex align-items-center justify-content-center">
-    <div class="auth-card">
-        <div class="text-center">
-            <div class="auth-logo">
-                <i class="fas fa-truck me-2"></i>My PEVO
+<div class="modern-auth-container">
+    <!-- Left Side - Branding & Info -->
+    <div class="auth-brand-side">
+        <div class="brand-content">
+            <div class="brand-logo-large">
+                <i class="fas fa-truck"></i>
+                <span>My PEVO</span>
             </div>
-            <h4 class="mb-4">Welcome Back</h4>
-            <p class="text-muted mb-4">Sign in to access your load planning dashboard</p>
-        </div>
-
-        <form method="POST">
-            <div class="mb-3">
-                <label for="email" class="form-label">Email Address</label>
-                <input type="email" class="form-control" id="email" name="email" required>
+            <h1>Welcome Back to My PEVO</h1>
+            <p>Your comprehensive platform for pilot car escort services and oversized load planning.</p>
+            
+            <div class="feature-highlights">
+                <div class="feature-item">
+                    <i class="fas fa-route"></i>
+                    <span>Smart Route Planning</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-users"></i>
+                    <span>Connect with Certified Pilots</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Compliance & Safety First</span>
+                </div>
             </div>
             
-            <div class="mb-3">
-                <label for="password" class="form-label">Password</label>
-                <input type="password" class="form-control" id="password" name="password" required>
+            <div class="brand-decoration">
+                <div class="floating-element truck-icon">
+                    <i class="fas fa-truck"></i>
+                </div>
+                <div class="floating-element pilot-icon">
+                    <i class="fas fa-car"></i>
+                </div>
+                <div class="floating-element route-icon">
+                    <i class="fas fa-route"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Side - Login Form -->
+    <div class="auth-form-side">
+        <div class="form-container">
+            <div class="form-header">
+                <h2>Sign In</h2>
+                <p>Access your dashboard and manage your logistics</p>
             </div>
             
-            <button type="submit" class="btn btn-primary w-100 mb-3">
-                <i class="fas fa-sign-in-alt me-2"></i>Sign In
-            </button>
-        </form>
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="alert-container">
+                        {% for message in messages %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i>
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
 
-        <hr>
-        
-        <div class="text-center">
-            <p class="mb-0">Don't have an account?</p>
-            <a href="{{ url_for('register') }}" class="btn btn-outline-primary w-100 mt-2">
-                <i class="fas fa-user-plus me-2"></i>Create Account
-            </a>
-        </div>
-
-        <div class="mt-4 text-center">
-            <small class="text-muted">
-                Demo credentials:<br>
-                Email: admin@mypevo.com<br>
-                Password: admin123
-            </small>
+            <form method="POST" class="modern-form">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                        <button type="button" class="password-toggle" onclick="togglePassword()">
+                            <i class="fas fa-eye" id="passwordIcon"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-modern-primary">
+                    <span>Sign In</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </form>
+            
+            <div class="form-footer">
+                <div class="divider">
+                    <span>Don't have an account?</span>
+                </div>
+                
+                <a href="{{ url_for('register') }}" class="btn-modern-secondary">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Create Account</span>
+                </a>
+            </div>
         </div>
     </div>
 </div>
+
+<script>
+function togglePassword() {
+    const passwordInput = document.getElementById('password');
+    const passwordIcon = document.getElementById('passwordIcon');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        passwordIcon.className = 'fas fa-eye-slash';
+    } else {
+        passwordInput.type = 'password';
+        passwordIcon.className = 'fas fa-eye';
+    }
+}
+
+// Add floating animation to brand elements
+document.addEventListener('DOMContentLoaded', function() {
+    const floatingElements = document.querySelectorAll('.floating-element');
+    floatingElements.forEach((element, index) => {
+        element.style.animationDelay = `${index * 0.5}s`;
+    });
+});
+</script>
 {% endblock %} 

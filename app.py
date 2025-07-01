@@ -212,11 +212,13 @@ def get_english_place_names(latitude, longitude, original_city, original_state):
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     company_name = db.Column(db.String(100), nullable=False)
+    contact_name = db.Column(db.String(100), nullable=True)  # Contact person name for admin users
     email = db.Column(db.String(120), unique=True, nullable=False)
     phone_number = db.Column(db.String(20), nullable=True)  # Will be required for new registrations
     dot_number = db.Column(db.String(20), nullable=True)    # Only required for trucking companies
     password_hash = db.Column(db.String(128))
     is_admin = db.Column(db.Boolean, default=False)
+    admin_role = db.Column(db.String(20), nullable=True)  # 'dispatcher', 'admin', 'super_admin'
     user_type = db.Column(db.String(20), default='trucking_company')  # 'trucking_company' or 'vendor'
     is_approved = db.Column(db.Boolean, default=False)  # For trucking companies
     is_suspended = db.Column(db.Boolean, default=False)  # For suspension feature
@@ -331,6 +333,168 @@ class PilotCarOrder(db.Model):
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+# CRM Lead Model
+class Lead(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    company_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    lead_source = db.Column(db.String(50), nullable=False)  # 'quote_request', 'load_plan', 'contact_form'
+    status = db.Column(db.String(20), default='pending')  # pending, assigned, in_progress, converted, lost
+    assigned_admin_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    estimated_value = db.Column(db.Float, default=0.0)
+    conversion_value = db.Column(db.Float, nullable=True)
+    conversion_notes = db.Column(db.Text, nullable=True)
+    lost_reason = db.Column(db.Text, nullable=True)
+    priority = db.Column(db.String(20), default='medium')  # low, medium, high
+    last_contact_date = db.Column(db.DateTime, nullable=True)
+    next_follow_up_date = db.Column(db.DateTime, nullable=True)
+    notes = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    company = db.relationship('User', foreign_keys=[company_id], backref='leads')
+    assigned_admin = db.relationship('User', foreign_keys=[assigned_admin_id])
+    actions = db.relationship('LeadAction', backref='lead', lazy=True, cascade='all, delete-orphan')
+
+class LeadAction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    lead_id = db.Column(db.Integer, db.ForeignKey('lead.id'), nullable=False)
+    admin_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    action_type = db.Column(db.String(50), nullable=False)  # 'call', 'email', 'meeting', 'note'
+    subject = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    follow_up_date = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    admin = db.relationship('User', backref='lead_actions')
+
+# Notification Model
+class Notification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    type = db.Column(db.String(50), nullable=False)  # 'new_lead', 'order_status', 'system_alert'
+    title = db.Column(db.String(200), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    action_url = db.Column(db.String(500), nullable=True)
+    is_read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = db.relationship('User', backref='notifications')
+
+# Email Template Model
+class EmailTemplate(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    template_name = db.Column(db.String(100), unique=True, nullable=False)
+    subject = db.Column(db.String(200), nullable=False)
+    html_content = db.Column(db.Text, nullable=False)
+    text_content = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+# User Audit Log Model
+class UserAuditLog(db.Model):
+    __tablename__ = 'user_audit_log'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    action_type = db.Column(db.String(50), nullable=False)  # 'login', 'profile_update', 'password_change', etc.
+    action_description = db.Column(db.Text, nullable=False)
+    field_changed = db.Column(db.String(50), nullable=True)
+    old_value = db.Column(db.Text, nullable=True)
+    new_value = db.Column(db.Text, nullable=True)
+    changed_by_admin = db.Column(db.Boolean, default=False)
+    admin_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    ip_address = db.Column(db.String(45), nullable=True)
+    user_agent = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = db.relationship('User', foreign_keys=[user_id], backref='audit_logs')
+    admin_user = db.relationship('User', foreign_keys=[admin_user_id])
+
+# Email Service Class
+class EmailService:
+    @staticmethod
+    def send_email_notification(to_email, template_name, template_vars=None):
+        """Send email notification using template"""
+        try:
+            # Check if we're in production mode
+            is_production = os.getenv('FLASK_ENV') == 'production'
+            
+            if not is_production:
+                # Development mode - just log the email
+                print(f"\n{'='*60}")
+                print(f"📧 EMAIL NOTIFICATION (Development Mode)")
+                print(f"{'='*60}")
+                print(f"To: {to_email}")
+                print(f"Template: {template_name}")
+                if template_vars:
+                    print(f"Variables: {template_vars}")
+                print(f"{'='*60}\n")
+                return True
+            
+            # Production mode - send actual email
+            from flask_mail import Mail, Message
+            
+            # Initialize Flask-Mail if not already done
+            if not hasattr(EmailService, '_mail'):
+                mail = Mail()
+                app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')
+                app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 587))
+                app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'true').lower() == 'true'
+                app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+                app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+                app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
+                mail.init_app(app)
+                EmailService._mail = mail
+            
+            # Get email template
+            template = EmailTemplate.query.filter_by(template_name=template_name).first()
+            if not template:
+                print(f"Email template '{template_name}' not found")
+                return False
+            
+            # Render template with variables
+            subject = template.subject
+            html_content = template.html_content
+            text_content = template.text_content or ''
+            
+            if template_vars:
+                for key, value in template_vars.items():
+                    placeholder = f"{{{{ {key} }}}}"
+                    subject = subject.replace(placeholder, str(value))
+                    html_content = html_content.replace(placeholder, str(value))
+                    text_content = text_content.replace(placeholder, str(value))
+            
+            # Create and send message
+            msg = Message(
+                subject=subject,
+                recipients=[to_email],
+                html=html_content,
+                body=text_content,
+                sender=app.config['MAIL_DEFAULT_SENDER']
+            )
+            
+            EmailService._mail.send(msg)
+            return True
+            
+        except Exception as e:
+            print(f"Error sending email: {e}")
+            return False
+    
+    @staticmethod
+    def send_admin_notification(template_name, template_vars=None):
+        """Send notification to all admin users"""
+        admin_users = User.query.filter(User.is_admin == True).all()
+        success_count = 0
+        
+        for admin in admin_users:
+            if EmailService.send_email_notification(admin.email, template_name, template_vars):
+                success_count += 1
+        
+        return success_count > 0
 
 def load_state_regulations():
     """Load state regulations from the JavaScript file"""
@@ -791,6 +955,33 @@ def calculate_quote(quote_data):
             'error': str(e)
         }
 
+# ================== AUDIT LOG FUNCTIONS ==================
+
+def create_audit_log(user_id, action_type, action_description, field_changed=None, 
+                    old_value=None, new_value=None, changed_by_admin=False, 
+                    admin_user_id=None, ip_address=None, user_agent=None):
+    """Create an audit log entry"""
+    try:
+        audit_log = UserAuditLog(
+            user_id=user_id,
+            action_type=action_type,
+            action_description=action_description,
+            field_changed=field_changed,
+            old_value=old_value,
+            new_value=new_value,
+            changed_by_admin=changed_by_admin,
+            admin_user_id=admin_user_id,
+            ip_address=ip_address,
+            user_agent=user_agent
+        )
+        db.session.add(audit_log)
+        db.session.commit()
+        return audit_log
+    except Exception as e:
+        print(f"Error creating audit log: {str(e)}")
+        db.session.rollback()
+        return None
+
 # Authentication decorator
 def login_required(f):
     def decorated_function(*args, **kwargs):
@@ -870,6 +1061,121 @@ def admin_required(f):
     decorated_function.__name__ = f.__name__
     return decorated_function
 
+def admin_or_super_admin_required(f):
+    """Allow access to admin and super admin roles only (excludes dispatchers)"""
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        user = User.query.get(session['user_id'])
+        if not user or not user.is_admin:
+            flash('Admin access required')
+            return redirect(url_for('dashboard'))
+        # Check if user has admin or super_admin role (exclude dispatchers)
+        if user.admin_role not in ['admin', 'super_admin']:
+            flash('Access denied. You do not have permission to access this feature.')
+            return redirect(url_for('dashboard'))
+        return f(*args, **kwargs)
+    decorated_function.__name__ = f.__name__
+    return decorated_function
+
+def dispatcher_or_higher_required(f):
+    """Allow access to dispatcher, admin, and super admin roles"""
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        user = User.query.get(session['user_id'])
+        if not user or not user.is_admin:
+            flash('Staff access required')
+            return redirect(url_for('dashboard'))
+        # Allow dispatchers, admin, and super_admin roles
+        if user.admin_role not in ['dispatcher', 'admin', 'super_admin']:
+            flash('Access denied. You do not have permission to access this feature.')
+            return redirect(url_for('dashboard'))
+        return f(*args, **kwargs)
+    decorated_function.__name__ = f.__name__
+    return decorated_function
+
+def dispatcher_or_trucking_company_required(f):
+    """Allow access to dispatchers and approved trucking companies for load planning"""
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        user = User.query.get(session['user_id'])
+        
+        # Allow trucking companies OR admin staff (dispatcher, admin, super_admin)
+        if user and ((user.user_type == 'trucking_company' and user.is_approved) or 
+                    (user.is_admin and user.admin_role in ['dispatcher', 'admin', 'super_admin'])):
+            return f(*args, **kwargs)
+        
+        if user and user.user_type == 'trucking_company' and not user.is_approved:
+            flash('Your account is pending approval. Please wait for admin approval to access this feature.', 'warning')
+            return redirect(url_for('dashboard'))
+        
+        flash('Access denied. This feature is only available to trucking companies and staff members.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    decorated_function.__name__ = f.__name__
+    return decorated_function
+
+def trucking_company_or_admin_required(f):
+    """Allow access to trucking companies, admin, and super admin roles (excludes dispatchers)"""
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        user = User.query.get(session['user_id'])
+        if not user:
+            session.clear()
+            return redirect(url_for('login'))
+            
+        if user.is_suspended:
+            session.clear()
+            flash('Your account has been suspended. Please contact support.')
+            return redirect(url_for('login'))
+        
+        # Allow approved trucking companies OR admin/super_admin staff (excludes dispatchers)
+        if user and ((user.user_type == 'trucking_company' and user.is_approved) or 
+                    (user.is_admin and user.admin_role in ['admin', 'super_admin'])):
+            return f(*args, **kwargs)
+        
+        if user and user.user_type == 'trucking_company' and not user.is_approved:
+            flash('Your account is pending approval. Please wait for admin approval to access this feature.', 'warning')
+            return redirect(url_for('dashboard'))
+        
+        if user and user.is_admin and user.admin_role == 'dispatcher':
+            flash('Access denied. This feature is not available to dispatchers.', 'error')
+            return redirect(url_for('dashboard'))
+        
+        flash('Access denied. This feature is only available to trucking companies and senior staff members.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    decorated_function.__name__ = f.__name__
+    return decorated_function
+
+def super_admin_required(f):
+    """Allow access only to super admin role"""
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        user = User.query.get(session['user_id'])
+        if not user:
+            session.clear()
+            return redirect(url_for('login'))
+            
+        if user.is_suspended:
+            session.clear()
+            flash('Your account has been suspended. Please contact support.')
+            return redirect(url_for('login'))
+        
+        # Only allow super admins
+        if user and user.is_admin and user.admin_role == 'super_admin':
+            return f(*args, **kwargs)
+        
+        flash('Access denied. Super Admin access required.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    decorated_function.__name__ = f.__name__
+    return decorated_function
+
 # Routes
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -900,6 +1206,17 @@ def login():
             session['is_admin'] = user.is_admin
             session['user_type'] = user.user_type
             session['is_approved'] = user.is_approved
+            session['admin_role'] = user.admin_role  # Store admin role for navigation template
+            session['is_super_admin'] = user.is_admin and user.admin_role == 'super_admin'  # Store super admin flag for templates
+            
+            # Create audit log for login
+            create_audit_log(
+                user_id=user.id,
+                action_type='login',
+                action_description=f'User logged in from {request.remote_addr}',
+                ip_address=request.remote_addr,
+                user_agent=request.headers.get('User-Agent', '')
+            )
             
             return redirect(url_for('dashboard'))
         else:
@@ -985,7 +1302,7 @@ def dashboard():
     return render_template('dashboard.html', user=user, recent_routes=recent_routes)
 
 @app.route('/load-plan')
-@trucking_company_required
+@dispatcher_or_trucking_company_required
 def load_plan():
     return render_template('load_plan.html')
 
@@ -1080,32 +1397,51 @@ def calculate_route():
 @app.route('/save-route', methods=['POST'])
 @login_required
 def save_route():
+    """Save route and create lead if customer activity"""
     try:
-        data = request.get_json()
+        data = request.json
         
         route = SavedRoute(
             user_id=session['user_id'],
-            route_name=data.get('route_name'),
-            origin=data.get('origin'),
-            destination=data.get('destination'),
-            road_type=data.get('road_type'),
+            route_name=data['route_name'],
+            origin=data['origin'],
+            destination=data['destination'],
+            road_type=data['road_type'],
             length=data.get('length'),
             width=data.get('width'),
             height=data.get('height'),
             weight=data.get('weight'),
             front_overhang=data.get('front_overhang'),
             rear_overhang=data.get('rear_overhang'),
-            custom_route=json.dumps(data.get('custom_route', [])),
-            route_results=json.dumps(data.get('results', []))
+            custom_route=data.get('custom_route'),
+            route_results=json.dumps(data.get('route_results'))
         )
         
         db.session.add(route)
         db.session.commit()
         
-        return jsonify({'success': True, 'message': 'Route saved successfully'})
+        # Create lead for trucking company load planning activity
+        current_user = User.query.get(session['user_id'])
+        if current_user and not current_user.is_admin:
+            # Estimate value based on route distance and complexity
+            route_results = data.get('route_results', {})
+            distance_miles = route_results.get('distance_miles', 0)
+            estimated_value = distance_miles * 2.5  # Rough estimate $2.50 per mile
+            
+            notes = f"Load plan '{data['route_name']}' from {data['origin']} to {data['destination']}. Load: {data.get('length', 'N/A')}' x {data.get('width', 'N/A')}' x {data.get('height', 'N/A')}'"
+            
+            create_lead_from_activity(
+                user_id=current_user.id,
+                lead_source='load_plan',
+                estimated_value=estimated_value,
+                notes=notes
+            )
+        
+        return jsonify({'success': True, 'route_id': route.id})
         
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 400
+        print(f"Route save error: {e}")
+        return jsonify({'error': 'Failed to save route'}), 500
 
 @app.route('/my-routes')
 @login_required
@@ -1114,27 +1450,25 @@ def my_routes():
     return render_template('my_routes.html', routes=routes)
 
 @app.route('/get-quote')
-@trucking_company_required
+@trucking_company_or_admin_required
 def get_quote():
     return render_template('get_quote.html')
 
 @app.route('/calculate-quote', methods=['POST'])
-@trucking_company_required
+@trucking_company_or_admin_required
 def calculate_quote_route():
+    """Calculate quote and create lead if customer activity"""
     try:
-        data = request.get_json()
+        data = request.json
+        quote_result = calculate_quote(data)
         
-        # Validate required fields
-        required_fields = ['pickup_date', 'pickup_time', 'pickup_location', 'pickup_state', 
-                          'delivery_location', 'delivery_state', 'car_types']
-        for field in required_fields:
-            if not data.get(field):
-                return jsonify({'success': False, 'error': f'Missing required field: {field}'}), 400
+        if not quote_result or not quote_result.get('total_cost'):
+            return jsonify({
+                'success': False,
+                'error': 'Unable to calculate quote. Please check your route and try again.'
+            }), 400
         
-        # Calculate quote
-        result = calculate_quote(data)
-        
-        if result['success']:
+        if quote_result and quote_result.get('total_cost'):
             # Save quote to database
             quote = Quote(
                 user_id=session['user_id'],
@@ -1146,36 +1480,224 @@ def calculate_quote_route():
                 delivery_state=data['delivery_state'],
                 car_types=json.dumps(data['car_types']),
                 is_superload=data.get('is_superload', False),
-                distance_miles=result['distance'],
-                rate_type=result['rate_type'],
-                region=result['region'],
-                total_cost=result['total_cost'],
-                quote_breakdown=json.dumps(result['breakdown'])
+                distance_miles=quote_result.get('distance_miles'),
+                rate_type=quote_result.get('rate_type'),
+                region=quote_result.get('region'),
+                total_cost=quote_result.get('total_cost'),
+                quote_breakdown=json.dumps(quote_result.get('breakdown'))
             )
             
             db.session.add(quote)
             db.session.commit()
             
-            return jsonify({
-                'success': True,
-                'quote_id': quote.id,
-                'result': result
-            })
-        else:
-            return jsonify(result), 400
+            # Create lead for trucking company activity
+            current_user = User.query.get(session['user_id'])
+            if current_user and not current_user.is_admin:
+                estimated_value = quote_result.get('total_cost', 0)
+                notes = f"Quote request for {', '.join(data['car_types'])} from {data['pickup_location']} to {data['delivery_location']}"
+                create_lead_from_activity(
+                    user_id=current_user.id,
+                    lead_source='quote_request',
+                    estimated_value=estimated_value,
+                    notes=notes
+                )
             
+            # Add quote ID to response
+            quote_result['quote_id'] = quote.id
+            
+        # Return in format expected by frontend
+        return jsonify({
+            'success': True,
+            'result': quote_result,
+            'quote_id': quote_result.get('quote_id')
+        })
+        
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        print(f"Quote calculation error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to calculate quote'
+        }), 500
 
 @app.route('/my-quotes')
-@trucking_company_required
+@trucking_company_or_admin_required
 def my_quotes():
     quotes = Quote.query.filter_by(user_id=session['user_id']).order_by(Quote.created_at.desc()).all()
     return render_template('my_quotes.html', quotes=quotes)
 
+# ================== PROFILE MANAGEMENT ROUTES ==================
+
+@app.route('/profile')
+@login_required
+def view_profile():
+    """View user profile"""
+    user = User.query.get(session['user_id'])
+    return render_template('profile/view_profile.html', user=user)
+
+@app.route('/profile/edit')
+@login_required 
+def edit_profile():
+    """Edit user profile"""
+    user = User.query.get(session['user_id'])
+    return render_template('profile/edit_profile.html', user=user)
+
+@app.route('/profile/update', methods=['POST'])
+@login_required
+def update_profile():
+    """Handle profile updates via AJAX"""
+    try:
+        user = User.query.get(session['user_id'])
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'success': False, 'message': 'No data provided'})
+        
+        # Track changes for audit log
+        changes = []
+        old_values = {}
+        new_values = {}
+        
+        # Validate required fields
+        if not data.get('company_name', '').strip():
+            return jsonify({'success': False, 'message': 'Company name is required'})
+        
+        if not data.get('email', '').strip():
+            return jsonify({'success': False, 'message': 'Email address is required'})
+        
+        # Check if email is being changed and if it's already taken
+        new_email = data.get('email', '').strip().lower()
+        if new_email != user.email.lower():
+            existing_user = User.query.filter(User.email.ilike(new_email), User.id != user.id).first()
+            if existing_user:
+                return jsonify({'success': False, 'message': 'Email address is already in use by another account'})
+            
+            old_values['email'] = user.email
+            new_values['email'] = new_email
+            changes.append(f"email changed from '{user.email}' to '{new_email}'")
+            user.email = new_email
+        
+        # Update company name
+        new_company_name = data.get('company_name', '').strip()
+        if new_company_name != user.company_name:
+            old_values['company_name'] = user.company_name
+            new_values['company_name'] = new_company_name
+            changes.append(f"company name changed from '{user.company_name}' to '{new_company_name}'")
+            user.company_name = new_company_name
+        
+        # Update contact name (optional)
+        new_contact_name = data.get('contact_name', '').strip() or None
+        if new_contact_name != user.contact_name:
+            old_values['contact_name'] = user.contact_name or ''
+            new_values['contact_name'] = new_contact_name or ''
+            changes.append(f"contact name changed from '{user.contact_name or 'blank'}' to '{new_contact_name or 'blank'}'")
+            user.contact_name = new_contact_name
+        
+        # Update phone number (optional)
+        new_phone = data.get('phone_number', '').strip() or None
+        if new_phone != user.phone_number:
+            old_values['phone_number'] = user.phone_number or ''
+            new_values['phone_number'] = new_phone or ''
+            changes.append(f"phone number changed from '{user.phone_number or 'blank'}' to '{new_phone or 'blank'}'")
+            user.phone_number = new_phone
+        
+        # Update DOT number for trucking companies (optional)
+        if user.user_type == 'trucking_company':
+            new_dot = data.get('dot_number', '').strip() or None
+            if new_dot != user.dot_number:
+                old_values['dot_number'] = user.dot_number or ''
+                new_values['dot_number'] = new_dot or ''
+                changes.append(f"DOT number changed from '{user.dot_number or 'blank'}' to '{new_dot or 'blank'}'")
+                user.dot_number = new_dot
+        
+        # Save changes if any were made
+        if changes:
+            db.session.commit()
+            
+            # Create audit log entries for each field change
+            for field_changed in ['email', 'company_name', 'contact_name', 'phone_number', 'dot_number']:
+                if field_changed in old_values:
+                    create_audit_log(
+                        user_id=user.id,
+                        action_type='profile_update',
+                        action_description=f"Profile updated: {field_changed} changed",
+                        field_changed=field_changed,
+                        old_value=old_values[field_changed],
+                        new_value=new_values[field_changed],
+                        ip_address=request.remote_addr,
+                        user_agent=request.headers.get('User-Agent', '')
+                    )
+            
+            return jsonify({
+                'success': True, 
+                'message': f'Profile updated successfully! Changes: {", ".join(changes)}'
+            })
+        else:
+            return jsonify({'success': True, 'message': 'No changes were made to your profile'})
+            
+    except Exception as e:
+        print(f"Error updating profile: {str(e)}")
+        db.session.rollback()
+        return jsonify({'success': False, 'message': 'An error occurred while updating your profile'})
+
+@app.route('/profile/change-password', methods=['POST'])
+@login_required
+def change_password():
+    """Handle password changes via AJAX"""
+    try:
+        user = User.query.get(session['user_id'])
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'success': False, 'message': 'No data provided'})
+        
+        current_password = data.get('current_password', '')
+        new_password = data.get('new_password', '')
+        confirm_password = data.get('confirm_password', '')
+        
+        # Validate input
+        if not current_password or not new_password or not confirm_password:
+            return jsonify({'success': False, 'message': 'All password fields are required'})
+        
+        # Check current password
+        if not check_password_hash(user.password_hash, current_password):
+            return jsonify({'success': False, 'message': 'Current password is incorrect'})
+        
+        # Validate new password length
+        if len(new_password) < 6:
+            return jsonify({'success': False, 'message': 'New password must be at least 6 characters long'})
+        
+        # Check if new passwords match
+        if new_password != confirm_password:
+            return jsonify({'success': False, 'message': 'New passwords do not match'})
+        
+        # Check if new password is different from current
+        if check_password_hash(user.password_hash, new_password):
+            return jsonify({'success': False, 'message': 'New password must be different from current password'})
+        
+        # Update password
+        user.password_hash = generate_password_hash(new_password)
+        db.session.commit()
+        
+        # Create audit log
+        create_audit_log(
+            user_id=user.id,
+            action_type='password_change',
+            action_description='Password changed by user',
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent', '')
+        )
+        
+        return jsonify({'success': True, 'message': 'Password changed successfully!'})
+        
+    except Exception as e:
+        print(f"Error changing password: {str(e)}")
+        db.session.rollback()
+        return jsonify({'success': False, 'message': 'An error occurred while changing your password'})
+
 @app.route('/admin')
-@admin_required
+@admin_or_super_admin_required
 def admin_dashboard():
+    """Main admin dashboard"""
     users = User.query.all()
     total_routes = SavedRoute.query.count()
     total_quotes = Quote.query.count()
@@ -1183,7 +1705,7 @@ def admin_dashboard():
     # Calculate total revenue from quotes
     total_revenue = db.session.query(db.func.sum(Quote.total_cost)).scalar() or 0
     
-    # Get vendor location statistics
+    # Get pilot location statistics
     total_vendor_locations = VendorLocation.query.count()
     active_vendor_locations = VendorLocation.query.filter(
         VendorLocation.expires_at > datetime.utcnow()
@@ -1211,13 +1733,14 @@ def admin_dashboard():
                          all_routes=all_routes, all_quotes=all_quotes, current_time=current_time)
 
 @app.route('/admin/customers')
-@admin_required
+@admin_or_super_admin_required
 def admin_customers():
+    """Manage customers"""
     users = User.query.filter_by(is_admin=False).order_by(User.created_at.desc()).all()
     return render_template('admin_customers.html', users=users)
 
 @app.route('/admin/quotes')
-@admin_required
+@admin_or_super_admin_required
 def admin_quotes():
     quotes = db.session.query(Quote, User)\
         .join(User, Quote.user_id == User.id)\
@@ -1226,13 +1749,180 @@ def admin_quotes():
     return render_template('admin_quotes.html', quotes=quotes)
 
 @app.route('/admin/load-plans')
-@admin_required
+@dispatcher_or_higher_required
 def admin_load_plans():
     routes = db.session.query(SavedRoute, User)\
         .join(User, SavedRoute.user_id == User.id)\
         .order_by(SavedRoute.created_at.desc())\
         .all()
     return render_template('admin_load_plans.html', routes=routes)
+
+# CRM Routes for regular admins
+@app.route('/admin/crm')
+@admin_or_super_admin_required
+def admin_crm_dashboard():
+    """CRM Dashboard showing lead overview and statistics"""
+    current_user = User.query.get(session['user_id'])
+    
+    # Auto-update status for leads with actions but still marked as 'assigned'
+    assigned_leads_with_actions = Lead.query.filter_by(status='assigned').all()
+    for lead in assigned_leads_with_actions:
+        if len(lead.actions) > 0:
+            lead.status = 'in_progress'
+    db.session.commit()
+    
+    # Get all leads
+    all_leads = Lead.query.all()
+    pending_leads = Lead.query.filter_by(status='pending').all()
+    my_leads = Lead.query.filter_by(assigned_admin_id=current_user.id).all()
+    
+    # Calculate performance statistics based on role
+    if session.get('is_super_admin'):
+        # Super Admin sees overall system performance
+        total_leads = len(all_leads)
+        converted_leads = Lead.query.filter_by(status='converted').all()
+        total_value = sum([lead.conversion_value or 0 for lead in converted_leads])
+        conversion_rate = (len(converted_leads) / total_leads * 100) if total_leads > 0 else 0
+        
+        # Get recent quotes for revenue calculation (last 30 days)
+        thirty_days_ago = datetime.now() - timedelta(days=30)
+        recent_quotes = Quote.query.filter(Quote.created_at >= thirty_days_ago).all()
+        quote_revenue = sum([quote.total_cost for quote in recent_quotes])
+        
+        performance = {
+            'total_revenue': quote_revenue + total_value,  # Quotes + converted leads
+            'conversion_rate': conversion_rate,
+            'total_leads': total_leads,
+            'conversions': len(converted_leads),
+            'total_value': total_value
+        }
+    else:
+        # Regular Admin sees only their own performance
+        my_assigned_leads = Lead.query.filter_by(assigned_admin_id=current_user.id).all()
+        my_converted_leads = [lead for lead in my_assigned_leads if lead.status == 'converted']
+        my_total_value = sum([lead.conversion_value or 0 for lead in my_converted_leads])
+        
+        # Calculate personal conversion rate based on assigned leads only
+        my_conversion_rate = (len(my_converted_leads) / len(my_assigned_leads) * 100) if len(my_assigned_leads) > 0 else 0
+        
+        performance = {
+            'total_revenue': my_total_value,  # Only personal converted lead value
+            'conversion_rate': my_conversion_rate,
+            'total_leads': len(my_assigned_leads),
+            'conversions': len(my_converted_leads),
+            'total_value': my_total_value
+        }
+    
+    return render_template('admin/crm_dashboard.html', 
+                         current_user=current_user, 
+                         pending_leads=pending_leads, 
+                         my_leads=my_leads,
+                         performance=performance)
+
+@app.route('/admin/crm/leads')
+@admin_or_super_admin_required
+def admin_crm_leads():
+    """All leads management"""
+    current_user = User.query.get(session['user_id'])
+    leads = Lead.query.order_by(Lead.created_at.desc()).all()
+    
+    # Get all admin users for assignment dropdown
+    admin_users = User.query.filter(User.is_admin == True).all()
+    
+    return render_template('admin/crm_leads.html', 
+                         current_user=current_user, 
+                         leads=leads,
+                         admins=admin_users)
+
+@app.route('/admin/crm/lead/<int:lead_id>')
+@admin_or_super_admin_required
+def admin_crm_lead_detail(lead_id):
+    """Individual lead detail and management"""
+    current_user = User.query.get(session['user_id'])
+    lead = Lead.query.get_or_404(lead_id)
+    
+    # Auto-update status: if lead has actions but status is still 'assigned', change to 'in_progress'
+    if lead.status == 'assigned' and len(lead.actions) > 0:
+        lead.status = 'in_progress'
+        db.session.commit()
+    
+    # Get all admin users for assignment dropdown
+    admin_users = User.query.filter(User.is_admin == True).all()
+    
+    return render_template('admin/crm_lead_detail.html', 
+                         current_user=current_user, 
+                         lead=lead,
+                         admins=admin_users,
+                         current_datetime=datetime.now())
+
+@app.route('/admin/crm/follow-ups')
+@admin_or_super_admin_required
+def admin_crm_follow_ups():
+    """Follow-up management"""
+    current_user = User.query.get(session['user_id'])
+    
+    # Get filter parameters
+    days_ahead = int(request.args.get('days', 7))  # Default to 7 days
+    admin_filter = request.args.get('admin_id')
+    
+    # Get today's date
+    today = datetime.now().date()
+    
+    # Base query for actions with follow-up dates
+    base_query = LeadAction.query.filter(
+        LeadAction.follow_up_date.isnot(None)
+    ).join(Lead).filter(
+        Lead.status.in_(['assigned', 'in_progress'])
+    )
+    
+    # Filter by admin if specified (super admin only)
+    if admin_filter and session.get('is_super_admin'):
+        base_query = base_query.filter(LeadAction.admin_id == admin_filter)
+    elif not session.get('is_super_admin'):
+        # Regular admins only see their own follow-ups
+        base_query = base_query.filter(LeadAction.admin_id == current_user.id)
+    
+    # Get overdue follow-ups
+    overdue_follow_ups = base_query.filter(
+        LeadAction.follow_up_date < today
+    ).order_by(LeadAction.follow_up_date.asc()).all()
+    
+    # Get upcoming follow-ups
+    if days_ahead == 0:
+        # All future follow-ups
+        upcoming_query = base_query.filter(
+            LeadAction.follow_up_date >= today
+        )
+    else:
+        # Follow-ups within specified days
+        end_date = today + timedelta(days=days_ahead)
+        upcoming_query = base_query.filter(
+            LeadAction.follow_up_date >= today,
+            LeadAction.follow_up_date <= end_date
+        )
+    
+    upcoming_actions = upcoming_query.order_by(LeadAction.follow_up_date.asc()).all()
+    
+    # Group upcoming actions by date
+    follow_ups_by_date = {}
+    for action in upcoming_actions:
+        date_key = action.follow_up_date.strftime('%Y-%m-%d')
+        if date_key not in follow_ups_by_date:
+            follow_ups_by_date[date_key] = []
+        follow_ups_by_date[date_key].append(action)
+    
+    # Get all admin users for filter dropdown (super admin only)
+    admins = []
+    if session.get('is_super_admin'):
+        admins = User.query.filter(User.is_admin == True).all()
+    
+    return render_template('admin/crm_follow_ups.html', 
+                         current_user=current_user,
+                         overdue_follow_ups=overdue_follow_ups,
+                         follow_ups_by_date=follow_ups_by_date,
+                         admins=admins,
+                         days_ahead=days_ahead,
+                         admin_filter=int(admin_filter) if admin_filter else None)
 
 # Vendor Routes
 @app.route('/vendor/share-location')
@@ -1323,7 +2013,7 @@ def register_as_vendor():
     return render_template('vendor/register.html')
 
 @app.route('/admin/vendor-locations')
-@admin_required
+@dispatcher_or_higher_required
 def admin_vendor_locations():
     """Admin view for vendor locations and trip assignment"""
     # Get active vendor locations (not expired)
@@ -1361,7 +2051,7 @@ def admin_vendor_locations():
     return render_template('admin/vendor_locations.html', locations=active_locations)
 
 @app.route('/admin/search-vendors', methods=['POST'])
-@admin_required
+@dispatcher_or_higher_required
 def search_vendors():
     """Search for vendors near a location"""
     try:
@@ -1429,7 +2119,7 @@ def search_vendors():
         return jsonify({'success': False, 'error': str(e)}), 400
 
 @app.route('/admin/manage-users')
-@admin_required
+@admin_or_super_admin_required
 def admin_manage_users():
     """Enhanced user management with approval and suspension"""
     trucking_companies = User.query.filter_by(user_type='trucking_company', is_admin=False).order_by(User.created_at.desc()).all()
@@ -1440,21 +2130,21 @@ def admin_manage_users():
                          vendors=vendors)
 
 @app.route('/admin/trucking-companies')
-@admin_required
+@admin_or_super_admin_required
 def admin_trucking_companies():
     """Manage trucking companies with approval functionality"""
     trucking_companies = User.query.filter_by(user_type='trucking_company', is_admin=False).order_by(User.created_at.desc()).all()
     return render_template('admin/trucking_companies.html', trucking_companies=trucking_companies)
 
 @app.route('/admin/vendors')
-@admin_required
+@admin_or_super_admin_required
 def admin_vendors():
     """Manage vendors"""
     vendors = User.query.filter_by(user_type='vendor', is_admin=False).order_by(User.created_at.desc()).all()
     return render_template('admin/vendors.html', vendors=vendors)
 
 @app.route('/admin/approve-user/<int:user_id>', methods=['POST'])
-@admin_required
+@admin_or_super_admin_required
 def approve_user(user_id):
     """Approve a trucking company user"""
     user = User.query.get_or_404(user_id)
@@ -1466,7 +2156,7 @@ def approve_user(user_id):
         return jsonify({'success': False, 'error': 'Only trucking companies require approval'}), 400
 
 @app.route('/admin/suspend-user/<int:user_id>', methods=['POST'])
-@admin_required
+@admin_or_super_admin_required
 def suspend_user(user_id):
     """Suspend a user"""
     user = User.query.get_or_404(user_id)
@@ -1475,13 +2165,188 @@ def suspend_user(user_id):
     return jsonify({'success': True, 'message': f'{user.company_name} has been suspended'})
 
 @app.route('/admin/unsuspend-user/<int:user_id>', methods=['POST'])
-@admin_required
+@admin_or_super_admin_required
 def unsuspend_user(user_id):
     """Unsuspend a user"""
     user = User.query.get_or_404(user_id)
     user.is_suspended = False
     db.session.commit()
     return jsonify({'success': True, 'message': f'{user.company_name} has been unsuspended'})
+
+@app.route('/admin/user-details/<int:user_id>')
+@admin_or_super_admin_required
+def admin_user_details(user_id):
+    """Get detailed user information for admin view"""
+    try:
+        user = User.query.get_or_404(user_id)
+        
+        # Calculate account age
+        account_age_days = (datetime.utcnow() - user.created_at).days
+        
+        # Get activity statistics based on user type
+        activity_stats = {}
+        if user.user_type == 'vendor':
+            # Vendor/Pilot statistics
+            total_locations = VendorLocation.query.filter_by(user_id=user.id).count()
+            active_locations = VendorLocation.query.filter(
+                VendorLocation.user_id == user.id,
+                VendorLocation.expires_at > datetime.utcnow()
+            ).count()
+            
+            latest_location = VendorLocation.query.filter_by(user_id=user.id)\
+                .order_by(VendorLocation.created_at.desc()).first()
+            
+            activity_stats = {
+                'total_locations_shared': total_locations,
+                'active_locations': active_locations,
+                'last_location_share': latest_location.created_at.strftime('%m/%d/%Y') if latest_location else None
+            }
+        
+        elif user.user_type == 'trucking_company':
+            # Trucking company statistics
+            total_quotes = Quote.query.filter_by(user_id=user.id).count()
+            total_orders = PilotCarOrder.query.filter_by(user_id=user.id).count()
+            total_routes = SavedRoute.query.filter_by(user_id=user.id).count()
+            
+            activity_stats = {
+                'total_quotes': total_quotes,
+                'total_orders': total_orders,
+                'total_routes': total_routes
+            }
+        
+        # Create simplified audit history (since we don't have a full audit system)
+        audit_history = [
+            {
+                'action_type': 'registration',
+                'action_description': f'Account created as {user.user_type}',
+                'changed_by_admin': False,
+                'admin_name': None,
+                'time_ago': f"{account_age_days} days ago"
+            }
+        ]
+        
+        # Add approval event if approved
+        if user.is_approved and user.user_type == 'trucking_company':
+            audit_history.append({
+                'action_type': 'status_change',
+                'action_description': 'Account approved by admin',
+                'changed_by_admin': True,
+                'admin_name': 'Admin',
+                'time_ago': 'Recently'
+            })
+        
+        # Add suspension events if applicable
+        if user.is_suspended:
+            audit_history.append({
+                'action_type': 'status_change',
+                'action_description': 'Account suspended by admin',
+                'changed_by_admin': True,
+                'admin_name': 'Admin',
+                'time_ago': 'Recently'
+            })
+        
+        # Recent activity for trucking companies
+        recent_activity = []
+        quote_data = []
+        order_data = []
+        
+        if user.user_type == 'trucking_company':
+            # Get recent quotes
+            recent_quotes = Quote.query.filter_by(user_id=user.id)\
+                .order_by(Quote.created_at.desc()).limit(5).all()
+            for quote in recent_quotes:
+                quote_item = {
+                    'type': 'quote',
+                    'pickup_location': quote.pickup_location,
+                    'delivery_location': quote.delivery_location,
+                    'total_cost': f'{quote.total_cost:.2f}' if quote.total_cost else '0.00',
+                    'time_ago': f"{(datetime.utcnow() - quote.created_at).days} days ago",
+                    'description': f'Requested quote for {quote.pickup_location} to {quote.delivery_location}',
+                    'date': quote.created_at.strftime('%m/%d/%Y %I:%M %p'),
+                    'value': f'${quote.total_cost:.2f}' if quote.total_cost else 'Pending'
+                }
+                recent_activity.append(quote_item)
+                quote_data.append(quote_item)
+            
+            # Get recent orders  
+            recent_orders = PilotCarOrder.query.filter_by(user_id=user.id)\
+                .order_by(PilotCarOrder.created_at.desc()).limit(5).all()
+            for order in recent_orders:
+                order_item = {
+                    'type': 'order',
+                    'pickup_address': order.pickup_address,
+                    'delivery_address': order.delivery_address,
+                    'status': order.status,
+                    'time_ago': f"{(datetime.utcnow() - order.created_at).days} days ago",
+                    'description': f'Pilot car order: {order.pickup_address} to {order.delivery_address}',
+                    'date': order.created_at.strftime('%m/%d/%Y %I:%M %p'),
+                    'value': f'${order.estimated_cost:.2f}' if order.estimated_cost else 'Pending'
+                }
+                recent_activity.append(order_item)
+                order_data.append(order_item)
+            
+            # Get recent routes
+            recent_routes = SavedRoute.query.filter_by(user_id=user.id)\
+                .order_by(SavedRoute.created_at.desc()).limit(3).all()
+            for route in recent_routes:
+                recent_activity.append({
+                    'type': 'route',
+                    'description': f'Saved route plan: {route.route_name}',
+                    'date': route.created_at.strftime('%m/%d/%Y %I:%M %p'),
+                    'value': f'{route.origin} → {route.destination}'
+                })
+        
+        # Location history for vendors
+        location_history = []
+        if user.user_type == 'vendor':
+            locations = VendorLocation.query.filter_by(user_id=user.id)\
+                .order_by(VendorLocation.created_at.desc()).limit(10).all()
+            for location in locations:
+                location_history.append({
+                    'city': location.location_city,
+                    'state': location.location_state,
+                    'services': json.loads(location.services_provided),
+                    'coverage_radius': location.coverage_radius,
+                    'created': location.created_at.strftime('%m/%d/%Y %I:%M %p'),
+                    'expires': location.expires_at.strftime('%m/%d/%Y %I:%M %p'),
+                    'time_ago': f"{(datetime.utcnow() - location.created_at).days} days ago",
+                    'is_active': location.expires_at > datetime.utcnow()
+                })
+        
+        # Format activity stats to match JavaScript expectations
+        formatted_activity_stats = activity_stats.copy()
+        
+        if user.user_type == 'vendor':
+            formatted_activity_stats['location_history'] = location_history
+        elif user.user_type == 'trucking_company':
+            # Use properly formatted quote and order data
+            formatted_activity_stats['quote_history'] = quote_data
+            formatted_activity_stats['order_history'] = order_data
+        
+        return jsonify({
+            'success': True,
+            'user': {
+                'id': user.id,
+                'company_name': user.company_name,
+                'contact_name': getattr(user, 'contact_name', None),
+                'email': user.email,
+                'phone_number': user.phone_number,
+                'dot_number': user.dot_number,
+                'user_type': user.user_type,
+                'is_approved': user.is_approved,
+                'is_suspended': user.is_suspended,
+                'created_at': user.created_at.strftime('%m/%d/%Y %I:%M %p'),
+                'account_age_days': account_age_days,
+                'total_logins': 'N/A',  # Would need login tracking
+                'last_login': 'N/A',    # Would need login tracking
+                'activity_stats': formatted_activity_stats,
+                'audit_history': audit_history,
+                'login_history': []  # Empty for now since we don't track logins
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
 
 def calculate_distance_haversine(lat1, lon1, lat2, lon2):
     """Calculate distance between two points using haversine formula"""
@@ -1573,7 +2438,7 @@ def my_orders():
     return render_template('my_orders.html', orders=orders)
 
 @app.route('/admin/orders')
-@admin_required
+@admin_or_super_admin_required
 def admin_orders():
     """Admin view for all pilot car orders"""
     orders = PilotCarOrder.query.order_by(PilotCarOrder.created_at.desc()).all()
@@ -1596,14 +2461,14 @@ def admin_orders():
     return render_template('admin/orders.html', orders=orders, stats=stats)
 
 @app.route('/admin/order/<int:order_id>')
-@admin_required
+@admin_or_super_admin_required
 def admin_order_detail(order_id):
     """Admin view for order details"""
     order = PilotCarOrder.query.get_or_404(order_id)
     return render_template('admin/order_detail.html', order=order)
 
 @app.route('/admin/update-order-status/<int:order_id>', methods=['POST'])
-@admin_required
+@admin_or_super_admin_required
 def update_order_status(order_id):
     """Update order status and notes"""
     try:
@@ -1629,9 +2494,599 @@ def update_order_status(order_id):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 400
 
+# CRM API Routes
+@app.route('/admin/crm/assign-lead/<int:lead_id>', methods=['POST'])
+@admin_or_super_admin_required
+def assign_lead(lead_id):
+    """Assign lead to admin"""
+    try:
+        lead = Lead.query.get_or_404(lead_id)
+        admin_id = request.form.get('admin_id')
+        
+        if admin_id and admin_id != '':
+            # Assign to specific admin
+            lead.assigned_admin_id = int(admin_id)
+            lead.status = 'assigned'
+        else:
+            # Assign to current user
+            current_user = User.query.get(session['user_id'])
+            lead.assigned_admin_id = current_user.id
+            lead.status = 'assigned'
+        
+        lead.updated_at = datetime.utcnow()
+        db.session.commit()
+        
+        # Create notification for the assigned admin
+        create_notification(
+            user_id=lead.assigned_admin_id,
+            type='lead_assigned',
+            title=f'New Lead Assigned: {lead.company.company_name}',
+            message=f'You have been assigned a new lead from {lead.company.company_name}',
+            action_url=f'/admin/crm/lead/{lead.id}'
+        )
+        
+        return jsonify({'success': True, 'message': 'Lead assigned successfully'})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+@app.route('/admin/crm/convert-lead/<int:lead_id>', methods=['POST'])
+@admin_or_super_admin_required
+def convert_lead(lead_id):
+    """Mark lead as converted"""
+    try:
+        lead = Lead.query.get_or_404(lead_id)
+        
+        conversion_value = request.form.get('conversion_value')
+        conversion_notes = request.form.get('conversion_notes')
+        
+        lead.status = 'converted'
+        lead.conversion_value = float(conversion_value) if conversion_value else 0.0
+        lead.conversion_notes = conversion_notes
+        lead.updated_at = datetime.utcnow()
+        
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Lead marked as converted'})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+@app.route('/admin/crm/lost-lead/<int:lead_id>', methods=['POST'])
+@admin_or_super_admin_required
+def lost_lead(lead_id):
+    """Mark lead as lost"""
+    try:
+        lead = Lead.query.get_or_404(lead_id)
+        
+        lost_reason = request.form.get('lost_reason')
+        
+        lead.status = 'lost'
+        lead.lost_reason = lost_reason
+        lead.updated_at = datetime.utcnow()
+        
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Lead marked as lost'})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+@app.route('/admin/crm/add-action/<int:lead_id>', methods=['POST'])
+@admin_or_super_admin_required
+def add_lead_action(lead_id):
+    """Add action to lead"""
+    try:
+        lead = Lead.query.get_or_404(lead_id)
+        current_user = User.query.get(session['user_id'])
+        
+        action_type = request.form.get('action_type')
+        subject = request.form.get('subject')
+        description = request.form.get('description')
+        follow_up_date = request.form.get('follow_up_date')
+        
+        # Validate required fields
+        if not action_type:
+            return jsonify({'success': False, 'message': 'Action type is required'}), 400
+        if not subject:
+            return jsonify({'success': False, 'message': 'Subject is required'}), 400
+        
+        # Parse follow-up date safely
+        follow_up_datetime = None
+        if follow_up_date and follow_up_date.strip():
+            try:
+                follow_up_datetime = datetime.strptime(follow_up_date, '%Y-%m-%d')
+            except ValueError:
+                return jsonify({'success': False, 'message': 'Invalid date format'}), 400
+        
+        action = LeadAction(
+            lead_id=lead.id,
+            admin_id=current_user.id,
+            action_type=action_type,
+            subject=subject,
+            description=description,
+            follow_up_date=follow_up_datetime
+        )
+        
+        db.session.add(action)
+        
+        # Update lead's last contact date and status
+        lead.last_contact_date = datetime.utcnow()
+        if lead.status == 'assigned':
+            lead.status = 'in_progress'  # Change status to in_progress when first action is added
+        if follow_up_datetime:
+            lead.next_follow_up_date = follow_up_datetime
+        
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Action added successfully'})
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+# Notification API Routes
+@app.route('/api/notifications')
+@login_required
+def api_notifications():
+    """Get user notifications"""
+    try:
+        current_user = User.query.get(session['user_id'])
+        notifications = Notification.query.filter_by(user_id=current_user.id).order_by(Notification.created_at.desc()).limit(50).all()
+        
+        result = []
+        for notification in notifications:
+            time_ago = get_time_ago(notification.created_at)
+            result.append({
+                'id': notification.id,
+                'type': notification.type,
+                'title': notification.title,
+                'message': notification.message,
+                'action_url': notification.action_url,
+                'is_read': notification.is_read,
+                'time_ago': time_ago,
+                'created_at': notification.created_at.isoformat()
+            })
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/notifications/unread-count')
+@login_required
+def api_unread_count():
+    """Get unread notification count"""
+    try:
+        current_user = User.query.get(session['user_id'])
+        count = Notification.query.filter_by(user_id=current_user.id, is_read=False).count()
+        return jsonify({'count': count})
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/notifications/<int:notification_id>/mark-read', methods=['POST'])
+@login_required
+def mark_notification_read(notification_id):
+    """Mark notification as read"""
+    try:
+        current_user = User.query.get(session['user_id'])
+        notification = Notification.query.filter_by(id=notification_id, user_id=current_user.id).first()
+        
+        if notification:
+            notification.is_read = True
+            db.session.commit()
+            return jsonify({'success': True})
+        else:
+            return jsonify({'error': 'Notification not found'}), 404
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/notifications/mark-all-read', methods=['POST'])
+@login_required
+def mark_all_notifications_read():
+    """Mark all notifications as read"""
+    try:
+        current_user = User.query.get(session['user_id'])
+        Notification.query.filter_by(user_id=current_user.id, is_read=False).update({'is_read': True})
+        db.session.commit()
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+# Helper Functions for CRM and Notifications
+
+def create_lead_from_activity(user_id, lead_source, estimated_value=0.0, notes=None):
+    """Create a new lead from customer activity"""
+    try:
+        user = User.query.get(user_id)
+        if not user or user.is_admin:
+            return None
+            
+        # Check if a pending lead already exists for this user
+        existing_lead = Lead.query.filter_by(
+            company_id=user.id, 
+            status='pending'
+        ).first()
+        
+        if existing_lead:
+            # Update existing lead with new activity
+            existing_lead.estimated_value += estimated_value
+            existing_lead.updated_at = datetime.utcnow()
+            if notes:
+                existing_lead.notes = f"{existing_lead.notes}\n\n{notes}" if existing_lead.notes else notes
+            db.session.commit()
+            return existing_lead
+        else:
+            # Create new lead
+            lead = Lead(
+                company_id=user.id,
+                lead_source=lead_source,
+                estimated_value=estimated_value,
+                notes=notes,
+                priority='medium'
+            )
+            db.session.add(lead)
+            db.session.commit()
+            
+            # Create notifications for all admins
+            admin_users = User.query.filter(User.is_admin == True).all()
+            for admin in admin_users:
+                create_notification(
+                    user_id=admin.id,
+                    type='new_lead',
+                    title=f'New Lead: {user.company_name}',
+                    message=f'New {lead_source.replace("_", " ")} lead from {user.company_name}',
+                    action_url=f'/admin/crm/lead/{lead.id}'
+                )
+            
+            # Send email notification to admins
+            EmailService.send_admin_notification(
+                'admin_new_lead',
+                {
+                    'company_name': user.company_name,
+                    'lead_source': lead_source.replace('_', ' ').title(),
+                    'estimated_value': estimated_value,
+                    'lead_url': f'http://127.0.0.1:5000/admin/crm/lead/{lead.id}'
+                }
+            )
+            
+            return lead
+            
+    except Exception as e:
+        print(f"Error creating lead: {e}")
+        return None
+
+def create_notification(user_id, type, title, message, action_url=None):
+    """Create a new notification"""
+    try:
+        notification = Notification(
+            user_id=user_id,
+            type=type,
+            title=title,
+            message=message,
+            action_url=action_url
+        )
+        db.session.add(notification)
+        db.session.commit()
+        return notification
+    except Exception as e:
+        print(f"Error creating notification: {e}")
+        return None
+
+def get_time_ago(dt):
+    """Get human-readable time ago string"""
+    now = datetime.utcnow()
+    diff = now - dt
+    
+    if diff.days > 0:
+        return f"{diff.days} day{'s' if diff.days > 1 else ''} ago"
+    elif diff.seconds > 3600:
+        hours = diff.seconds // 3600
+        return f"{hours} hour{'s' if hours > 1 else ''} ago"
+    elif diff.seconds > 60:
+        minutes = diff.seconds // 60
+        return f"{minutes} minute{'s' if minutes > 1 else ''} ago"
+    else:
+        return "Just now"
+
+def initialize_email_templates():
+    """Initialize email templates in database"""
+    templates = [
+        {
+            'template_name': 'admin_new_lead',
+            'subject': '🚨 New Lead Alert: {{ company_name }}',
+            'html_content': '''
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="background: #1e3a8a; color: white; padding: 20px; text-align: center;">
+                    <h1>🚨 New Lead Alert</h1>
+                </div>
+                <div style="padding: 20px; background: #f8fafc;">
+                    <p><strong>New {{ lead_source }} from:</strong></p>
+                    <h2>{{ company_name }}</h2>
+                    <p><strong>Estimated Value:</strong> ${{ estimated_value }}</p>
+                    <div style="margin: 20px 0;">
+                        <a href="{{ lead_url }}" style="background: #1e3a8a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px;">View Lead Details</a>
+                    </div>
+                    <p style="color: #666; font-size: 14px;">This lead requires immediate attention for best conversion rates.</p>
+                </div>
+            </div>
+            ''',
+            'text_content': 'New {{ lead_source }} lead from {{ company_name }}. Estimated value: ${{ estimated_value }}. View details: {{ lead_url }}'
+        },
+        {
+            'template_name': 'admin_new_order_critical',
+            'subject': '🚨 URGENT: New Pilot Car Order #{{ order_id }}',
+            'html_content': '''
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="background: #dc2626; color: white; padding: 20px; text-align: center;">
+                    <h1>🚨 URGENT ORDER ALERT</h1>
+                    <h2>Order #{{ order_id }}</h2>
+                </div>
+                <div style="padding: 20px; background: #f8fafc;">
+                    <h3>{{ company_name }}</h3>
+                    <p><strong>Pickup Date:</strong> {{ pickup_date }}</p>
+                    <p><strong>Route:</strong> {{ pickup_address }} → {{ delivery_address }}</p>
+                    <p><strong>Contact:</strong> {{ contact_name }} - {{ phone_number }}</p>
+                    <p><strong>Driver:</strong> {{ driver_name }} - {{ driver_phone }}</p>
+                    <p><strong>Load:</strong> {{ length }} × {{ width }} × {{ height }}, {{ weight }}</p>
+                    <p><strong>Services:</strong> {{ pilot_positions }}</p>
+                    <div style="margin: 20px 0;">
+                        <a href="{{ order_detail_url }}" style="background: #dc2626; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px;">View Order Details</a>
+                    </div>
+                    <div style="background: #fef3cd; border: 1px solid #fbbf24; padding: 15px; border-radius: 5px;">
+                        <p style="margin: 0; color: #92400e;"><strong>⏰ Response Required Within 1 Hour</strong></p>
+                    </div>
+                </div>
+            </div>
+            ''',
+            'text_content': 'URGENT: New pilot car order #{{ order_id }} from {{ company_name }}. Pickup: {{ pickup_date }}. Contact: {{ contact_name }} - {{ phone_number }}. View details: {{ order_detail_url }}'
+        }
+    ]
+    
+    for template_data in templates:
+        existing = EmailTemplate.query.filter_by(template_name=template_data['template_name']).first()
+        if not existing:
+            template = EmailTemplate(**template_data)
+            db.session.add(template)
+    
+    db.session.commit()
+
+@app.route('/quote-details/<int:quote_id>')
+@login_required
+def quote_details(quote_id):
+    """Get quote details as JSON"""
+    try:
+        quote = Quote.query.get_or_404(quote_id)
+        
+        # Check if user has access to this quote
+        current_user = User.query.get(session['user_id'])
+        if not current_user.is_admin and quote.user_id != current_user.id:
+            return jsonify({'error': 'Access denied'}), 403
+        
+        return jsonify({
+            'id': quote.id,
+            'pickup_location': quote.pickup_location,
+            'pickup_state': quote.pickup_state,
+            'delivery_location': quote.delivery_location,
+            'delivery_state': quote.delivery_state,
+            'pickup_date': quote.pickup_date.strftime('%m/%d/%Y'),
+            'pickup_time': quote.pickup_time,
+            'car_types': json.loads(quote.car_types),
+            'is_superload': quote.is_superload,
+            'total_cost': quote.total_cost,
+            'distance_miles': quote.distance_miles,
+            'created_at': quote.created_at.strftime('%m/%d/%Y %I:%M %p')
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+# Password Reset Routes (Super Admin Only)
+@app.route('/admin/reset-customer-password/<int:user_id>', methods=['POST'])
+@login_required
+def reset_customer_password(user_id):
+    """Reset password for trucking companies and vendors - Super Admin only"""
+    try:
+        # Check if current user is super admin
+        current_user = User.query.get(session['user_id'])
+        if not current_user or not current_user.is_admin or current_user.admin_role != 'super_admin':
+            return jsonify({'success': False, 'error': 'Super Admin access required'}), 403
+        
+        # Get the user to reset password for
+        target_user = User.query.get_or_404(user_id)
+        
+        # Get new password from request
+        data = request.get_json()
+        new_password = data.get('new_password')
+        
+        if not new_password or len(new_password) < 6:
+            return jsonify({'success': False, 'error': 'Password must be at least 6 characters long'}), 400
+        
+        # Update the user's password
+        target_user.password_hash = generate_password_hash(new_password)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True, 
+            'message': f'Password successfully reset for {target_user.company_name}. New temporary password: {new_password}'
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+@app.route('/admin/reset-admin-password/<int:user_id>', methods=['POST'])
+@login_required
+def reset_admin_password(user_id):
+    """Reset password for admin users - Super Admin only"""
+    try:
+        # Check if current user is super admin
+        current_user = User.query.get(session['user_id'])
+        if not current_user or not current_user.is_admin or current_user.admin_role != 'super_admin':
+            return jsonify({'success': False, 'error': 'Super Admin access required'}), 403
+        
+        # Get the admin user to reset password for
+        target_admin = User.query.get_or_404(user_id)
+        
+        # Ensure target is actually an admin user
+        if not target_admin.is_admin:
+            return jsonify({'success': False, 'error': 'Target user is not an admin'}), 400
+        
+        # Prevent super admin from resetting their own password through this method
+        if target_admin.id == current_user.id:
+            return jsonify({'success': False, 'error': 'Cannot reset your own password through this method'}), 400
+        
+        # Get new password from request
+        data = request.get_json()
+        new_password = data.get('new_password')
+        
+        if not new_password or len(new_password) < 6:
+            return jsonify({'success': False, 'error': 'Password must be at least 6 characters long'}), 400
+        
+        # Update the admin's password
+        target_admin.password_hash = generate_password_hash(new_password)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True, 
+            'message': f'Password successfully reset for {target_admin.company_name}. New temporary password: {new_password}'
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+# Admin Management Routes (Super Admin Only)
+@app.route('/admin/invite-admin', methods=['POST'])
+@login_required
+def invite_admin():
+    """Create new admin user - Super Admin only"""
+    try:
+        # Check if current user is super admin
+        current_user = User.query.get(session['user_id'])
+        if not current_user or not current_user.is_admin or current_user.admin_role != 'super_admin':
+            return jsonify({'success': False, 'error': 'Super Admin access required'}), 403
+        
+        # Get data from request
+        data = request.get_json()
+        company_name = data.get('company_name')
+        contact_name = data.get('contact_name')
+        email = data.get('email')
+        phone_number = data.get('phone_number')
+        temp_password = data.get('temp_password')
+        admin_role = data.get('admin_role', 'admin')
+        
+        # Validate required fields
+        if not all([company_name, contact_name, email, temp_password]):
+            return jsonify({'success': False, 'error': 'All required fields must be provided'}), 400
+        
+        # Validate password length
+        if len(temp_password) < 6:
+            return jsonify({'success': False, 'error': 'Password must be at least 6 characters long'}), 400
+        
+        # Check if email already exists
+        if User.query.filter_by(email=email).first():
+            return jsonify({'success': False, 'error': 'Email already exists'}), 400
+        
+        # Validate admin role
+        if admin_role not in ['admin', 'dispatcher']:
+            return jsonify({'success': False, 'error': 'Invalid admin role'}), 400
+        
+        # Create new admin user
+        new_admin = User(
+            company_name=company_name,
+            contact_name=contact_name,
+            email=email,
+            phone_number=phone_number,
+            password_hash=generate_password_hash(temp_password),
+            is_admin=True,
+            admin_role=admin_role,
+            user_type='trucking_company',
+            is_approved=True
+        )
+        
+        db.session.add(new_admin)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Admin user created successfully. Temporary password: {temp_password}',
+            'admin': {
+                'id': new_admin.id,
+                'company_name': new_admin.company_name,
+                'contact_name': contact_name,
+                'email': new_admin.email,
+                'phone_number': new_admin.phone_number,
+                'admin_role': new_admin.admin_role,
+                'created_at': new_admin.created_at.strftime('%m/%d/%Y')
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+@app.route('/admin/remove-admin/<int:user_id>', methods=['POST'])
+@login_required
+def remove_admin(user_id):
+    """Remove admin user - Super Admin only"""
+    try:
+        # Check if current user is super admin
+        current_user = User.query.get(session['user_id'])
+        if not current_user or not current_user.is_admin or current_user.admin_role != 'super_admin':
+            return jsonify({'success': False, 'error': 'Super Admin access required'}), 403
+        
+        # Get the admin user to remove
+        target_admin = User.query.get_or_404(user_id)
+        
+        # Ensure target is actually an admin user
+        if not target_admin.is_admin:
+            return jsonify({'success': False, 'error': 'Target user is not an admin'}), 400
+        
+        # Prevent super admin from removing themselves
+        if target_admin.id == current_user.id:
+            return jsonify({'success': False, 'error': 'Cannot remove yourself'}), 400
+        
+        # Prevent removing other super admins
+        if target_admin.admin_role == 'super_admin':
+            return jsonify({'success': False, 'error': 'Cannot remove super admin users'}), 400
+        
+        # Remove the admin user
+        db.session.delete(target_admin)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Admin user {target_admin.company_name} has been removed successfully'
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+@app.route('/admin/admin-management')
+@login_required
+def admin_management():
+    """Admin Management page - Super Admin only"""
+    # Check if current user is super admin
+    current_user = User.query.get(session['user_id'])
+    if not current_user or not current_user.is_admin or current_user.admin_role != 'super_admin':
+        flash('Super Admin access required')
+        return redirect(url_for('admin_dashboard'))
+    
+    # Get all admin users (including other super admins but excluding the current user for safety)
+    admin_users = User.query.filter(
+        User.is_admin == True,
+        User.id != current_user.id  # Exclude current user to prevent self-modification accidents
+    ).order_by(User.created_at.desc()).all()
+    
+    return render_template('admin/admin_management.html', admin_users=admin_users)
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
+        
+        # Initialize email templates
+        initialize_email_templates()
         
         # Create default admin user if it doesn't exist
         admin = User.query.filter_by(email='admin@mypevo.com').first()
@@ -1641,6 +3096,7 @@ if __name__ == '__main__':
                 email='admin@mypevo.com',
                 password_hash=generate_password_hash('admin123'),
                 is_admin=True,
+                admin_role='super_admin',
                 user_type='trucking_company',
                 is_approved=True
             )

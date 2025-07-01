@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block title %}Follow-up Actions - Mini CRM{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-calendar-check text-warning"></i> Follow-up Actions</h1>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to CRM Dashboard
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="fas fa-filter"></i> Filters</h5>
+        </div>
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <label for="days" class="form-label">Days Ahead</label>
+                    <select name="days" id="days" class="form-select">
+                        <option value="1" {% if days_ahead == 1 %}selected{% endif %}>Today</option>
+                        <option value="3" {% if days_ahead == 3 %}selected{% endif %}>Next 3 Days</option>
+                        <option value="7" {% if days_ahead == 7 %}selected{% endif %}>Next 7 Days</option>
+                        <option value="14" {% if days_ahead == 14 %}selected{% endif %}>Next 14 Days</option>
+                        <option value="30" {% if days_ahead == 30 %}selected{% endif %}>Next 30 Days</option>
+                        <option value="0" {% if days_ahead == 0 %}selected{% endif %}>All Future</option>
+                    </select>
+                </div>
+                {% if session.is_super_admin %}
+                <div class="col-md-3">
+                    <label for="admin_id" class="form-label">Admin</label>
+                    <select name="admin_id" id="admin_id" class="form-select">
+                        <option value="" {% if not admin_filter %}selected{% endif %}>All Admins</option>
+                        {% for admin in admins %}
+                        <option value="{{ admin.id }}" {% if admin_filter == admin.id %}selected{% endif %}>
+                            {{ admin.contact_name or admin.company_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary d-block">
+                        <i class="fas fa-search"></i> Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Overdue Follow-ups -->
+    {% if overdue_follow_ups %}
+    <div class="card mb-4">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Overdue Follow-ups ({{ overdue_follow_ups|length }})</h5>
+        </div>
+        <div class="card-body">
+            {% for action in overdue_follow_ups %}
+            <div class="card mb-3 border-danger">
+                <div class="card-header bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ action.lead.company.company_name }}</strong>
+                            <span class="badge bg-danger ms-2">OVERDUE</span>
+                        </div>
+                        <small class="text-muted">{{ action.admin.contact_name or action.admin.company_name }}</small>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p><strong>Action:</strong> {{ action.action_type.replace('_', ' ').title() }}</p>
+                    {% if action.subject %}<p><strong>Subject:</strong> {{ action.subject }}</p>{% endif %}
+                    {% if action.description %}<p><strong>Description:</strong> {{ action.description }}</p>{% endif %}
+                    <p><strong>Due Date:</strong> <span class="text-danger">{{ action.follow_up_date.strftime('%m/%d/%Y') }}</span></p>
+                    <a href="{{ url_for('admin_crm_lead_detail', lead_id=action.lead.id) }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-eye"></i> View Lead
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Upcoming Follow-ups -->
+    {% if follow_ups_by_date %}
+    <div class="card">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0"><i class="fas fa-calendar-alt"></i> Upcoming Follow-ups</h5>
+        </div>
+        <div class="card-body">
+            {% for date_key, actions in follow_ups_by_date.items() %}
+            <h6 class="border-bottom pb-2 mb-3">{{ actions[0].follow_up_date.strftime('%A, %B %d, %Y') }}</h6>
+            
+            {% for action in actions %}
+            <div class="card mb-3">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ action.lead.company.company_name }}</strong>
+                            <span class="badge bg-secondary ms-2">{{ action.action_type.replace('_', ' ').title() }}</span>
+                        </div>
+                        <small class="text-muted">{{ action.admin.contact_name or action.admin.company_name }}</small>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if action.subject %}<p><strong>Subject:</strong> {{ action.subject }}</p>{% endif %}
+                    {% if action.description %}<p><strong>Description:</strong> {{ action.description }}</p>{% endif %}
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('admin_crm_lead_detail', lead_id=action.lead.id) }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-eye"></i> View Lead
+                        </a>
+                        <a href="tel:{{ action.lead.company.phone_number }}" class="btn btn-success btn-sm">
+                            <i class="fas fa-phone"></i> Call
+                        </a>
+                        <a href="mailto:{{ action.lead.company.email }}" class="btn btn-info btn-sm">
+                            <i class="fas fa-envelope"></i> Email
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-calendar-check fa-4x text-muted mb-3"></i>
+            <h4 class="text-muted">No Follow-ups Scheduled</h4>
+            <p class="text-muted">You don't have any follow-up actions scheduled for the selected time period.</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-submit form when filters change
+    document.getElementById('days').addEventListener('change', function() {
+        this.form.submit();
+    });
+    
+    {% if session.is_super_admin %}
+    document.getElementById('admin_id').addEventListener('change', function() {
+        this.form.submit();
+    });
+    {% endif %}
+});
+</script>
+{% endblock %} 

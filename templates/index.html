@@ -50,7 +50,7 @@
     margin: 40px 0;
 }
 
-.vendor-share-btn {
+.pilot-share-btn {
     background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
     border: none;
     color: white;
@@ -61,7 +61,7 @@
     transition: all 0.3s ease;
 }
 
-.vendor-share-btn:hover {
+.pilot-share-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 10px 20px rgba(255, 193, 7, 0.3);
     color: white;
@@ -122,7 +122,7 @@
     </div>
 </section>
 
-<!-- Vendor Quick Share Section -->
+        <!-- Pilot Quick Share Section -->
 <section class="quick-share-section">
     <div class="container">
         <div class="row align-items-center">
@@ -131,7 +131,7 @@
                 <p class="mb-0">Share your availability now and get connected with trucking companies needing escort services. No registration required - start earning immediately!</p>
             </div>
             <div class="col-lg-4 text-end">
-                <a href="{{ url_for('vendor_share_location') }}" class="btn vendor-share-btn">
+                <a href="{{ url_for('vendor_share_location') }}" class="btn pilot-share-btn">
                     <i class="fas fa-share-alt me-2"></i>Share Your Location
                 </a>
             </div>
@@ -280,34 +280,6 @@
             <div class="col-lg-3 col-md-6 mb-4">
                 <div class="stat-number">100%</div>
                 <p class="mb-0">Licensed & Insured</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Testimonial Section -->
-<section class="testimonial-section text-center">
-    <div class="container">
-        <h2 class="display-5 fw-bold mb-5">Real People. Real Testimonials.</h2>
-        
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <div class="card bg-transparent border-light">
-                    <div class="card-body p-4">
-                        <img src="{{ url_for('static', filename='images/client-testimonial.jpg') }}" 
-                             alt="Client Testimonial" 
-                             class="rounded-circle mb-3" 
-                             style="width: 80px; height: 80px; object-fit: cover;">
-                        
-                        <blockquote class="blockquote">
-                            <p class="lead">"They quickly found me three different pilot car drivers for a run from Denver to Maryland, after another company failed to come through on their promises. Everybody was extremely professional. The chase driver that escorted me from West Virginia all the way to Maryland was a 40 year trucking-veteran who knew every curve, hill, and exit on the highway. Good people."</p>
-                        </blockquote>
-                        
-                        <footer class="blockquote-footer text-light">
-                            <cite title="Source Title">Jaime Rey</cite>
-                        </footer>
-                    </div>
-                </div>
             </div>
         </div>
     </div>

@@ -23,6 +23,18 @@
                         {% else %}
                             <span class="badge bg-warning">Pending Approval</span>
                         {% endif %}
+                    {% elif user.user_type == 'admin' %}
+                        <a href="{{ url_for('load_plan') }}" class="btn btn-primary me-2">
+                            <i class="fas fa-plus me-2"></i>New Load Plan
+                        </a>
+                        {% if user.admin_role in ['admin', 'super_admin'] %}
+                            <a href="{{ url_for('get_quote') }}" class="btn btn-success me-2">
+                                <i class="fas fa-dollar-sign me-2"></i>Get Quote
+                            </a>
+                        {% endif %}
+                        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-info">
+                            <i class="fas fa-cog me-2"></i>Admin Panel
+                        </a>
                     {% elif user.user_type == 'vendor' %}
                         <a href="/vendor/share-location" class="btn btn-success">
                             <i class="fas fa-map-marker-alt me-2"></i>Update My Location
@@ -53,159 +65,41 @@
             </div>
         {% else %}
             <!-- Trucking Company Dashboard -->
-            <!-- Quick Stats -->
-            <div class="row mb-4">
-                <div class="col-md-3">
-                    <div class="dashboard-card p-4 text-center">
-                        <div class="card-icon mb-3">
-                            <i class="fas fa-route"></i>
-                        </div>
-                        <h4>{{ user.routes|length }}</h4>
-                        <p class="text-muted mb-0">Total Routes</p>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="dashboard-card p-4 text-center">
-                        <div class="card-icon mb-3">
-                            <i class="fas fa-dollar-sign"></i>
-                        </div>
-                        <h4>{{ user.quotes|length }}</h4>
-                        <p class="text-muted mb-0">Total Quotes</p>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="dashboard-card p-4 text-center">
-                        <div class="card-icon mb-3">
-                            <i class="fas fa-shield-alt"></i>
-                        </div>
-                        <h4>Approved</h4>
-                        <p class="text-muted mb-0">Account Status</p>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="dashboard-card p-4 text-center">
-                        <div class="card-icon mb-3">
-                            <i class="fas fa-truck"></i>
-                        </div>
-                        <h4>{{ user.dot_number or 'N/A' }}</h4>
-                        <p class="text-muted mb-0">DOT Number</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Recent Routes -->
-            <div class="row">
-                <div class="col-lg-8">
-                    <div class="dashboard-card p-4">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5><i class="fas fa-history me-2"></i>Recent Routes</h5>
-                            <a href="{{ url_for('my_routes') }}" class="btn btn-sm btn-outline-primary">View All</a>
-                        </div>
-                        
-                        {% if recent_routes %}
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Route Name</th>
-                                        <th>Origin → Destination</th>
-                                        <th>Road Type</th>
-                                        <th>Created</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for route in recent_routes %}
-                                    <tr>
-                                        <td><strong>{{ route.route_name }}</strong></td>
-                                        <td>{{ route.origin }} → {{ route.destination }}</td>
-                                        <td>
-                                            <span class="badge bg-info">{{ route.road_type }}</span>
-                                        </td>
-                                        <td>{{ route.created_at.strftime('%m/%d/%Y') }}</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-outline-primary" onclick="viewRoute({{ route.id }})">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                        {% else %}
-                        <div class="text-center py-4">
-                            <i class="fas fa-route text-muted" style="font-size: 3rem;"></i>
-                            <h5 class="mt-3 text-muted">No routes yet</h5>
-                            <p class="text-muted">Create your first load plan to get started</p>
-                            <a href="{{ url_for('load_plan') }}" class="btn btn-primary">
-                                <i class="fas fa-plus me-2"></i>Create Load Plan
-                            </a>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-                
-                <div class="col-lg-4">
-                    <div class="dashboard-card p-4">
-                        <h5><i class="fas fa-info-circle me-2"></i>Quick Start</h5>
-                        <div class="list-group list-group-flush">
-                            <a href="{{ url_for('load_plan') }}" class="list-group-item list-group-item-action border-0">
-                                <i class="fas fa-route me-2 text-primary"></i>
-                                Create New Load Plan
-                            </a>
-                            <a href="{{ url_for('get_quote') }}" class="list-group-item list-group-item-action border-0">
-                                <i class="fas fa-dollar-sign me-2 text-success"></i>
-                                Get Price Quote
-                            </a>
-                            <a href="{{ url_for('my_routes') }}" class="list-group-item list-group-item-action border-0">
-                                <i class="fas fa-history me-2 text-primary"></i>
-                                View My Routes
-                            </a>
-                            <a href="{{ url_for('my_quotes') }}" class="list-group-item list-group-item-action border-0">
-                                <i class="fas fa-file-invoice-dollar me-2 text-info"></i>
-                                View My Quotes
-                            </a>
-                            <div class="list-group-item border-0">
-                                <i class="fas fa-phone me-2 text-primary"></i>
-                                Contact Support
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="dashboard-card p-4 mt-4">
-                        <h5><i class="fas fa-lightbulb me-2"></i>Tips</h5>
-                        <ul class="list-unstyled">
-                            <li class="mb-2">
-                                <i class="fas fa-check-circle text-success me-2"></i>
-                                Always verify load dimensions before planning
-                            </li>
-                            <li class="mb-2">
-                                <i class="fas fa-check-circle text-success me-2"></i>
-                                Check state-specific escort requirements
-                            </li>
-                            <li class="mb-2">
-                                <i class="fas fa-check-circle text-success me-2"></i>
-                                Save frequently used routes for quick access
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
+            {% include 'dashboard_customer_content.html' %}
         {% endif %}
+    {% elif user.user_type == 'admin' %}
+        <!-- Admin Dashboard with Customer Features -->
+        <div class="row mb-4">
+            <div class="col-12">
+                {% if user.admin_role == 'dispatcher' %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-headset me-2"></i>
+                        <strong>Dispatcher Access</strong><br>
+                        You have access to load planning tools and pilot location management to assist customers with their transportation needs. You can view pilot locations and help plan routes.
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-user-shield me-2"></i>
+                        <strong>Administrator Access</strong><br>
+                        You have full system access including customer features for testing and support purposes. You can use all load planning and quote features, plus access the admin panel for system management.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% include 'dashboard_customer_content.html' %}
     {% elif user.user_type == 'vendor' %}
-        <!-- Vendor Dashboard -->
+        <!-- Pilot Dashboard -->
         <div class="row mb-4">
             <div class="col-12">
                 <div class="alert alert-info">
                     <i class="fas fa-info-circle me-2"></i>
-                    <strong>Vendor Account Access</strong><br>
-                    As a pilot car vendor, you can share your location and availability to be matched with nearby escort opportunities. Your account is automatically approved and active.
+                    <strong>Pilot Account Access</strong><br>
+                    As a pilot car escort, you can share your location and availability to be matched with nearby escort opportunities. Your account is automatically approved and active.
                 </div>
             </div>
         </div>
 
-        <!-- Vendor Quick Stats -->
+        <!-- Pilot Quick Stats -->
         <div class="row mb-4">
             <div class="col-md-3">
                 <div class="dashboard-card p-4 text-center">
@@ -239,7 +133,7 @@
                     <div class="card-icon mb-3">
                         <i class="fas fa-car"></i>
                     </div>
-                    <h4>Vendor</h4>
+                    <h4>Pilot</h4>
                     <p class="text-muted mb-0">Account Type</p>
                 </div>
             </div>
@@ -300,7 +194,7 @@
             
             <div class="col-lg-4">
                 <div class="dashboard-card p-4">
-                    <h5><i class="fas fa-info-circle me-2"></i>Vendor Actions</h5>
+                    <h5><i class="fas fa-info-circle me-2"></i>Pilot Actions</h5>
                     <div class="list-group list-group-flush">
                         <a href="/vendor/share-location" class="list-group-item list-group-item-action border-0">
                             <i class="fas fa-map-marker-alt me-2 text-success"></i>
@@ -318,7 +212,7 @@
                 </div>
 
                 <div class="dashboard-card p-4 mt-4">
-                    <h5><i class="fas fa-lightbulb me-2"></i>Vendor Tips</h5>
+                    <h5><i class="fas fa-lightbulb me-2"></i>Pilot Tips</h5>
                     <ul class="list-unstyled">
                         <li class="mb-2">
                             <i class="fas fa-check-circle text-success me-2"></i>

@@ -3,115 +3,239 @@
 {% block title %}Register - My PEVO{% endblock %}
 
 {% block content %}
-<div class="auth-container d-flex align-items-center justify-content-center">
-    <div class="auth-card">
-        <div class="text-center">
-            <div class="auth-logo">
-                <i class="fas fa-truck me-2"></i>My PEVO
+<div class="modern-auth-container">
+    <!-- Left Side - Branding & Info -->
+    <div class="auth-brand-side register-brand">
+        <div class="brand-content">
+            <div class="brand-logo-large">
+                <i class="fas fa-truck"></i>
+                <span>My PEVO</span>
             </div>
-            <h4 class="mb-4">Join My PEVO</h4>
-            <p class="text-muted mb-4">Create your account to access our services</p>
+            <h1>Join the My PEVO Network</h1>
+            <p>Connect with certified pilot car escorts and streamline your oversized load operations.</p>
+            
+            <div class="account-types">
+                <div class="type-card trucking">
+                    <div class="type-icon">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <h4>Trucking Companies</h4>
+                    <ul>
+                        <li>Smart route planning</li>
+                        <li>Instant quotes</li>
+                        <li>Compliance tools</li>
+                        <li>Pilot car booking</li>
+                    </ul>
+                </div>
+                
+                <div class="type-card pilot">
+                    <div class="type-icon">
+                        <i class="fas fa-car"></i>
+                    </div>
+                    <h4>Pilot Car Escorts</h4>
+                    <ul>
+                        <li>Share your location</li>
+                        <li>Get job opportunities</li>
+                        <li>Manage availability</li>
+                        <li>Instant approval</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="stats-row">
+                <div class="stat-item">
+                    <strong>1300+</strong>
+                    <span>Certified Pilots</span>
+                </div>
+                <div class="stat-item">
+                    <strong>1000+</strong>
+                    <span>Successful Routes</span>
+                </div>
+                <div class="stat-item">
+                    <strong>24/7</strong>
+                    <span>Support</span>
+                </div>
+            </div>
         </div>
+    </div>
+    
+    <!-- Right Side - Registration Form -->
+    <div class="auth-form-side">
+        <div class="form-container register-form">
+            <div class="form-header">
+                <h2>Create Account</h2>
+                <p>Choose your account type and get started</p>
+            </div>
+            
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="alert-container">
+                        {% for message in messages %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i>
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
 
-        <form method="POST" id="registrationForm">
-            <!-- User Type Selection -->
-            <div class="mb-3">
-                <label class="form-label">Account Type *</label>
-                <div class="row">
-                    <div class="col-6">
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="user_type" 
-                                   id="trucking_company" value="trucking_company" checked>
-                            <label class="form-check-label" for="trucking_company">
-                                <i class="fas fa-truck me-2"></i>
-                                <strong>Trucking Company</strong><br>
-                                <small class="text-muted">Load planning & quotes</small>
+            <form method="POST" id="registrationForm" class="modern-form">
+                <!-- Account Type Selection -->
+                <div class="form-group account-type-selection">
+                    <label>Choose Your Account Type</label>
+                    <div class="account-type-cards">
+                        <div class="account-type-card" data-type="trucking_company">
+                            <input type="radio" name="user_type" id="trucking_company" value="trucking_company" checked>
+                            <label for="trucking_company">
+                                <div class="card-icon">
+                                    <i class="fas fa-truck"></i>
+                                </div>
+                                <div class="card-content">
+                                    <h5>Trucking Company</h5>
+                                    <p>Load planning & quotes</p>
+                                </div>
+                                <div class="card-check">
+                                    <i class="fas fa-check"></i>
+                                </div>
                             </label>
                         </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="user_type" 
-                                   id="vendor" value="vendor">
-                            <label class="form-check-label" for="vendor">
-                                <i class="fas fa-car me-2"></i>
-                                <strong>Pilot Car Vendor</strong><br>
-                                <small class="text-muted">Share location & availability</small>
+                        
+                        <div class="account-type-card" data-type="vendor">
+                            <input type="radio" name="user_type" id="vendor" value="vendor">
+                            <label for="vendor">
+                                <div class="card-icon">
+                                    <i class="fas fa-car"></i>
+                                </div>
+                                <div class="card-content">
+                                    <h5>Pilot Car Escort</h5>
+                                    <p>Share location & availability</p>
+                                </div>
+                                <div class="card-check">
+                                    <i class="fas fa-check"></i>
+                                </div>
                             </label>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="mb-3">
-                <label for="company_name" class="form-label">Company Name *</label>
-                <input type="text" class="form-control" id="company_name" name="company_name" required>
-            </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="company_name">Company Name</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-building"></i>
+                            <input type="text" id="company_name" name="company_name" placeholder="Enter company name" required>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="mb-3">
-                <label for="email" class="form-label">Email Address *</label>
-                <input type="email" class="form-control" id="email" name="email" required>
-            </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" id="email" name="email" placeholder="Enter email address" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone_number">Phone Number</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-phone"></i>
+                            <input type="tel" id="phone_number" name="phone_number" placeholder="(555) 123-4567" required>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="mb-3">
-                <label for="phone_number" class="form-label">Phone Number *</label>
-                <input type="tel" class="form-control" id="phone_number" name="phone_number" 
-                       placeholder="(555) 123-4567" required pattern="[0-9+\-\(\)\s]+" 
-                       title="Please enter a valid phone number">
-                <div class="form-text">Include area code and country code if international</div>
-            </div>
+                <!-- DOT Number field - only for trucking companies -->
+                <div class="form-row" id="dotNumberField">
+                    <div class="form-group">
+                        <label for="dot_number">DOT Number</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-id-card"></i>
+                            <input type="text" id="dot_number" name="dot_number" placeholder="1234567" pattern="[0-9]+">
+                        </div>
+                        <div class="field-help">US Department of Transportation number</div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="password" name="password" placeholder="Create a password" required minlength="6">
+                            <button type="button" class="password-toggle" onclick="togglePassword('password', 'passwordIcon')">
+                                <i class="fas fa-eye" id="passwordIcon"></i>
+                            </button>
+                        </div>
+                        <div class="field-help">Minimum 6 characters</div>
+                    </div>
+                </div>
 
-            <!-- DOT Number field - only for trucking companies -->
-            <div class="mb-3" id="dotNumberField">
-                <label for="dot_number" class="form-label">DOT Number *</label>
-                <input type="text" class="form-control" id="dot_number" name="dot_number" 
-                       placeholder="1234567" pattern="[0-9]+" 
-                       title="DOT number should contain only numbers">
-                <div class="form-text">US Department of Transportation number for your company</div>
-            </div>
+                <!-- Account Status Notices -->
+                <div class="account-notice approval-notice" id="approvalNotice">
+                    <div class="notice-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="notice-content">
+                        <h6>Account Approval Required</h6>
+                        <p>Trucking company accounts require admin approval before accessing all features.</p>
+                    </div>
+                </div>
+
+                <div class="account-notice instant-notice d-none" id="vendorNotice">
+                    <div class="notice-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="notice-content">
+                        <h6>Instant Access</h6>
+                        <p>Pilot accounts are automatically approved. Start sharing your location immediately!</p>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-modern-primary">
+                    <span>Create Account</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </form>
             
-            <div class="mb-3">
-                <label for="password" class="form-label">Password *</label>
-                <input type="password" class="form-control" id="password" name="password" required minlength="6">
-                <div class="form-text">Password must be at least 6 characters long</div>
+            <div class="form-footer">
+                <div class="divider">
+                    <span>Already have an account?</span>
+                </div>
+                
+                <a href="{{ url_for('login') }}" class="btn-modern-secondary">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Sign In</span>
+                </a>
+                
+                <div class="guest-option">
+                    <p>Or share your location as a guest pilot</p>
+                    <a href="/vendor/share-location" class="btn-guest">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Share Location (Guest)</span>
+                    </a>
+                </div>
             </div>
-
-            <!-- Approval notice for trucking companies -->
-            <div class="alert alert-info" id="approvalNotice">
-                <i class="fas fa-info-circle me-2"></i>
-                <strong>Account Approval Required:</strong> Trucking company accounts require admin approval before you can access load planning and quote features.
-            </div>
-
-            <!-- Auto-approval notice for vendors -->
-            <div class="alert alert-success d-none" id="vendorNotice">
-                <i class="fas fa-check-circle me-2"></i>
-                <strong>Instant Access:</strong> Vendor accounts are automatically approved and you can start sharing your location immediately.
-            </div>
-            
-            <button type="submit" class="btn btn-primary w-100 mb-3">
-                <i class="fas fa-user-plus me-2"></i>Create Account
-            </button>
-        </form>
-
-        <hr>
-        
-        <div class="text-center">
-            <p class="mb-0">Already have an account?</p>
-            <a href="{{ url_for('login') }}" class="btn btn-outline-primary w-100 mt-2">
-                <i class="fas fa-sign-in-alt me-2"></i>Sign In
-            </a>
-        </div>
-
-        <div class="mt-3 text-center">
-            <p class="text-muted mb-2">Or share your location as a guest vendor:</p>
-            <a href="/vendor/share-location" class="btn btn-outline-success btn-sm">
-                <i class="fas fa-map-marker-alt me-2"></i>Share Location (Guest)
-            </a>
         </div>
     </div>
 </div>
 
 <script>
+function togglePassword(inputId, iconId) {
+    const passwordInput = document.getElementById(inputId);
+    const passwordIcon = document.getElementById(iconId);
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        passwordIcon.className = 'fas fa-eye-slash';
+    } else {
+        passwordInput.type = 'password';
+        passwordIcon.className = 'fas fa-eye';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const truckingRadio = document.getElementById('trucking_company');
     const vendorRadio = document.getElementById('vendor');
@@ -119,20 +243,29 @@ document.addEventListener('DOMContentLoaded', function() {
     const dotNumberInput = document.getElementById('dot_number');
     const approvalNotice = document.getElementById('approvalNotice');
     const vendorNotice = document.getElementById('vendorNotice');
+    const accountTypeCards = document.querySelectorAll('.account-type-card');
 
     function toggleFields() {
         if (vendorRadio.checked) {
-            // Vendor selected
+            // Pilot selected
             dotNumberField.style.display = 'none';
             dotNumberInput.removeAttribute('required');
             approvalNotice.classList.add('d-none');
             vendorNotice.classList.remove('d-none');
+            
+            // Update card selection
+            accountTypeCards.forEach(card => card.classList.remove('selected'));
+            document.querySelector('[data-type="vendor"]').classList.add('selected');
         } else {
             // Trucking company selected
             dotNumberField.style.display = 'block';
             dotNumberInput.setAttribute('required', 'required');
             approvalNotice.classList.remove('d-none');
             vendorNotice.classList.add('d-none');
+            
+            // Update card selection
+            accountTypeCards.forEach(card => card.classList.remove('selected'));
+            document.querySelector('[data-type="trucking_company"]').classList.add('selected');
         }
     }
 
@@ -142,6 +275,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // Listen for changes
     truckingRadio.addEventListener('change', toggleFields);
     vendorRadio.addEventListener('change', toggleFields);
+    
+    // Card click handlers
+    accountTypeCards.forEach(card => {
+        card.addEventListener('click', function() {
+            const type = this.dataset.type;
+            if (type === 'trucking_company') {
+                truckingRadio.checked = true;
+            } else {
+                vendorRadio.checked = true;
+            }
+            toggleFields();
+        });
+    });
 });
 </script>
 {% endblock %} 

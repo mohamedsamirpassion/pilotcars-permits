@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Vendor Availability - My PEVO Admin{% endblock %}
+{% block title %}Pilot Availability - My PEVO Admin{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
@@ -8,8 +8,8 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h2><i class="fas fa-map-marker-alt me-2"></i>Vendor Availability</h2>
-                    <p class="text-muted">View all active vendors and their locations from the last 48 hours.</p>
+                        <h2><i class="fas fa-map-marker-alt me-2"></i>Pilot Availability</h2>
+    <p class="text-muted">View all active pilots and their locations from the last 48 hours.</p>
                 </div>
                 <div>
                     <a href="/admin" class="btn btn-outline-secondary me-2">
@@ -25,7 +25,7 @@
 
     <div class="row mb-4">
         <!-- View Toggle -->
-        <div class="col-12">
+        <div class="col-md-6">
             <div class="btn-group" role="group">
                 <input type="radio" class="btn-check" name="viewType" id="mapView" autocomplete="off" checked>
                 <label class="btn btn-outline-primary" for="mapView">
@@ -38,6 +38,16 @@
                 </label>
             </div>
         </div>
+        <div class="col-md-6 text-end">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-warning" id="checkExpiredBtn">
+                    <i class="fas fa-clock me-2"></i>Check Expired Locations
+                </button>
+                <a href="{{ url_for('admin_vendor_locations') }}" class="btn btn-outline-info">
+                    <i class="fas fa-sync me-2"></i>Refresh
+                </a>
+            </div>
+        </div>
     </div>
 
     <div class="row">
@@ -45,7 +55,7 @@
         <div class="col-lg-8" id="mapViewContainer">
             <div class="card">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="fas fa-map me-2"></i>Vendor Location Map</h5>
+                    <h5 class="mb-0"><i class="fas fa-map me-2"></i>Pilot Location Map</h5>
                 </div>
                 <div class="card-body p-0">
                     <!-- Service Filters -->
@@ -68,8 +78,8 @@
                             <label class="form-check-label" for="filterSteer">Steer</label>
                         </div>
                         <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="checkbox" id="showAllVendors" checked>
-                            <label class="form-check-label" for="showAllVendors">Show All Vendors</label>
+                                            <input class="form-check-input" type="checkbox" id="showAllPilots" checked>
+                <label class="form-check-label" for="showAllPilots">Show All Pilots</label>
                         </div>
                     </div>
 
@@ -77,8 +87,8 @@
                         <div class="d-flex align-items-center">
                             <i class="fas fa-info-circle text-primary me-2"></i>
                             <small>
-                                <span class="badge bg-success me-1">Green pins</span> = registered vendors, 
-                                <span class="badge bg-info me-1">Blue pins</span> = guest vendors
+                                <span class="badge bg-success me-1">Green pins</span> = registered pilots, 
+                                <span class="badge bg-info me-1">Blue pins</span> = guest pilots
                             </small>
                         </div>
                     </div>
@@ -92,7 +102,7 @@
         <div class="col-lg-12 d-none" id="tableViewContainer">
             <div class="card">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="fas fa-table me-2"></i>Vendor Location List</h5>
+                    <h5 class="mb-0"><i class="fas fa-table me-2"></i>Pilot Location List</h5>
                 </div>
                 <div class="card-body">
                     {% if locations %}
@@ -100,7 +110,7 @@
                             <table class="table table-hover">
                                 <thead>
                                     <tr>
-                                        <th>Vendor</th>
+                                        <th>Pilot</th>
                                         <th>Location</th>
                                         <th>Coverage</th>
                                         <th>Services</th>
@@ -150,8 +160,8 @@
                     {% else %}
                         <div class="text-center py-5">
                             <i class="fas fa-map-marker-alt fa-3x text-muted mb-3"></i>
-                            <h5 class="text-muted">No Active Vendors</h5>
-                            <p class="text-muted">No vendors have shared their locations in the last 48 hours.</p>
+                            <h5 class="text-muted">No Active Pilots</h5>
+                            <p class="text-muted">No pilots have shared their locations in the last 48 hours.</p>
                         </div>
                     {% endif %}
                 </div>
@@ -166,11 +176,20 @@
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <label for="searchLocation" class="form-label">Search Location</label>
-                        <input type="text" class="form-control" id="searchLocation" 
-                               placeholder="Dallas, TX" 
-                               autocomplete="off">
-                        <div class="form-text">Example: Dallas, TX</div>
+                        <label for="searchLocation" class="form-label">
+                            <i class="fas fa-map-marker-alt me-1"></i>Search Location
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" class="form-control" id="searchLocation" 
+                                   placeholder="Type city name (e.g., Dallas, TX)" 
+                                   autocomplete="off">
+                        </div>
+                        <div class="form-text">
+                            <i class="fas fa-lightbulb me-1"></i>Start typing for city suggestions
+                        </div>
                     </div>
 
                     <div class="mb-3">
@@ -185,7 +204,7 @@
                     </div>
 
                     <button type="button" class="btn btn-primary w-100 mb-3" id="searchBtn">
-                        <i class="fas fa-search me-2"></i>Search Vendors
+                        <i class="fas fa-search me-2"></i>Search Pilots
                     </button>
 
                     <div class="text-center mb-3">
@@ -214,15 +233,16 @@
                 <div class="card-body">
                     <div id="outsideCoverageVendors">
                         {% for location in locations %}
-                            <div class="vendor-card mb-3 p-3 border rounded">
+                            <div class="vendor-card mb-3 p-3 border rounded" data-pilot-id="{{ location.id }}">
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div>
                                         <h6 class="mb-1">{{ location.company_name }}
                                             {% if location.is_registered_vendor %}
                                                 <span class="badge bg-success ms-1">Registered</span>
                                             {% else %}
-                                                <span class="badge bg-info ms-1">Out of Range</span>
+                                                <span class="badge bg-info ms-1">Guest</span>
                                             {% endif %}
+                                            <span class="badge bg-secondary ms-1 distance-badge" style="display: none;"></span>
                                         </h6>
                                         <p class="text-muted mb-1">{{ location.location_city }}, {{ location.location_state }}</p>
                                         <p class="text-muted mb-2">Coverage: {{ location.coverage_radius }} miles</p>
@@ -245,11 +265,8 @@
                                     </div>
                                 </div>
                                 <div class="mt-2">
-                                    <button class="btn btn-sm btn-info me-2" onclick="viewVendorInfo({{ location.id }})">
+                                    <button class="btn btn-sm btn-info" onclick="viewPilotInfo({{ location.id }})">
                                         <i class="fas fa-info-circle me-1"></i>View Info
-                                    </button>
-                                    <button class="btn btn-sm btn-success" onclick="assignVendor({{ location.id }})">
-                                        <i class="fas fa-check me-1"></i>Assign
                                     </button>
                                 </div>
                             </div>
@@ -288,11 +305,14 @@ function initMap() {
         }
     });
 
-    // Load vendor locations
-    loadVendorMarkers();
+    // Initialize autocomplete for search input
+    initAutocomplete();
+
+    // Load pilot locations
+    loadPilotMarkers();
 }
 
-function loadVendorMarkers() {
+function loadPilotMarkers() {
     // Clear existing markers
     markers.forEach(marker => marker.setMap(null));
     markers = [];
@@ -300,15 +320,15 @@ function loadVendorMarkers() {
     // Get selected services
     const selectedServices = [];
     document.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
-        if (checkbox.id !== 'showAllVendors') {
+        if (checkbox.id !== 'showAllPilots') {
             selectedServices.push(checkbox.value);
         }
     });
 
-    const showAll = document.getElementById('showAllVendors').checked;
+            const showAll = document.getElementById('showAllPilots').checked;
 
     locations.forEach(location => {
-        // Check if vendor should be shown based on service filters
+        // Check if pilot should be shown based on service filters
         let shouldShow = showAll;
         if (!showAll && selectedServices.length > 0) {
             shouldShow = selectedServices.some(service => location.services_provided.includes(service));
@@ -347,11 +367,6 @@ function loadVendorMarkers() {
                         <a href="mailto:${location.email}">${location.email}</a>
                     </p>
                     ${location.notes ? `<p><strong>Notes:</strong> ${location.notes}</p>` : ''}
-                    <div class="mt-2">
-                        <button class="btn btn-sm btn-success" onclick="assignVendor(${location.id})">
-                            <i class="fas fa-check me-1"></i>Assign
-                        </button>
-                    </div>
                 </div>
             `;
 
@@ -407,14 +422,17 @@ function placeSearchPin(latLng) {
         }
     });
 
-    // Search for nearby vendors
-    searchNearbyVendors(latLng.lat(), latLng.lng());
+    // Search for nearby pilots
+    searchNearbyPilots(latLng.lat(), latLng.lng());
 }
 
-function searchNearbyVendors(lat, lng) {
+function searchNearbyPilots(lat, lng) {
     const radius = parseInt(document.getElementById('searchRadius').value);
     
-    fetch('/admin/search-vendors', {
+    // Calculate distances for outside coverage area pilots
+    updateOutsideCoverageDistances(lat, lng);
+    
+                    fetch('/admin/search-pilots', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -429,25 +447,56 @@ function searchNearbyVendors(lat, lng) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            displaySearchResults(data.vendors);
+            displaySearchResults(data.pilots);
         } else {
-            alert('Error searching vendors: ' + data.error);
+            alert('Error searching pilots: ' + data.error);
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Error searching vendors');
+        alert('Error searching pilots');
     });
 }
 
-function displaySearchResults(vendors) {
+function updateOutsideCoverageDistances(searchLat, searchLng) {
+    // Calculate distances to all pilots in the outside coverage area
+    document.querySelectorAll('#outsideCoverageVendors .vendor-card').forEach(card => {
+        const pilotId = parseInt(card.dataset.pilotId);
+        const pilot = locations.find(loc => loc.id === pilotId);
+        
+        if (pilot && pilot.latitude && pilot.longitude) {
+            const distance = calculateDistance(searchLat, searchLng, pilot.latitude, pilot.longitude);
+            const distanceBadge = card.querySelector('.distance-badge');
+            
+            if (distanceBadge) {
+                distanceBadge.textContent = `${distance.toFixed(1)} mi`;
+                distanceBadge.style.display = 'inline';
+            }
+        }
+    });
+}
+
+function calculateDistance(lat1, lng1, lat2, lng2) {
+    // Haversine formula to calculate distance between two points
+    const R = 3959; // Earth's radius in miles
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c;
+    return distance;
+}
+
+function displaySearchResults(pilots) {
     const resultsContainer = document.getElementById('searchResults');
     
-    if (vendors.length === 0) {
+    if (pilots.length === 0) {
         resultsContainer.innerHTML = `
             <div class="alert alert-warning">
                 <i class="fas fa-exclamation-triangle me-2"></i>
-                No vendors found within the specified radius.
+                No pilots found within the specified radius.
             </div>
         `;
         return;
@@ -456,45 +505,42 @@ function displaySearchResults(vendors) {
     let html = `
         <div class="alert alert-success">
             <i class="fas fa-check-circle me-2"></i>
-            Found ${vendors.length} vendor(s) within ${document.getElementById('searchRadius').value} miles
+            Found ${pilots.length} pilot(s) within ${document.getElementById('searchRadius').value} miles
         </div>
     `;
 
-    vendors.forEach(vendor => {
+    pilots.forEach(pilot => {
         html += `
-            <div class="vendor-result mb-3 p-3 border rounded">
+            <div class="pilot-result mb-3 p-3 border rounded">
                 <div class="d-flex justify-content-between align-items-start">
                     <div>
-                        <h6>${vendor.company_name} 
-                            ${vendor.is_registered ? '<span class="badge bg-success">Registered</span>' : '<span class="badge bg-info">Guest</span>'}
-                            ${vendor.distance !== null ? `<span class="badge bg-primary">${vendor.distance} mi</span>` : ''}
+                        <h6>${pilot.company_name} 
+                            ${pilot.is_registered ? '<span class="badge bg-success">Registered</span>' : '<span class="badge bg-info">Guest</span>'}
+                            ${pilot.distance !== null ? `<span class="badge bg-primary">${pilot.distance} mi</span>` : ''}
                         </h6>
-                        <p class="text-muted mb-1">${vendor.location}</p>
-                        <p class="text-muted mb-2">Coverage: ${vendor.coverage_radius} miles</p>
+                        <p class="text-muted mb-1">${pilot.location}</p>
+                        <p class="text-muted mb-2">Coverage: ${pilot.coverage_radius} miles</p>
                         <div class="mb-2">
                             <small><strong>Services:</strong></small>
-                            ${vendor.services.map(service => 
+                            ${pilot.services.map(service => 
                                 `<span class="badge bg-secondary me-1">${service}</span>`
                             ).join('')}
                         </div>
                     </div>
                     <div class="text-end">
                         <div class="btn-group-vertical" role="group">
-                            <a href="tel:${vendor.phone}" class="btn btn-sm btn-outline-success">
+                            <a href="tel:${pilot.phone}" class="btn btn-sm btn-outline-success">
                                 <i class="fas fa-phone"></i> Call
                             </a>
-                            <a href="mailto:${vendor.email}" class="btn btn-sm btn-outline-primary">
+                            <a href="mailto:${pilot.email}" class="btn btn-sm btn-outline-primary">
                                 <i class="fas fa-envelope"></i> Email
                             </a>
                         </div>
                     </div>
                 </div>
                 <div class="mt-2">
-                    <button class="btn btn-sm btn-info me-2" onclick="viewVendorInfo(${vendor.id})">
+                    <button class="btn btn-sm btn-info" onclick="viewPilotInfo(${pilot.id})">
                         <i class="fas fa-info-circle me-1"></i>View Info
-                    </button>
-                    <button class="btn btn-sm btn-success" onclick="assignVendor(${vendor.id})">
-                        <i class="fas fa-check me-1"></i>Assign
                     </button>
                 </div>
             </div>
@@ -504,14 +550,111 @@ function displaySearchResults(vendors) {
     resultsContainer.innerHTML = html;
 }
 
-function viewVendorInfo(vendorId) {
-    // Implementation for viewing detailed vendor info
-    alert('View vendor info functionality - to be implemented');
-}
+function viewPilotInfo(pilotId) {
+    // Find the pilot in our locations data
+    const pilot = locations.find(loc => loc.id === pilotId);
+    if (!pilot) {
+        alert('Pilot information not found');
+        return;
+    }
 
-function assignVendor(vendorId) {
-    // Implementation for assigning vendor to trip
-    alert('Assign vendor functionality - to be implemented');
+    // Format services list
+    const servicesList = pilot.services_provided.map(service => 
+        `<span class="badge bg-secondary me-1">${service}</span>`
+    ).join('');
+
+    // Format registration status
+    const registrationBadge = pilot.is_registered_vendor ? 
+        '<span class="badge bg-success">Registered Pilot</span>' : 
+        '<span class="badge bg-info">Guest Pilot</span>';
+
+    // Format expiration date
+    const expirationDate = new Date(pilot.expires_at).toLocaleString();
+
+    // Create modal content
+    const modalContent = `
+        <div class="modal fade" id="pilotInfoModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-user-circle me-2"></i>${pilot.company_name}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-building me-2"></i>Company Information</h6>
+                                <p><strong>Company:</strong> ${pilot.company_name}</p>
+                                <p><strong>Status:</strong> ${registrationBadge}</p>
+                                <p><strong>Contact:</strong> ${pilot.contact_name || 'Not provided'}</p>
+                                
+                                <h6 class="mt-3"><i class="fas fa-envelope me-2"></i>Contact Details</h6>
+                                <p><strong>Email:</strong> <a href="mailto:${pilot.email}">${pilot.email}</a></p>
+                                <p><strong>Phone:</strong> <a href="tel:${pilot.phone}">${pilot.phone}</a></p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-map-marker-alt me-2"></i>Location & Coverage</h6>
+                                <p><strong>Location:</strong> ${pilot.location_city}, ${pilot.location_state}</p>
+                                <p><strong>Coverage Radius:</strong> ${pilot.coverage_radius} miles</p>
+                                ${pilot.latitude && pilot.longitude ? 
+                                    `<p><strong>Coordinates:</strong> ${pilot.latitude}, ${pilot.longitude}</p>` : 
+                                    '<p><strong>Coordinates:</strong> Not available</p>'
+                                }
+                                
+                                <h6 class="mt-3"><i class="fas fa-clock me-2"></i>Availability</h6>
+                                <p><strong>Expires:</strong> ${expirationDate}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h6><i class="fas fa-tools me-2"></i>Services Provided</h6>
+                                <div>${servicesList}</div>
+                            </div>
+                        </div>
+                        
+                        ${pilot.notes ? `
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <h6><i class="fas fa-sticky-note me-2"></i>Notes</h6>
+                                    <p>${pilot.notes}</p>
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="modal-footer">
+                        <div class="btn-group me-auto">
+                            <a href="tel:${pilot.phone}" class="btn btn-success">
+                                <i class="fas fa-phone me-1"></i>Call
+                            </a>
+                            <a href="mailto:${pilot.email}" class="btn btn-primary">
+                                <i class="fas fa-envelope me-1"></i>Email
+                            </a>
+                        </div>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Remove existing modal if present
+    const existingModal = document.getElementById('pilotInfoModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+    // Add modal to DOM and show it
+    document.body.insertAdjacentHTML('beforeend', modalContent);
+    const modal = new bootstrap.Modal(document.getElementById('pilotInfoModal'));
+    modal.show();
+
+    // Clean up modal when closed
+    document.getElementById('pilotInfoModal').addEventListener('hidden.bs.modal', function() {
+        this.remove();
+    });
 }
 
 // Event listeners
@@ -562,16 +705,118 @@ document.getElementById('searchBtn').addEventListener('click', function() {
 
 // Service filter event listeners
 document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-    checkbox.addEventListener('change', loadVendorMarkers);
+    checkbox.addEventListener('change', loadPilotMarkers);
 });
 
 // Initialize autocomplete for search location
 function initAutocomplete() {
-    const autocomplete = new google.maps.places.Autocomplete(
-        document.getElementById('searchLocation'),
-        { types: ['geocode'] }
-    );
+    const searchInput = document.getElementById('searchLocation');
+    const autocomplete = new google.maps.places.Autocomplete(searchInput, {
+        types: ['(cities)'],
+        componentRestrictions: { country: 'us' }, // Restrict to US cities only
+        fields: ['geometry', 'formatted_address', 'name']
+    });
+
+    // Set autocomplete options for better city suggestions
+    autocomplete.setOptions({
+        strictBounds: false,
+        types: ['(cities)']
+    });
+
+    // Listen for place selection
+    autocomplete.addListener('place_changed', function() {
+        const place = autocomplete.getPlace();
+        
+        // Check if place has geometry (valid selection)
+        if (!place.geometry || !place.geometry.location) {
+            // User entered the name of a Place that was not suggested and
+            // pressed the Enter key, or the Place Details request failed.
+            console.log('No details available for input: ' + place.name);
+            return;
+        }
+
+        // Valid place selected - update input with formatted address
+        searchInput.value = place.formatted_address;
+        
+        // Auto-trigger search when a place is selected
+        const latLng = place.geometry.location;
+        map.setCenter(latLng);
+        map.setZoom(10);
+        placeSearchPin(latLng);
+        
+        // Provide visual feedback
+        const inputGroup = searchInput.closest('.input-group');
+        inputGroup.classList.add('border-success');
+        setTimeout(() => {
+            inputGroup.classList.remove('border-success');
+        }, 2000);
+    });
+
+    // Add focus/blur events for better UX
+    searchInput.addEventListener('focus', function() {
+        this.placeholder = 'Start typing city name...';
+    });
+
+    searchInput.addEventListener('blur', function() {
+        this.placeholder = 'Type city name (e.g., Dallas, TX)';
+    });
 }
+
+// Check expired locations functionality
+document.getElementById('checkExpiredBtn').addEventListener('click', function() {
+    const button = this;
+    const originalHtml = button.innerHTML;
+    
+    // Show loading state
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Checking...';
+    button.disabled = true;
+    
+    fetch('/api/admin/check-expired-locations', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-success alert-dismissible fade show';
+            alert.innerHTML = `
+                <i class="fas fa-check-circle me-2"></i>${data.message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            // Insert alert at the top of the page
+            const container = document.querySelector('.container-fluid');
+            container.insertBefore(alert, container.firstChild);
+            
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.remove();
+                }
+            }, 5000);
+            
+            // Refresh the page to show updated data
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        } else {
+            alert('Error checking expired locations. Please try again.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error checking expired locations. Please try again.');
+    })
+    .finally(() => {
+        // Restore button state
+        button.innerHTML = originalHtml;
+        button.disabled = false;
+    });
+});
 </script>
 
 <!-- Google Maps API with Places -->

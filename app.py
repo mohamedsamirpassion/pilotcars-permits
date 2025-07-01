@@ -1824,7 +1824,29 @@ def admin_crm_dashboard():
 def admin_crm_leads():
     """All leads management"""
     current_user = User.query.get(session['user_id'])
-    leads = Lead.query.order_by(Lead.created_at.desc()).all()
+    
+    # Get filter parameters
+    status_filter = request.args.get('status', 'all')
+    admin_filter = request.args.get('admin_id', 'all')
+    search = request.args.get('search', '').strip()
+    
+    # Build base query
+    query = Lead.query.join(User, Lead.company_id == User.id)
+    
+    # Apply status filter
+    if status_filter and status_filter != 'all':
+        query = query.filter(Lead.status == status_filter)
+    
+    # Apply admin filter
+    if admin_filter and admin_filter != 'all':
+        query = query.filter(Lead.assigned_admin_id == int(admin_filter))
+    
+    # Apply company search filter
+    if search:
+        query = query.filter(User.company_name.ilike(f'%{search}%'))
+    
+    # Get filtered leads
+    leads = query.order_by(Lead.created_at.desc()).all()
     
     # Get all admin users for assignment dropdown
     admin_users = User.query.filter(User.is_admin == True).all()
@@ -1832,7 +1854,10 @@ def admin_crm_leads():
     return render_template('admin/crm_leads.html', 
                          current_user=current_user, 
                          leads=leads,
-                         admins=admin_users)
+                         admins=admin_users,
+                         status_filter=status_filter,
+                         admin_filter=admin_filter,
+                         search=search)
 
 @app.route('/admin/crm/lead/<int:lead_id>')
 @admin_or_super_admin_required

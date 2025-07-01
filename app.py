@@ -3081,6 +3081,34 @@ def admin_management():
     
     return render_template('admin/admin_management.html', admin_users=admin_users)
 
+# ================== ERROR HANDLERS ==================
+
+@app.errorhandler(400)
+def bad_request(error):
+    """Handle 400 Bad Request errors"""
+    return render_template('errors/400.html'), 400
+
+@app.errorhandler(403)
+def forbidden(error):
+    """Handle 403 Forbidden errors"""
+    return render_template('errors/403.html'), 403
+
+@app.errorhandler(404)
+def not_found(error):
+    """Handle 404 Not Found errors"""
+    return render_template('errors/404.html'), 404
+
+@app.errorhandler(429)
+def too_many_requests(error):
+    """Handle 429 Too Many Requests errors"""
+    return render_template('errors/429.html'), 429
+
+@app.errorhandler(500)
+def internal_error(error):
+    """Handle 500 Internal Server Error"""
+    db.session.rollback()  # Rollback any pending database transactions
+    return render_template('errors/500.html'), 500
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()

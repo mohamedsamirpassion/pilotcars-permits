@@ -3141,19 +3141,23 @@ if __name__ == '__main__':
         # Initialize email templates
         initialize_email_templates()
         
-        # Create default admin user if it doesn't exist
+        # Create default admin user if it doesn't exist, or update password if exists
         admin = User.query.filter_by(email='admin@mypevo.com').first()
         if not admin:
             admin = User(
                 company_name='My PEVO Admin',
                 email='admin@mypevo.com',
-                password_hash=generate_password_hash('admin123'),
+                password_hash=generate_password_hash('MyPEVO2025'),
                 is_admin=True,
                 admin_role='super_admin',
                 user_type='trucking_company',
                 is_approved=True
             )
             db.session.add(admin)
+            db.session.commit()
+        else:
+            # Update existing admin password to new password
+            admin.password_hash = generate_password_hash('MyPEVO2025')
             db.session.commit()
     
     app.run(debug=True)

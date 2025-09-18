@@ -14,8 +14,13 @@
             <div class="card-icon mb-3">
                 <i class="fas fa-dollar-sign"></i>
             </div>
+            {% if quote_feature_enabled() %}
             <h4>{{ user.quotes|length }}</h4>
             <p class="text-muted mb-0">Total Quotes</p>
+            {% else %}
+            <h4><i class="fas fa-phone"></i></h4>
+            <p class="text-muted mb-0">Call for Pricing</p>
+            {% endif %}
         </div>
     </div>
     <div class="col-md-3">
@@ -99,18 +104,22 @@
                     <i class="fas fa-route me-2 text-primary"></i>
                     Create New Load Plan
                 </a>
+                {% if quote_feature_enabled() %}
                 <a href="{{ url_for('get_quote') }}" class="list-group-item list-group-item-action border-0">
                     <i class="fas fa-dollar-sign me-2 text-success"></i>
                     Get Price Quote
                 </a>
+                {% endif %}
                 <a href="{{ url_for('my_routes') }}" class="list-group-item list-group-item-action border-0">
                     <i class="fas fa-history me-2 text-primary"></i>
                     View My Routes
                 </a>
+                {% if quote_feature_enabled() %}
                 <a href="{{ url_for('my_quotes') }}" class="list-group-item list-group-item-action border-0">
                     <i class="fas fa-file-invoice-dollar me-2 text-info"></i>
                     View My Quotes
                 </a>
+                {% endif %}
                 {% if user.user_type == 'admin' %}
                 <a href="{{ url_for('admin_dashboard') }}" class="list-group-item list-group-item-action border-0">
                     <i class="fas fa-cog me-2 text-info"></i>

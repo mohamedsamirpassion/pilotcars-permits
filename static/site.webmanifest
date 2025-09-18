@@ -1,0 +1,16 @@
+{
+  "name": "Pilot Cars & Permits",
+  "short_name": "P&P",
+  "description": "Professional pilot car and escort services for oversized loads",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a5f5f",
+  "theme_color": "#1a5f5f",
+  "icons": [
+    {
+      "src": "/static/favicon.ico",
+      "sizes": "32x32",
+      "type": "image/x-icon"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Manage Users - My PEVO Admin{% endblock %}
+{% block title %}Manage Users - Pilot Cars & Permits Admin{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
@@ -291,15 +291,15 @@
                         <nav aria-label="Page navigation">
                             <ul class="pagination pagination-sm mb-0" id="paginationControls">
                                 <li class="page-item disabled">
-                                    <a class="page-link" href="#" onclick="changePage('prev')">
+                                    <a class="page-link" href="javascript:void(0)" onclick="changePage('prev')">
                                         <i class="fas fa-chevron-left"></i>
                                     </a>
                                 </li>
                                 <li class="page-item active">
-                                    <a class="page-link" href="#" onclick="changePage(1)">1</a>
+                                    <a class="page-link" href="javascript:void(0)" onclick="changePage(1)">1</a>
                                 </li>
                                 <li class="page-item disabled">
-                                    <a class="page-link" href="#" onclick="changePage('next')">
+                                    <a class="page-link" href="javascript:void(0)" onclick="changePage('next')">
                                         <i class="fas fa-chevron-right"></i>
                                     </a>
                                 </li>
@@ -922,7 +922,7 @@ function updatePaginationControls(totalPages) {
     const prevDisabled = currentPage === 1 ? 'disabled' : '';
     paginationHtml += `
         <li class="page-item ${prevDisabled}">
-            <a class="page-link" href="#" onclick="changePage('prev')">
+            <a class="page-link" href="javascript:void(0)" onclick="changePage('prev')">
                 <i class="fas fa-chevron-left"></i>
             </a>
         </li>
@@ -935,11 +935,11 @@ function updatePaginationControls(totalPages) {
     if (startPage > 1) {
         paginationHtml += `
             <li class="page-item">
-                <a class="page-link" href="#" onclick="changePage(1)">1</a>
+                <a class="page-link" href="javascript:void(0)" onclick="changePage(1)">1</a>
             </li>
         `;
         if (startPage > 2) {
-            paginationHtml += `<li class="page-item disabled"><a class="page-link" href="#">...</a></li>`;
+            paginationHtml += `<li class="page-item disabled"><a class="page-link" href="javascript:void(0)">...</a></li>`;
         }
     }
     
@@ -947,18 +947,18 @@ function updatePaginationControls(totalPages) {
         const active = i === currentPage ? 'active' : '';
         paginationHtml += `
             <li class="page-item ${active}">
-                <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+                <a class="page-link" href="javascript:void(0)" onclick="changePage(${i})">${i}</a>
             </li>
         `;
     }
     
     if (endPage < totalPages) {
         if (endPage < totalPages - 1) {
-            paginationHtml += `<li class="page-item disabled"><a class="page-link" href="#">...</a></li>`;
+            paginationHtml += `<li class="page-item disabled"><a class="page-link" href="javascript:void(0)">...</a></li>`;
         }
         paginationHtml += `
             <li class="page-item">
-                <a class="page-link" href="#" onclick="changePage(${totalPages})">${totalPages}</a>
+                <a class="page-link" href="javascript:void(0)" onclick="changePage(${totalPages})">${totalPages}</a>
             </li>
         `;
     }
@@ -967,7 +967,7 @@ function updatePaginationControls(totalPages) {
     const nextDisabled = currentPage === totalPages || totalPages === 0 ? 'disabled' : '';
     paginationHtml += `
         <li class="page-item ${nextDisabled}">
-            <a class="page-link" href="#" onclick="changePage('next')">
+            <a class="page-link" href="javascript:void(0)" onclick="changePage('next')">
                 <i class="fas fa-chevron-right"></i>
             </a>
         </li>

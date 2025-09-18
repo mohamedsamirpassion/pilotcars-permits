@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Customer Management - My PEVO Admin{% endblock %}
+{% block title %}Customer Management - Pilot Cars & Permits Admin{% endblock %}
 
 {% block content %}
 <div class="container py-4">
@@ -87,7 +87,7 @@
                               onclick="viewCustomer({{ user.id }})" title="View Details">
                         <i class="fas fa-eye"></i>
                       </button>
-                      <a href="mailto:{{ user.email }}?subject=My PEVO Services&body=Hello {{ user.company_name }},%0D%0A%0D%0AThank you for using My PEVO services. We're here to help with your pilot car escort needs.%0D%0A%0D%0ABest regards,%0D%0AMy PEVO Team" 
+                      <a href="mailto:{{ user.email }}?subject=Pilot Cars & Permits Services&body=Hello {{ user.company_name }},%0D%0A%0D%0AThank you for using Pilot Cars & Permits services. We're here to help with your pilot car escort needs.%0D%0A%0D%0ABest regards,%0D%0APilot Cars & Permits Team" 
                          class="btn btn-outline-success" title="Send Email">
                         <i class="fas fa-envelope"></i>
                       </a>
@@ -293,7 +293,7 @@ function viewCustomer(customerId) {
       <div class="col-md-6">
         <h6>Quick Actions</h6>
         <div class="d-grid gap-2">
-          <a href="mailto:${customer.email}?subject=My PEVO Services&body=Hello ${customer.company_name},%0D%0A%0D%0AThank you for using My PEVO services." 
+          <a href="mailto:${customer.email}?subject=Pilot Cars & Permits Services&body=Hello ${customer.company_name},%0D%0A%0D%0AThank you for using Pilot Cars & Permits services." 
              class="btn btn-outline-primary btn-sm">
             <i class="fas fa-envelope me-2"></i>Send Email
           </a>

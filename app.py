@@ -1,7 +1,10 @@
 from dotenv import load_dotenv
 load_dotenv()
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
+from flask_wtf.csrf import CSRFProtect
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, date, timedelta
 import os
@@ -9,14 +12,40 @@ import json
 import requests
 import math
 import re
+import logging
+from logging.handlers import RotatingFileHandler
 from geopy.geocoders import Nominatim
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your_secret_key'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mypevo.db'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('SQLALCHEMY_DATABASE_URI', 'sqlite:///mypevo.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['WTF_CSRF_TIME_LIMIT'] = None
+app.config['GOOGLE_MAPS_API_KEY'] = os.environ.get('GOOGLE_MAPS_API_KEY', 'demo-key')
 
+# Feature flags - easily enable/disable features
+app.config['ENABLE_QUOTE_FEATURE'] = os.environ.get('ENABLE_QUOTE_FEATURE', 'False').lower() == 'true'
+
+# Initialize extensions
 db = SQLAlchemy(app)
+csrf = CSRFProtect(app)
+limiter = Limiter(
+    key_func=get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"]
+)
+
+# Configure logging
+if not app.debug:
+    if not os.path.exists('logs'):
+        os.mkdir('logs')
+    file_handler = RotatingFileHandler('logs/pilots_permits.log', maxBytes=10240, backupCount=10)
+    file_handler.setFormatter(logging.Formatter(
+        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
+    file_handler.setLevel(logging.INFO)
+    app.logger.addHandler(file_handler)
+    app.logger.setLevel(logging.INFO)
+    app.logger.info('Pilot Cars & Permits startup')
 
 
 # Add custom Jinja filters
@@ -30,10 +59,27 @@ def from_json(value):
             return []
     return []
 
+@app.template_filter('local_datetime')
+def local_datetime(value, timezone='US/Eastern'):
+    """Format datetime with timezone consideration"""
+    if value:
+        try:
+            # For now, just format as standard datetime string
+            # In the future, this could be enhanced with proper timezone handling
+            return value.strftime('%m/%d/%Y %I:%M %p')
+        except:
+            return str(value)
+    return ''
+
 @app.template_global()
 def moment():
     """Make datetime available in templates"""
     return datetime
+
+@app.template_global()
+def quote_feature_enabled():
+    """Check if quote feature is enabled"""
+    return app.config.get('ENABLE_QUOTE_FEATURE', False)
 
 # Helper function for reverse geocoding
 def get_city_state_from_coordinates(latitude, longitude):
@@ -46,7 +92,7 @@ def get_city_state_from_coordinates(latitude, longitude):
         # First try with English language preference
         url = f"https://nominatim.openstreetmap.org/reverse?lat={latitude}&lon={longitude}&format=json&addressdetails=1&accept-language=en"
         headers = {
-            'User-Agent': 'mypevo-pilot-car-app/1.0 (contact@mypevo.com)',
+            'User-Agent': 'pilotcarsandpermits-app/1.0 (contact@pilotcarsandpermits.com)',
             'Accept-Language': 'en-US,en;q=0.9'
         }
         
@@ -109,7 +155,7 @@ def get_english_place_names(latitude, longitude, original_city, original_state):
         # Method 1: Try with different zoom levels to get broader region names
         url = f"https://nominatim.openstreetmap.org/reverse?lat={latitude}&lon={longitude}&format=json&zoom=10&accept-language=en"
         headers = {
-            'User-Agent': 'mypevo-pilot-car-app/1.0 (contact@mypevo.com)',
+            'User-Agent': 'pilotcarsandpermits-app/1.0 (contact@pilotcarsandpermits.com)',
             'Accept-Language': 'en-US,en;q=0.9'
         }
         
@@ -414,6 +460,137 @@ class UserAuditLog(db.Model):
     user = db.relationship('User', foreign_keys=[user_id], backref='audit_logs')
     admin_user = db.relationship('User', foreign_keys=[admin_user_id])
 
+# Blog Post Model for SEO-friendly blog system
+class BlogPost(db.Model):
+    __tablename__ = 'blog_post'
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    slug = db.Column(db.String(250), nullable=False, unique=True)  # SEO-friendly URL
+    excerpt = db.Column(db.Text, nullable=True)  # Short description for previews
+    content = db.Column(db.Text, nullable=False)  # Full blog post content
+    
+    # SEO Fields
+    meta_title = db.Column(db.String(60), nullable=True)  # SEO title (max 60 chars)
+    meta_description = db.Column(db.String(160), nullable=True)  # SEO description (max 160 chars)
+    meta_keywords = db.Column(db.String(255), nullable=True)  # SEO keywords
+    canonical_url = db.Column(db.String(255), nullable=True)  # Canonical URL for SEO
+    
+    # Featured Image
+    featured_image = db.Column(db.String(255), nullable=True)  # Featured image URL
+    featured_image_alt = db.Column(db.String(125), nullable=True)  # Alt text for featured image
+    
+    # Content Organization
+    category = db.Column(db.String(50), nullable=True)  # Blog category
+    tags = db.Column(db.Text, nullable=True)  # Comma-separated tags
+    
+    # Publishing Control
+    status = db.Column(db.String(20), default='draft')  # draft, published, archived
+    published_at = db.Column(db.DateTime, nullable=True)  # When published
+    
+    # Author Information
+    author_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    author_name = db.Column(db.String(100), nullable=True)  # Display name for author
+    
+    # Analytics & Engagement
+    view_count = db.Column(db.Integer, default=0)
+    like_count = db.Column(db.Integer, default=0)
+    comment_count = db.Column(db.Integer, default=0)
+    
+    # Reading Time Estimation
+    reading_time = db.Column(db.Integer, nullable=True)  # Estimated reading time in minutes
+    
+    # Timestamps
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    author = db.relationship('User', backref='blog_posts')
+    
+    def __init__(self, **kwargs):
+        super(BlogPost, self).__init__(**kwargs)
+        if not self.slug and self.title:
+            self.slug = self.generate_slug(self.title)
+        if not self.meta_title and self.title:
+            self.meta_title = self.title[:60]
+        if not self.reading_time and self.content:
+            self.reading_time = self.calculate_reading_time(self.content)
+    
+    def generate_slug(self, title):
+        """Generate SEO-friendly slug from title"""
+        import re
+        # Convert to lowercase and replace spaces/special chars with hyphens
+        slug = re.sub(r'[^\w\s-]', '', title.lower())
+        slug = re.sub(r'[-\s]+', '-', slug)
+        slug = slug.strip('-')
+        
+        # Ensure uniqueness
+        original_slug = slug
+        counter = 1
+        while BlogPost.query.filter_by(slug=slug).first():
+            slug = f"{original_slug}-{counter}"
+            counter += 1
+        
+        return slug
+    
+    def calculate_reading_time(self, content):
+        """Calculate estimated reading time based on content length"""
+        # Average reading speed: 200 words per minute
+        word_count = len(content.split())
+        reading_time = max(1, round(word_count / 200))
+        return reading_time
+    
+    def get_excerpt(self, length=150):
+        """Get excerpt with specified length"""
+        if self.excerpt:
+            return self.excerpt
+        # Generate excerpt from content
+        import re
+        clean_content = re.sub(r'<[^>]+>', '', self.content)  # Remove HTML tags
+        if len(clean_content) <= length:
+            return clean_content
+        return clean_content[:length].rsplit(' ', 1)[0] + '...'
+    
+    def get_tags_list(self):
+        """Get tags as a list"""
+        if not self.tags:
+            return []
+        return [tag.strip() for tag in self.tags.split(',') if tag.strip()]
+    
+    def set_tags_from_list(self, tags_list):
+        """Set tags from a list"""
+        self.tags = ', '.join(tags_list) if tags_list else None
+    
+    def increment_view_count(self):
+        """Increment view count"""
+        self.view_count += 1
+        db.session.commit()
+    
+    def get_canonical_url(self):
+        """Get canonical URL for SEO"""
+        if self.canonical_url:
+            return self.canonical_url
+        return f"https://pilotcarsandpermits.com/blog/{self.slug}"
+    
+    def to_dict(self):
+        """Convert to dictionary for JSON responses"""
+        return {
+            'id': self.id,
+            'title': self.title,
+            'slug': self.slug,
+            'excerpt': self.get_excerpt(),
+            'category': self.category,
+            'tags': self.get_tags_list(),
+            'status': self.status,
+            'published_at': self.published_at.isoformat() if self.published_at else None,
+            'author_name': self.author_name or self.author.company_name,
+            'view_count': self.view_count,
+            'like_count': self.like_count,
+            'comment_count': self.comment_count,
+            'reading_time': self.reading_time,
+            'featured_image': self.featured_image,
+            'created_at': self.created_at.isoformat()
+        }
+
 # Email Service Class
 class EmailService:
     @staticmethod
@@ -481,7 +658,7 @@ class EmailService:
             return True
             
         except Exception as e:
-            print(f"Error sending email: {e}")
+            app.logger.error(f"Error sending email: {e}")
             return False
     
     @staticmethod
@@ -734,7 +911,7 @@ def get_regional_rates():
 def calculate_distance_google_api(origin, destination):
     """Calculate distance using Google Maps Distance Matrix API"""
     try:
-        api_key = "AIzaSyB_b3YxUhXGg6fgStYFUjZ9qwdtTy8OPLU" 
+        api_key = os.environ.get('GOOGLE_MAPS_API_KEY', 'your-api-key-here') 
         url = f"https://maps.googleapis.com/maps/api/distancematrix/json"
         
         params = {
@@ -1117,6 +1294,33 @@ def dispatcher_or_trucking_company_required(f):
     decorated_function.__name__ = f.__name__
     return decorated_function
 
+def load_planning_access_required(f):
+    """Allow access to load planning for trucking companies, pilots, and admin staff"""
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        user = User.query.get(session['user_id'])
+        
+        # Allow trucking companies, vendors (pilots), OR admin staff
+        if user and (((user.user_type == 'trucking_company' and user.is_approved) or 
+                     (user.user_type == 'vendor' and user.is_approved)) or 
+                    (user.is_admin and user.admin_role in ['dispatcher', 'admin', 'super_admin'])):
+            return f(*args, **kwargs)
+        
+        if user and user.user_type == 'trucking_company' and not user.is_approved:
+            flash('Your account is pending approval. Please wait for admin approval to access this feature.', 'warning')
+            return redirect(url_for('dashboard'))
+        
+        if user and user.user_type == 'vendor' and not user.is_approved:
+            flash('Your pilot account is pending approval. Please wait for admin approval to access this feature.', 'warning')
+            return redirect(url_for('vendor_dashboard'))
+        
+        flash('Access denied. This feature is available to trucking companies, pilot car vendors, and staff members.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    decorated_function.__name__ = f.__name__
+    return decorated_function
+
 def trucking_company_or_admin_required(f):
     """Allow access to trucking companies, admin, and super admin roles (excludes dispatchers)"""
     def decorated_function(*args, **kwargs):
@@ -1189,10 +1393,21 @@ def index():
     return render_template('index.html')
 
 @app.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
 def login():
     if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
+        # Input validation
+        email = request.form.get('email', '').strip().lower()
+        password = request.form.get('password', '')
+        
+        # Validate required fields
+        if not email or not re.match(r'^[^@]+@[^@]+\.[^@]+$', email):
+            flash('Please enter a valid email address')
+            return render_template('login.html')
+            
+        if not password:
+            flash('Password is required')
+            return render_template('login.html')
         
         user = User.query.filter_by(email=email).first()
         if user and check_password_hash(user.password_hash, password):
@@ -1227,11 +1442,33 @@ def login():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        company_name = request.form['company_name']
-        email = request.form['email']
-        phone_number = request.form['phone_number']
-        password = request.form['password']
+        # Input validation
+        company_name = request.form.get('company_name', '').strip()
+        email = request.form.get('email', '').strip().lower()
+        phone_number = request.form.get('phone_number', '').strip()
+        password = request.form.get('password', '')
         user_type = request.form.get('user_type', 'trucking_company')
+        
+        # Validate required fields
+        if not company_name or len(company_name) < 2:
+            flash('Company name must be at least 2 characters long')
+            return render_template('register.html')
+            
+        if not email or not re.match(r'^[^@]+@[^@]+\.[^@]+$', email):
+            flash('Please enter a valid email address')
+            return render_template('register.html')
+            
+        if not phone_number or len(phone_number) < 10:
+            flash('Please enter a valid phone number')
+            return render_template('register.html')
+            
+        if not password or len(password) < 6:
+            flash('Password must be at least 6 characters long')
+            return render_template('register.html')
+            
+        if user_type not in ['trucking_company', 'vendor']:
+            flash('Invalid user type selected')
+            return render_template('register.html')
         
         if User.query.filter_by(email=email).first():
             flash('Email already registered')
@@ -1302,7 +1539,7 @@ def dashboard():
     return render_template('dashboard.html', user=user, recent_routes=recent_routes)
 
 @app.route('/load-plan')
-@dispatcher_or_trucking_company_required
+@load_planning_access_required
 def load_plan():
     return render_template('load_plan.html')
 
@@ -1311,6 +1548,37 @@ def load_plan():
 def calculate_route():
     try:
         data = request.get_json()
+        
+        # Input validation
+        if not data:
+            return jsonify({'success': False, 'error': 'No data provided'}), 400
+            
+        origin = data.get('origin', '').strip()
+        destination = data.get('destination', '').strip()
+        
+        if not origin or len(origin) < 3:
+            return jsonify({'success': False, 'error': 'Valid origin address is required'}), 400
+            
+        if not destination or len(destination) < 3:
+            return jsonify({'success': False, 'error': 'Valid destination address is required'}), 400
+            
+        # Validate numeric fields
+        try:
+            length = float(data.get('length', 0))
+            width = float(data.get('width', 0))
+            height = float(data.get('height', 0))
+            weight = float(data.get('weight', 0))
+            front_overhang = float(data.get('front_overhang', 0))
+            rear_overhang = float(data.get('rear_overhang', 0))
+        except (ValueError, TypeError):
+            return jsonify({'success': False, 'error': 'Invalid numeric values provided'}), 400
+            
+        if length <= 0 or width <= 0 or height <= 0 or weight <= 0:
+            return jsonify({'success': False, 'error': 'Dimensions and weight must be positive values'}), 400
+            
+        road_type = data.get('road_type', '').strip()
+        if road_type not in ['Interstate', 'State Highway', 'US Highway', 'County Road']:
+            road_type = 'Interstate'  # Default to Interstate
         
         # Extract load data
         load_data = {
@@ -1444,7 +1712,7 @@ def save_route():
         return jsonify({'error': 'Failed to save route'}), 500
 
 @app.route('/my-routes')
-@login_required
+@load_planning_access_required
 def my_routes():
     routes = SavedRoute.query.filter_by(user_id=session['user_id']).order_by(SavedRoute.created_at.desc()).all()
     return render_template('my_routes.html', routes=routes)
@@ -1452,12 +1720,23 @@ def my_routes():
 @app.route('/get-quote')
 @trucking_company_or_admin_required
 def get_quote():
+    # Check if quote feature is enabled
+    if not app.config.get('ENABLE_QUOTE_FEATURE', False):
+        flash('Quote feature is temporarily unavailable. Please contact us directly for pricing.', 'info')
+        return redirect(url_for('dashboard'))
     return render_template('get_quote.html')
 
 @app.route('/calculate-quote', methods=['POST'])
 @trucking_company_or_admin_required
 def calculate_quote_route():
     """Calculate quote and create lead if customer activity"""
+    # Check if quote feature is enabled
+    if not app.config.get('ENABLE_QUOTE_FEATURE', False):
+        return jsonify({
+            'success': False,
+            'error': 'Quote feature is temporarily unavailable. Please contact us directly for pricing.'
+        }), 400
+    
     try:
         data = request.json
         quote_result = calculate_quote(data)
@@ -1522,6 +1801,11 @@ def calculate_quote_route():
 @app.route('/my-quotes')
 @trucking_company_or_admin_required
 def my_quotes():
+    # Check if quote feature is enabled
+    if not app.config.get('ENABLE_QUOTE_FEATURE', False):
+        flash('Quote feature is temporarily unavailable. Please contact us directly for pricing.', 'info')
+        return redirect(url_for('dashboard'))
+    
     quotes = Quote.query.filter_by(user_id=session['user_id']).order_by(Quote.created_at.desc()).all()
     return render_template('my_quotes.html', quotes=quotes)
 
@@ -1974,11 +2258,28 @@ def vendor_dashboard():
 def submit_vendor_location():
     """Handle location submission from both guest and registered vendors"""
     try:
+        print("=== Location submission attempt ===")
         data = request.get_json()
+        print(f"Received data: {data}")
+        
+        # Validate required fields
+        required_fields = ['company_name', 'email', 'phone', 'services_provided']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({'success': False, 'error': f'Missing required field: {field}'}), 400
+        
+        # Validate services_provided is not empty
+        services_provided = data.get('services_provided', [])
+        if not services_provided or len(services_provided) == 0:
+            return jsonify({'success': False, 'error': 'Please select at least one service you can provide'}), 400
         
         # Get latitude and longitude from the data
         latitude = data.get('latitude')
         longitude = data.get('longitude')
+        
+        # Validate coordinates
+        if not latitude or not longitude:
+            return jsonify({'success': False, 'error': 'Location coordinates are required'}), 400
         
         # Calculate city and state from coordinates if not provided
         location_city = data.get('location_city')
@@ -1990,6 +2291,20 @@ def submit_vendor_location():
                 location_city = calculated_city
             if not location_state and calculated_state:
                 location_state = calculated_state
+        
+        # Ensure we have city and state
+        if not location_city:
+            location_city = 'Unknown City'
+        if not location_state:
+            location_state = 'Unknown State'
+        
+        # Validate field lengths
+        if len(data.get('company_name', '')) > 100:
+            return jsonify({'success': False, 'error': 'Company name is too long (max 100 characters)'}), 400
+        if len(data.get('email', '')) > 120:
+            return jsonify({'success': False, 'error': 'Email is too long (max 120 characters)'}), 400
+        if len(data.get('phone', '')) > 20:
+            return jsonify({'success': False, 'error': 'Phone number is too long (max 20 characters)'}), 400
         
         # Calculate expiration time (48 hours from now)
         expires_at = datetime.utcnow() + timedelta(hours=48)
@@ -2003,19 +2318,20 @@ def submit_vendor_location():
             if user and user.user_type == 'vendor':
                 is_registered = True
         
+        # Create location record
         location = VendorLocation(
             user_id=user_id,
-            company_name=data.get('company_name'),
-            contact_name=data.get('contact_name'),
-            email=data.get('email'),
-            phone=data.get('phone'),
-            location_city=location_city,
-            location_state=location_state,
-            latitude=latitude,
-            longitude=longitude,
+            company_name=data.get('company_name').strip(),
+            contact_name=data.get('contact_name', '').strip() if data.get('contact_name') else None,
+            email=data.get('email').strip(),
+            phone=data.get('phone').strip(),
+            location_city=location_city.strip(),
+            location_state=location_state.strip(),
+            latitude=float(latitude),
+            longitude=float(longitude),
             coverage_radius=int(data.get('coverage_radius', 100)),
-            services_provided=json.dumps(data.get('services_provided', [])),
-            notes=data.get('notes', ''),
+            services_provided=json.dumps(services_provided),
+            notes=data.get('notes', '').strip(),
             is_registered_vendor=is_registered,
             expires_at=expires_at
         )
@@ -2029,8 +2345,17 @@ def submit_vendor_location():
             'expires_at': expires_at.strftime('%m/%d/%Y %I:%M %p')
         })
         
+    except ValueError as e:
+        print(f"ValueError in location submission: {str(e)}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': f'Invalid data format: {str(e)}'}), 400
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 400
+        print(f"Exception in location submission: {str(e)}")
+        print(f"Exception type: {type(e).__name__}")
+        import traceback
+        traceback.print_exc()
+        db.session.rollback()
+        return jsonify({'success': False, 'error': f'Database error: {str(e)}'}), 500
 
 @app.route('/vendor/register-as-vendor')
 def register_as_vendor():
@@ -2142,6 +2467,58 @@ def search_vendors():
         
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 400
+
+@app.route('/api/admin/check-expired-locations', methods=['POST'])
+@dispatcher_or_higher_required
+def check_expired_locations():
+    """Check for and remove expired pilot locations"""
+    try:
+        # Get current time for comparison
+        current_time = datetime.utcnow()
+        
+        # Get all locations for debugging
+        all_locations = VendorLocation.query.all()
+        active_locations = VendorLocation.query.filter(
+            VendorLocation.expires_at > current_time
+        ).all()
+        
+        # Find expired locations
+        expired_locations = VendorLocation.query.filter(
+            VendorLocation.expires_at <= current_time
+        ).all()
+        
+        expired_count = len(expired_locations)
+        
+        # Delete expired locations
+        for location in expired_locations:
+            db.session.delete(location)
+        
+        db.session.commit()
+        
+        # Create detailed message
+        total_locations = len(all_locations)
+        active_count = len(active_locations)
+        
+        if expired_count > 0:
+            message = f'Removed {expired_count} expired location{"s" if expired_count != 1 else ""} from the system. ({active_count} locations remain active)'
+        else:
+            if total_locations == 0:
+                message = 'No pilot locations found in the database.'
+            else:
+                message = f'No expired locations found. All {active_count} pilot location{"s" if active_count != 1 else ""} are current. (Next expiry check completed successfully)'
+        
+        return jsonify({
+            'success': True,
+            'message': message,
+            'expired_count': expired_count,
+            'active_count': active_count,
+            'total_count': total_locations
+        })
+        
+    except Exception as e:
+        print(f"Error checking expired locations: {str(e)}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': f'Database error: {str(e)}'}), 500
 
 @app.route('/admin/manage-users')
 @admin_or_super_admin_required
@@ -2824,18 +3201,19 @@ def initialize_email_templates():
             'template_name': 'admin_new_lead',
             'subject': '🚨 New Lead Alert: {{ company_name }}',
             'html_content': '''
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <div style="background: #1e3a8a; color: white; padding: 20px; text-align: center;">
-                    <h1>🚨 New Lead Alert</h1>
+            <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="background: linear-gradient(135deg, #1a5f5f 0%, #2d7a7a 100%); color: white; padding: 30px; text-align: center; border-radius: 12px 12px 0 0;">
+                    <h1 style="margin: 0; font-size: 28px; font-weight: 800;">🚨 New Lead Alert</h1>
+                    <p style="margin: 10px 0 0; opacity: 0.9;">Pilot Cars & Permits</p>
                 </div>
-                <div style="padding: 20px; background: #f8fafc;">
-                    <p><strong>New {{ lead_source }} from:</strong></p>
-                    <h2>{{ company_name }}</h2>
-                    <p><strong>Estimated Value:</strong> ${{ estimated_value }}</p>
-                    <div style="margin: 20px 0;">
-                        <a href="{{ lead_url }}" style="background: #1e3a8a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px;">View Lead Details</a>
+                <div style="padding: 30px; background: #f9fafb; border-radius: 0 0 12px 12px;">
+                    <p style="font-size: 18px; color: #1a5f5f; font-weight: 600; margin-bottom: 8px;">New {{ lead_source }} from:</p>
+                    <h2 style="color: #ff6b4a; margin: 0 0 20px; font-size: 24px;">{{ company_name }}</h2>
+                    <p style="font-size: 16px; color: #4b5563; margin-bottom: 20px;"><strong>Estimated Value:</strong> ${{ estimated_value }}</p>
+                    <div style="margin: 30px 0; text-align: center;">
+                        <a href="{{ lead_url }}" style="background: linear-gradient(135deg, #ff6b4a 0%, #ff8567 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">View Lead Details</a>
                     </div>
-                    <p style="color: #666; font-size: 14px;">This lead requires immediate attention for best conversion rates.</p>
+                    <p style="color: #6b7280; font-size: 14px; margin: 0;">⏰ This lead requires immediate attention for best conversion rates.</p>
                 </div>
             </div>
             ''',
@@ -2845,24 +3223,27 @@ def initialize_email_templates():
             'template_name': 'admin_new_order_critical',
             'subject': '🚨 URGENT: New Pilot Car Order #{{ order_id }}',
             'html_content': '''
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <div style="background: #dc2626; color: white; padding: 20px; text-align: center;">
-                    <h1>🚨 URGENT ORDER ALERT</h1>
-                    <h2>Order #{{ order_id }}</h2>
+            <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: white; padding: 30px; text-align: center; border-radius: 12px 12px 0 0;">
+                    <h1 style="margin: 0; font-size: 28px; font-weight: 800;">🚨 URGENT ORDER ALERT</h1>
+                    <h2 style="margin: 10px 0 0; font-size: 20px; opacity: 0.9;">Order #{{ order_id }}</h2>
+                    <p style="margin: 8px 0 0; opacity: 0.8;">Pilot Cars & Permits</p>
                 </div>
-                <div style="padding: 20px; background: #f8fafc;">
-                    <h3>{{ company_name }}</h3>
-                    <p><strong>Pickup Date:</strong> {{ pickup_date }}</p>
-                    <p><strong>Route:</strong> {{ pickup_address }} → {{ delivery_address }}</p>
-                    <p><strong>Contact:</strong> {{ contact_name }} - {{ phone_number }}</p>
-                    <p><strong>Driver:</strong> {{ driver_name }} - {{ driver_phone }}</p>
-                    <p><strong>Load:</strong> {{ length }} × {{ width }} × {{ height }}, {{ weight }}</p>
-                    <p><strong>Services:</strong> {{ pilot_positions }}</p>
-                    <div style="margin: 20px 0;">
-                        <a href="{{ order_detail_url }}" style="background: #dc2626; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px;">View Order Details</a>
+                <div style="padding: 30px; background: #f9fafb; border-radius: 0 0 12px 12px;">
+                    <h3 style="color: #1a5f5f; margin: 0 0 20px; font-size: 22px;">{{ company_name }}</h3>
+                    <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ff6b4a;">
+                        <p style="margin: 0 0 8px; color: #4b5563;"><strong style="color: #1a5f5f;">Pickup Date:</strong> {{ pickup_date }}</p>
+                        <p style="margin: 0 0 8px; color: #4b5563;"><strong style="color: #1a5f5f;">Route:</strong> {{ pickup_address }} → {{ delivery_address }}</p>
+                        <p style="margin: 0 0 8px; color: #4b5563;"><strong style="color: #1a5f5f;">Contact:</strong> {{ contact_name }} - {{ phone_number }}</p>
+                        <p style="margin: 0 0 8px; color: #4b5563;"><strong style="color: #1a5f5f;">Driver:</strong> {{ driver_name }} - {{ driver_phone }}</p>
+                        <p style="margin: 0 0 8px; color: #4b5563;"><strong style="color: #1a5f5f;">Load:</strong> {{ length }} × {{ width }} × {{ height }}, {{ weight }}</p>
+                        <p style="margin: 0; color: #4b5563;"><strong style="color: #1a5f5f;">Services:</strong> {{ pilot_positions }}</p>
                     </div>
-                    <div style="background: #fef3cd; border: 1px solid #fbbf24; padding: 15px; border-radius: 5px;">
-                        <p style="margin: 0; color: #92400e;"><strong>⏰ Response Required Within 1 Hour</strong></p>
+                    <div style="margin: 30px 0; text-align: center;">
+                        <a href="{{ order_detail_url }}" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">View Order Details</a>
+                    </div>
+                    <div style="background: #fef3cd; border: 2px solid #fbbf24; padding: 20px; border-radius: 8px; text-align: center;">
+                        <p style="margin: 0; color: #92400e; font-weight: 600; font-size: 16px;">⏰ Response Required Within 1 Hour</p>
                     </div>
                 </div>
             </div>
@@ -2883,6 +3264,10 @@ def initialize_email_templates():
 @login_required
 def quote_details(quote_id):
     """Get quote details as JSON"""
+    # Check if quote feature is enabled
+    if not app.config.get('ENABLE_QUOTE_FEATURE', False):
+        return jsonify({'error': 'Quote feature is temporarily unavailable'}), 400
+    
     try:
         quote = Quote.query.get_or_404(quote_id)
         
@@ -3106,6 +3491,493 @@ def admin_management():
     
     return render_template('admin/admin_management.html', admin_users=admin_users)
 
+# ================== BLOG SYSTEM ROUTES ==================
+
+@app.route('/blog')
+def blog_index():
+    """Blog home page with latest posts"""
+    page = request.args.get('page', 1, type=int)
+    category = request.args.get('category')
+    search = request.args.get('search', '').strip()
+    tag = request.args.get('tag', '').strip()
+    
+    # Base query for published posts
+    query = BlogPost.query.filter_by(status='published')
+    
+    # Apply filters
+    if category:
+        query = query.filter_by(category=category)
+    
+    if search:
+        query = query.filter(
+            db.or_(
+                BlogPost.title.contains(search),
+                BlogPost.excerpt.contains(search),
+                BlogPost.content.contains(search),
+                BlogPost.tags.contains(search)
+            )
+        )
+    
+    if tag:
+        query = query.filter(BlogPost.tags.contains(tag))
+    
+    # Order by published date
+    query = query.order_by(BlogPost.published_at.desc())
+    
+    # Paginate results
+    posts = query.paginate(
+        page=page, per_page=10, error_out=False
+    )
+    
+    # Get featured post (most recent published post)
+    featured_post = BlogPost.query.filter_by(status='published').order_by(
+        BlogPost.published_at.desc()
+    ).first() if not category and not search and not tag and page == 1 else None
+    
+    # Get categories for filter
+    categories = db.session.query(BlogPost.category).filter(
+        BlogPost.status == 'published',
+        BlogPost.category.isnot(None)
+    ).distinct().all()
+    categories = [cat[0] for cat in categories if cat[0]]
+    
+    # Get popular posts for sidebar
+    popular_posts = BlogPost.query.filter_by(status='published').order_by(
+        BlogPost.view_count.desc()
+    ).limit(5).all()
+    
+    # Get all tags
+    all_tags = []
+    tag_posts = BlogPost.query.filter(BlogPost.tags.isnot(None), BlogPost.status == 'published').all()
+    for post in tag_posts:
+        all_tags.extend(post.get_tags_list())
+    all_tags = list(set(all_tags))[:20]  # Get top 20 unique tags
+    
+    # Calculate stats
+    total_posts = BlogPost.query.filter_by(status='published').count()
+    total_views = db.session.query(db.func.sum(BlogPost.view_count)).filter_by(status='published').scalar() or 0
+    
+    return render_template('blog/index.html', 
+                         posts=posts, 
+                         categories=categories,
+                         popular_posts=popular_posts,
+                         all_tags=all_tags,
+                         current_category=category,
+                         search_query=search,
+                         featured_post=featured_post,
+                         total_posts=total_posts,
+                         total_views=total_views)
+
+@app.route('/blog/<slug>')
+def blog_post(slug):
+    """Individual blog post page"""
+    post = BlogPost.query.filter_by(slug=slug, status='published').first_or_404()
+    
+    # Increment view count
+    post.increment_view_count()
+    
+    # Get related posts (same category)
+    related_posts = BlogPost.query.filter(
+        BlogPost.category == post.category,
+        BlogPost.id != post.id,
+        BlogPost.status == 'published'
+    ).order_by(BlogPost.published_at.desc()).limit(3).all()
+    
+    # Get recent posts for sidebar
+    recent_posts = BlogPost.query.filter_by(status='published').order_by(
+        BlogPost.published_at.desc()
+    ).limit(5).all()
+    
+    # Get previous and next posts for navigation
+    prev_post = BlogPost.query.filter(
+        BlogPost.published_at < post.published_at,
+        BlogPost.status == 'published'
+    ).order_by(BlogPost.published_at.desc()).first()
+    
+    next_post = BlogPost.query.filter(
+        BlogPost.published_at > post.published_at,
+        BlogPost.status == 'published'
+    ).order_by(BlogPost.published_at.asc()).first()
+    
+    return render_template('blog/post.html', 
+                         post=post, 
+                         related_posts=related_posts,
+                         recent_posts=recent_posts,
+                         prev_post=prev_post,
+                         next_post=next_post)
+
+@app.route('/blog/category/<category>')
+def blog_category(category):
+    """Blog posts by category"""
+    page = request.args.get('page', 1, type=int)
+    search = request.args.get('search', '')
+    
+    # Base query for category
+    query = BlogPost.query.filter_by(
+        category=category, 
+        status='published'
+    )
+    
+    # Add search filter if provided
+    if search:
+        query = query.filter(
+            BlogPost.title.contains(search) | 
+            BlogPost.content.contains(search)
+        )
+    
+    # Get posts in category
+    posts = query.order_by(BlogPost.published_at.desc()).paginate(
+        page=page, per_page=10, error_out=False
+    )
+    
+    # Get all categories for navigation
+    categories = db.session.query(BlogPost.category).filter(
+        BlogPost.status == 'published',
+        BlogPost.category.isnot(None)
+    ).distinct().all()
+    categories = [cat[0] for cat in categories if cat[0]]
+    
+    # Get popular posts for sidebar
+    popular_posts = BlogPost.query.filter_by(status='published').order_by(
+        BlogPost.view_count.desc()
+    ).limit(5).all()
+    
+    # Get all tags
+    all_tags = []
+    tag_posts = BlogPost.query.filter(BlogPost.tags.isnot(None), BlogPost.status == 'published').all()
+    for post in tag_posts:
+        all_tags.extend(post.get_tags_list())
+    all_tags = list(set(all_tags))[:20]  # Get top 20 unique tags
+    
+    # Calculate stats
+    total_posts = BlogPost.query.filter_by(status='published').count()
+    total_views = db.session.query(db.func.sum(BlogPost.view_count)).filter_by(status='published').scalar() or 0
+    
+    return render_template('blog/index.html', 
+                         posts=posts, 
+                         categories=categories,
+                         popular_posts=popular_posts,
+                         all_tags=all_tags,
+                         current_category=category,
+                         total_posts=total_posts,
+                         total_views=total_views,
+                         featured_post=None)  # No featured post on category pages
+
+# ================== ADMIN BLOG MANAGEMENT ROUTES ==================
+
+@app.route('/admin/blog')
+@login_required
+def admin_blog_list():
+    """Admin blog post management"""
+    if not session.get('is_admin'):
+        flash('Admin access required')
+        return redirect(url_for('dashboard'))
+    
+    page = request.args.get('page', 1, type=int)
+    status_filter = request.args.get('status', '')
+    category_filter = request.args.get('category', '')
+    search_query = request.args.get('search', '')
+    
+    # Base query
+    query = BlogPost.query
+    
+    # Apply filters
+    if status_filter:
+        query = query.filter_by(status=status_filter)
+    
+    if category_filter:
+        query = query.filter_by(category=category_filter)
+    
+    if search_query:
+        query = query.filter(
+            db.or_(
+                BlogPost.title.contains(search_query),
+                BlogPost.content.contains(search_query)
+            )
+        )
+    
+    # Order by creation date
+    posts = query.order_by(BlogPost.created_at.desc()).paginate(
+        page=page, per_page=15, error_out=False
+    )
+    
+    # Get categories for filter
+    categories = db.session.query(BlogPost.category).filter(
+        BlogPost.category.isnot(None)
+    ).distinct().all()
+    categories = [cat[0] for cat in categories if cat[0]]
+    
+    # Calculate statistics
+    stats = {
+        'total_posts': BlogPost.query.count(),
+        'published_posts': BlogPost.query.filter_by(status='published').count(),
+        'draft_posts': BlogPost.query.filter_by(status='draft').count(),
+        'total_views': db.session.query(db.func.sum(BlogPost.view_count)).scalar() or 0
+    }
+    
+    return render_template('admin/blog_list.html', 
+                         posts=posts, 
+                         status_filter=status_filter,
+                         categories=categories,
+                         stats=stats)
+
+@app.route('/admin/blog/new', methods=['GET', 'POST'])
+@login_required
+def admin_blog_new():
+    """Create new blog post"""
+    if not session.get('is_admin'):
+        flash('Admin access required')
+        return redirect(url_for('dashboard'))
+    
+    if request.method == 'POST':
+        try:
+            # Get form data
+            title = request.form.get('title', '').strip()
+            content = request.form.get('content', '').strip()
+            excerpt = request.form.get('excerpt', '').strip()
+            category = request.form.get('category', '').strip()
+            tags = request.form.get('tags', '').strip()
+            meta_title = request.form.get('meta_title', '').strip()
+            meta_description = request.form.get('meta_description', '').strip()
+            meta_keywords = request.form.get('meta_keywords', '').strip()
+            author_name = request.form.get('author_name', '').strip()
+            featured_image = request.form.get('featured_image', '').strip()
+            featured_image_alt = request.form.get('featured_image_alt', '').strip()
+            status = request.form.get('status', 'draft')
+            
+            # Validation
+            if not title or not content:
+                flash('Title and content are required')
+                return render_template('admin/blog_form.html', post=None)
+            
+            # Create new post
+            post = BlogPost(
+                title=title,
+                content=content,
+                excerpt=excerpt,
+                category=category if category else None,
+                tags=tags if tags else None,
+                meta_title=meta_title if meta_title else None,
+                meta_description=meta_description if meta_description else None,
+                meta_keywords=meta_keywords if meta_keywords else None,
+                author_name=author_name if author_name else None,
+                featured_image=featured_image if featured_image else None,
+                featured_image_alt=featured_image_alt if featured_image_alt else None,
+                author_id=session['user_id'],
+                status=status
+            )
+            
+            # Set published date if publishing
+            if status == 'published':
+                post.published_at = datetime.utcnow()
+            
+            db.session.add(post)
+            db.session.commit()
+            
+            flash(f'Blog post "{title}" created successfully')
+            return redirect(url_for('admin_blog_edit', post_id=post.id))
+            
+        except Exception as e:
+            flash(f'Error creating blog post: {str(e)}')
+            return render_template('admin/blog_form.html', post=None)
+    
+    return render_template('admin/blog_form.html', post=None)
+
+@app.route('/admin/blog/<int:post_id>/edit', methods=['GET', 'POST'])
+@login_required
+def admin_blog_edit(post_id):
+    """Edit blog post"""
+    if not session.get('is_admin'):
+        flash('Admin access required')
+        return redirect(url_for('dashboard'))
+    
+    post = BlogPost.query.get_or_404(post_id)
+    
+    if request.method == 'POST':
+        try:
+            # Get form data
+            title = request.form.get('title', '').strip()
+            content = request.form.get('content', '').strip()
+            excerpt = request.form.get('excerpt', '').strip()
+            category = request.form.get('category', '').strip()
+            tags = request.form.get('tags', '').strip()
+            meta_title = request.form.get('meta_title', '').strip()
+            meta_description = request.form.get('meta_description', '').strip()
+            meta_keywords = request.form.get('meta_keywords', '').strip()
+            author_name = request.form.get('author_name', '').strip()
+            featured_image = request.form.get('featured_image', '').strip()
+            featured_image_alt = request.form.get('featured_image_alt', '').strip()
+            status = request.form.get('status', 'draft')
+            
+            # Validation
+            if not title or not content:
+                flash('Title and content are required')
+                return render_template('admin/blog_form.html', post=post)
+            
+            # Update post
+            post.title = title
+            post.content = content
+            post.excerpt = excerpt if excerpt else None
+            post.category = category if category else None
+            post.tags = tags if tags else None
+            post.meta_title = meta_title if meta_title else None
+            post.meta_description = meta_description if meta_description else None
+            post.meta_keywords = meta_keywords if meta_keywords else None
+            post.author_name = author_name if author_name else None
+            post.featured_image = featured_image if featured_image else None
+            post.featured_image_alt = featured_image_alt if featured_image_alt else None
+            
+            # Handle status change
+            old_status = post.status
+            post.status = status
+            
+            # Set published date if publishing for first time
+            if status == 'published' and old_status != 'published':
+                post.published_at = datetime.utcnow()
+            elif status != 'published':
+                post.published_at = None
+            
+            # Update slug if title changed
+            if post.title != title:
+                post.slug = post.generate_slug(title)
+            
+            # Update reading time
+            post.reading_time = post.calculate_reading_time(content)
+            
+            db.session.commit()
+            
+            flash(f'Blog post "{title}" updated successfully')
+            return redirect(url_for('admin_blog_edit', post_id=post.id))
+            
+        except Exception as e:
+            flash(f'Error updating blog post: {str(e)}')
+            return render_template('admin/blog_form.html', post=post)
+    
+    return render_template('admin/blog_form.html', post=post)
+
+@app.route('/admin/blog/<int:post_id>/delete', methods=['POST'])
+@login_required
+def admin_blog_delete(post_id):
+    """Delete blog post"""
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'error': 'Admin access required'}), 403
+    
+    try:
+        post = BlogPost.query.get_or_404(post_id)
+        title = post.title
+        
+        db.session.delete(post)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True, 
+            'message': f'Blog post "{title}" deleted successfully'
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+@app.route('/admin/blog/<int:post_id>/toggle-status', methods=['POST'])
+@login_required
+def admin_blog_toggle_status(post_id):
+    """Toggle blog post status between draft and published"""
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'error': 'Admin access required'}), 403
+    
+    try:
+        post = BlogPost.query.get_or_404(post_id)
+        
+        if post.status == 'published':
+            post.status = 'draft'
+            post.published_at = None
+        else:
+            post.status = 'published'
+            post.published_at = datetime.utcnow()
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'new_status': post.status,
+            'message': f'Post status changed to {post.status}'
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+# ================== SEO AND SITEMAP ROUTES ==================
+
+@app.route('/robots.txt')
+def robots_txt():
+    """Serve robots.txt file"""
+    return send_from_directory(app.static_folder, 'robots.txt', mimetype='text/plain')
+
+@app.route('/sitemap.xml')
+def sitemap():
+    """Generate XML sitemap for search engines"""
+    from datetime import datetime
+    from flask import make_response
+    
+    # Define sitemap URLs with their properties
+    pages = [
+        {
+            'url': url_for('index', _external=True),
+            'lastmod': datetime.now().strftime('%Y-%m-%d'),
+            'changefreq': 'weekly',
+            'priority': '1.0'
+        },
+        {
+            'url': url_for('register', _external=True),
+            'lastmod': datetime.now().strftime('%Y-%m-%d'),
+            'changefreq': 'monthly',
+            'priority': '0.9'
+        },
+        {
+            'url': url_for('login', _external=True),
+            'lastmod': datetime.now().strftime('%Y-%m-%d'),
+            'changefreq': 'monthly',
+            'priority': '0.8'
+        },
+        {
+            'url': url_for('order_pilot_car', _external=True),
+            'lastmod': datetime.now().strftime('%Y-%m-%d'),
+            'changefreq': 'weekly',
+            'priority': '0.9'
+        },
+        {
+            'url': url_for('get_quote', _external=True),
+            'lastmod': datetime.now().strftime('%Y-%m-%d'),
+            'changefreq': 'weekly',
+            'priority': '0.9'
+        },
+        {
+            'url': url_for('vendor_share_location', _external=True),
+            'lastmod': datetime.now().strftime('%Y-%m-%d'),
+            'changefreq': 'weekly',
+            'priority': '0.8'
+        }
+    ]
+    
+    # Generate XML sitemap
+    sitemap_xml = '''<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+'''
+    
+    for page in pages:
+        sitemap_xml += f'''  <url>
+    <loc>{page['url']}</loc>
+    <lastmod>{page['lastmod']}</lastmod>
+    <changefreq>{page['changefreq']}</changefreq>
+    <priority>{page['priority']}</priority>
+  </url>
+'''
+    
+    sitemap_xml += '</urlset>'
+    
+    response = make_response(sitemap_xml)
+    response.headers['Content-Type'] = 'application/xml'
+    return response
+
 # ================== ERROR HANDLERS ==================
 
 @app.errorhandler(400)
@@ -3142,12 +4014,12 @@ if __name__ == '__main__':
         initialize_email_templates()
         
         # Create default admin user if it doesn't exist, or update password if exists
-        admin = User.query.filter_by(email='admin@mypevo.com').first()
+        admin = User.query.filter_by(email='dispatch@pilotcarsandpermits.com').first()
         if not admin:
             admin = User(
-                company_name='My PEVO Admin',
-                email='admin@mypevo.com',
-                password_hash=generate_password_hash('MyPEVO2025'),
+                company_name='Pilot Cars & Permits Admin',
+                email='dispatch@pilotcarsandpermits.com',
+                password_hash=generate_password_hash('PilotsPermits2025'),
                 is_admin=True,
                 admin_role='super_admin',
                 user_type='trucking_company',
@@ -3157,7 +4029,7 @@ if __name__ == '__main__':
             db.session.commit()
         else:
             # Update existing admin password to new password
-            admin.password_hash = generate_password_hash('MyPEVO2025')
+            admin.password_hash = generate_password_hash('PilotsPermits2025')
             db.session.commit()
     
     app.run(debug=True)

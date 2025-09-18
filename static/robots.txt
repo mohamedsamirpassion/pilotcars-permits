@@ -1,0 +1,28 @@
+User-agent: *
+Allow: /
+
+# Main sitemap
+Sitemap: https://pilotcarsandpermits.com/sitemap.xml
+
+# Disallow admin areas and private content
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /profile/
+Disallow: /api/
+Disallow: /my-*
+
+# Allow specific pages
+Allow: /
+Allow: /login
+Allow: /register
+Allow: /order-pilot-car
+Allow: /get-quote
+Allow: /vendor/share-location
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 1
+
+# Block common bot paths
+Disallow: /cgi-bin/
+Disallow: /tmp/
+Disallow: /temp/

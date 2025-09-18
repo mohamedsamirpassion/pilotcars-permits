@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - My PEVO{% endblock %}
+{% block title %}Dashboard - Pilot Cars & Permits{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
@@ -17,9 +17,11 @@
                             <a href="{{ url_for('load_plan') }}" class="btn btn-primary me-2">
                                 <i class="fas fa-plus me-2"></i>New Load Plan
                             </a>
+                            {% if quote_feature_enabled() %}
                             <a href="{{ url_for('get_quote') }}" class="btn btn-success">
                                 <i class="fas fa-dollar-sign me-2"></i>Get Quote
                             </a>
+                            {% endif %}
                         {% else %}
                             <span class="badge bg-warning">Pending Approval</span>
                         {% endif %}
@@ -36,6 +38,9 @@
                             <i class="fas fa-cog me-2"></i>Admin Panel
                         </a>
                     {% elif user.user_type == 'vendor' %}
+                        <a href="{{ url_for('load_plan') }}" class="btn btn-primary me-2">
+                            <i class="fas fa-route me-2"></i>Plan a Load
+                        </a>
                         <a href="/vendor/share-location" class="btn btn-success">
                             <i class="fas fa-map-marker-alt me-2"></i>Update My Location
                         </a>
@@ -94,7 +99,7 @@
                 <div class="alert alert-info">
                     <i class="fas fa-info-circle me-2"></i>
                     <strong>Pilot Account Access</strong><br>
-                    As a pilot car escort, you can share your location and availability to be matched with nearby escort opportunities. Your account is automatically approved and active.
+                    As a pilot car escort, you can share your location for escort opportunities and use our load planning tools to analyze routes. Your account is automatically approved and active.
                 </div>
             </div>
         </div>
@@ -196,6 +201,14 @@
                 <div class="dashboard-card p-4">
                     <h5><i class="fas fa-info-circle me-2"></i>Pilot Actions</h5>
                     <div class="list-group list-group-flush">
+                        <a href="{{ url_for('load_plan') }}" class="list-group-item list-group-item-action border-0">
+                            <i class="fas fa-route me-2 text-primary"></i>
+                            Plan Load Routes
+                        </a>
+                        <a href="{{ url_for('my_routes') }}" class="list-group-item list-group-item-action border-0">
+                            <i class="fas fa-history me-2 text-info"></i>
+                            My Load Plans
+                        </a>
                         <a href="/vendor/share-location" class="list-group-item list-group-item-action border-0">
                             <i class="fas fa-map-marker-alt me-2 text-success"></i>
                             Share/Update Location

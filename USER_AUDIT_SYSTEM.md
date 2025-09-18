@@ -2,7 +2,7 @@
 
 ## Overview
 
-The My PEVO application now includes a comprehensive user audit trail and activity tracking system that allows administrators to view detailed user histories and track changes.
+The Pilot Cars & Permits application now includes a comprehensive user audit trail and activity tracking system that allows administrators to view detailed user histories and track changes.
 
 ## Features
 

@@ -1,21 +1,4 @@
-// State regulations data for escort requirements
-/*
- * IMPORTANT: When evaluating dimensions, make sure to correctly parse the feet and inches format.
- * For example: "15'11\"" should be parsed as 15 + (11/12) = 15.92 feet
- * 
- * For a load with:
- * - Width: 14'3" (14.25 feet)
- * - Height: 16'9" (16.75 feet)
- * - Length: 80'
- * 
- * Louisiana should require:
- * - Width: 1 Rear (for width 12'1" to 16'0")
- * - Height: 1 High Pole (for height over 15'11")
- * 
- * New Mexico should require:
- * - Width: 1 Rear (for width 14'1" to 17'11")
- * - Height: Route Survey (for height 15'6" to 18'0")
- */
+
 const stateRegulations = [
   // ALABAMA
   {

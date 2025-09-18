@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}My Routes - My PEVO{% endblock %}
+{% block title %}My Routes - Pilot Cars & Permits{% endblock %}
 
 {% block extra_head %}
 <style>
   .state-badge {
-    background: #007bff;
+    background: var(--pp-primary);
     color: white;
     padding: 4px 8px;
     border-radius: 4px;
@@ -40,7 +40,7 @@
   .escort-badge.escort-none { background: #28a745; }
   .escort-badge.escort-high-pole { background: #ffc107; color: #000; }
   .escort-badge.escort-front { background: #17a2b8; }
-  .escort-badge.escort-rear { background: #007bff; }
+  .escort-badge.escort-rear { background: var(--pp-primary); }
   .escort-badge.escort-police { background: #dc3545; }
   .escort-badge.escort-other { background: #6c757d; }
   

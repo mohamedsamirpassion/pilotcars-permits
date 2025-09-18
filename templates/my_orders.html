@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}My Orders - My PEVO{% endblock %}
+{% block title %}My Orders - Pilot Cars & Permits{% endblock %}
 
 {% block content %}
 <div class="container py-4">
@@ -171,13 +171,13 @@ const orders = [
 ];
 
 function viewOrder(orderId) {
-    console.log('viewOrder called with ID:', orderId);
+    // View order details
     const order = orders.find(o => o.id === orderId);
     if (!order) {
         alert('Order not found');
         return;
     }
-    console.log('Order found:', order);
+    // Order found, displaying details
     
     const modalBody = document.getElementById('orderModalBody');
     
@@ -324,7 +324,7 @@ function viewOrder(orderId) {
 }
 
 function cloneOrder(orderId) {
-    console.log('cloneOrder called with ID:', orderId);
+    // Clone order functionality
     const order = orders.find(o => o.id === orderId);
     if (!order) {
         alert('Order not found');

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Register - My PEVO{% endblock %}
+{% block title %}Register - Pilot Cars & Permits{% endblock %}
 
 {% block content %}
 <div class="modern-auth-container">
@@ -9,9 +9,9 @@
         <div class="brand-content">
             <div class="brand-logo-large">
                 <i class="fas fa-truck"></i>
-                <span>My PEVO</span>
+                <span>Pilot Cars & Permits</span>
             </div>
-            <h1>Join the My PEVO Network</h1>
+            <h1>Join the Pilot Cars & Permits Network</h1>
             <p>Connect with certified pilot car escorts and streamline your oversized load operations.</p>
             
             <div class="account-types">
@@ -22,7 +22,7 @@
                     <h4>Trucking Companies</h4>
                     <ul>
                         <li>Smart route planning</li>
-                        <li>Instant quotes</li>
+                        <li>Free load planning tools</li>
                         <li>Compliance tools</li>
                         <li>Pilot car booking</li>
                     </ul>
@@ -81,6 +81,7 @@
             {% endwith %}
 
             <form method="POST" id="registrationForm" class="modern-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <!-- Account Type Selection -->
                 <div class="form-group account-type-selection">
                     <label>Choose Your Account Type</label>
@@ -109,7 +110,7 @@
                                 </div>
                                 <div class="card-content">
                                     <h5>Pilot Car Escort</h5>
-                                    <p>Share location & availability</p>
+                                    <p>Share location & load planning</p>
                                 </div>
                                 <div class="card-check">
                                     <i class="fas fa-check"></i>

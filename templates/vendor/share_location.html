@@ -375,6 +375,9 @@ document.getElementById('locationForm').addEventListener('submit', function(e) {
         notes: document.getElementById('notes').value
     };
 
+    console.log('Form data being submitted:', formData);
+    console.log('Selected location:', selectedLocation);
+
     // Submit to server
     const submitBtn = document.getElementById('shareLocationBtn');
     submitBtn.disabled = true;
@@ -384,11 +387,22 @@ document.getElementById('locationForm').addEventListener('submit', function(e) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
         },
         body: JSON.stringify(formData)
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        return response.json();
+    })
     .then(data => {
+        console.log('Response data:', data);
         if (data.success) {
             alert('Location shared successfully! Your location will be visible for 48 hours.');
             // Reset form
@@ -403,8 +417,9 @@ document.getElementById('locationForm').addEventListener('submit', function(e) {
         }
     })
     .catch(error => {
-        console.error('Error:', error);
-        alert('Error sharing location. Please try again.');
+        console.error('Full error details:', error);
+        console.error('Error message:', error.message);
+        alert('Error sharing location: ' + error.message + '. Please check the console for more details.');
     })
     .finally(() => {
         submitBtn.disabled = false;

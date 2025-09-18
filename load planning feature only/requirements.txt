@@ -1,0 +1,30 @@
+# Core Dependencies for Load Planning Feature
+# These are the minimum required packages - your app may already have some of these
+
+# Flask Framework (Core)
+Flask>=3.0.0
+Flask-WTF>=1.2.1                   # For CSRF protection in report submission
+Flask-Mail>=0.9.1                  # For email functionality in feedback reports
+
+# Form Validation
+WTForms>=3.1.1
+email-validator>=2.1.0             # For validating email addresses in reports
+
+# Environment Variables (Optional - for configuration)
+python-dotenv>=1.0.0
+
+# Additional packages your main app likely already has:
+# - Jinja2 (comes with Flask)
+# - Werkzeug (comes with Flask)
+# - requests (for external API calls if needed)
+
+# External Service Requirements:
+# - Google Maps API Key (free tier available)
+#   - Places API (for city autocomplete)
+#   - Directions API (for route visualization)
+#   - Maps JavaScript API (for map display)
+#   - Geocoding API (for address validation)
+
+# Optional Production Dependencies:
+# gunicorn>=21.2.0                 # For production deployment
+# gevent>=23.9.1                   # For better performance with SocketIO

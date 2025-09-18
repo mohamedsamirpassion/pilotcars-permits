@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Pilot Availability - My PEVO Admin{% endblock %}
+{% block title %}Pilot Availability - Pilot Cars & Permits Admin{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
@@ -299,9 +299,22 @@ function initMap() {
         if (pinPlacementMode) {
             placeSearchPin(event.latLng);
             pinPlacementMode = false;
+            
+            // Reset pin placement mode UI
             document.getElementById('enablePinMode').classList.remove('btn-warning');
             document.getElementById('enablePinMode').classList.add('btn-outline-warning');
             document.getElementById('pinModeAlert').classList.add('d-none');
+            
+            // Restore pilot markers to normal visibility
+            markers.forEach(marker => {
+                marker.setOptions({ 
+                    opacity: 1.0,
+                    zIndex: google.maps.Marker.MAX_ZINDEX + 1
+                });
+            });
+            
+            // Reset map cursor
+            map.setOptions({ draggableCursor: null });
         }
     });
 
@@ -375,11 +388,14 @@ function loadPilotMarkers() {
             });
 
             marker.addListener('click', () => {
-                // Close all other info windows
-                markers.forEach(m => {
-                    if (m.infoWindow) m.infoWindow.close();
-                });
-                infoWindow.open(map, marker);
+                // Only allow info window clicks when not in pin placement mode
+                if (!pinPlacementMode) {
+                    // Close all other info windows
+                    markers.forEach(m => {
+                        if (m.infoWindow) m.infoWindow.close();
+                    });
+                    infoWindow.open(map, marker);
+                }
             });
 
             marker.infoWindow = infoWindow;
@@ -432,10 +448,11 @@ function searchNearbyPilots(lat, lng) {
     // Calculate distances for outside coverage area pilots
     updateOutsideCoverageDistances(lat, lng);
     
-                    fetch('/admin/search-pilots', {
+                    fetch('/admin/search-vendors', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
         },
         body: JSON.stringify({
             location: document.getElementById('searchLocation').value,
@@ -447,7 +464,7 @@ function searchNearbyPilots(lat, lng) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            displaySearchResults(data.pilots);
+            displaySearchResults(data.vendors);
         } else {
             alert('Error searching pilots: ' + data.error);
         }
@@ -680,6 +697,17 @@ document.getElementById('enablePinMode').addEventListener('click', function() {
     this.classList.remove('btn-outline-warning');
     this.classList.add('btn-warning');
     document.getElementById('pinModeAlert').classList.remove('d-none');
+    
+    // Make pilot markers less prominent during pin placement
+    markers.forEach(marker => {
+        marker.setOptions({ 
+            opacity: 0.6,
+            zIndex: 1  // Lower z-index so they don't interfere with clicks
+        });
+    });
+    
+    // Change map cursor to crosshair for better UX
+    map.setOptions({ draggableCursor: 'crosshair' });
 });
 
 document.getElementById('searchBtn').addEventListener('click', function() {
@@ -731,7 +759,7 @@ function initAutocomplete() {
         if (!place.geometry || !place.geometry.location) {
             // User entered the name of a Place that was not suggested and
             // pressed the Enter key, or the Place Details request failed.
-            console.log('No details available for input: ' + place.name);
+            // No additional details available for this location
             return;
         }
 
@@ -775,6 +803,7 @@ document.getElementById('checkExpiredBtn').addEventListener('click', function() 
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
         }
     })
     .then(response => response.json())

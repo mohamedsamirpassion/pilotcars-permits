@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Access Denied - My PEVO{% endblock %}
+{% block title %}Access Denied - Pilot Cars & Permits{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
@@ -63,6 +63,11 @@
                                         <i class="fas fa-map-marker-alt me-2"></i>Share Location
                                     </a>
                                 </div>
+                                <div class="col-md-6">
+                                    <a href="{{ url_for('load_plan') }}" class="btn btn-outline-primary w-100">
+                                        <i class="fas fa-route me-2"></i>Load Planning
+                                    </a>
+                                </div>
                             {% elif session.get('is_admin') %}
                                 <div class="col-md-6">
                                     <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-primary w-100">
@@ -119,12 +124,12 @@
                         If you believe you should have access to this area, please contact our team:
                     </p>
                     <div class="d-flex flex-column flex-md-row gap-3 justify-content-center align-items-center">
-                        <a href="tel:+14782494902" class="text-decoration-none">
-                            <i class="fas fa-phone me-2 text-primary"></i>(478) 249-4902
+                        <a href="tel:+19809902807" class="text-decoration-none">
+                            <i class="fas fa-phone me-2 text-primary"></i>(980) 990-2807
                         </a>
                         <span class="d-none d-md-inline text-muted">|</span>
-                        <a href="mailto:dispatch@mypevo.com" class="text-decoration-none">
-                            <i class="fas fa-envelope me-2 text-primary"></i>dispatch@mypevo.com
+                        <a href="mailto:dispatch@pilotcarsandpermits.com" class="text-decoration-none">
+                            <i class="fas fa-envelope me-2 text-primary"></i>dispatch@pilotcarsandpermits.com
                         </a>
                     </div>
                 </div>

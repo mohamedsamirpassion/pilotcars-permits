@@ -1,0 +1,817 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<style>
+    /* Brand Color Variables - Customize these for your application */
+    :root {
+        --brand-primary: #298553;
+        --brand-primary-light: #34a866;
+        --brand-primary-dark: #1e6b42;
+        --brand-accent: #f8f9fa;
+        --brand-border: #e8f5e8;
+    }
+    
+    .load-plan-container {
+        min-height: 80vh;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e8f5e8 100%);
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(41, 133, 83, 0.1);
+    }
+    
+    /* Enhanced Header */
+    .load-plan-header {
+        background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-dark) 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 15px rgba(41, 133, 83, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .load-plan-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+        animation: float 20s infinite linear;
+        pointer-events: none;
+    }
+    
+    @keyframes float {
+        0% { transform: translateX(-50px) translateY(-50px); }
+        100% { transform: translateX(0px) translateY(0px); }
+    }
+    
+    .load-plan-header h1 {
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin: 0;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .load-plan-header p {
+        margin: 8px 0 0 0;
+        opacity: 0.9;
+        font-size: 1.1rem;
+        position: relative;
+        z-index: 2;
+    }
+    
+    /* Section Dividers */
+    .section-divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent 0%, var(--brand-border) 50%, transparent 100%);
+        margin: 30px 0;
+        position: relative;
+    }
+    
+    .section-divider::before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: -2px;
+        transform: translateX(-50%);
+        width: 6px;
+        height: 6px;
+        background: var(--brand-primary);
+        border-radius: 50%;
+    }
+    
+    /* Enhanced Map Section */
+    .map-section {
+        height: 600px;
+        border: 2px solid var(--brand-border);
+        border-radius: 12px;
+        background: white;
+        box-shadow: 0 4px 15px rgba(41, 133, 83, 0.1);
+        overflow: hidden;
+        position: relative;
+    }
+    
+    /* Enhanced Form Section */
+    .form-section {
+        background: white;
+        border: 2px solid var(--brand-border);
+        border-radius: 12px;
+        padding: 25px;
+        height: 600px;
+        overflow-y: auto;
+        box-shadow: 0 4px 15px rgba(41, 133, 83, 0.1);
+    }
+    
+    .form-section h5 {
+        color: var(--brand-primary);
+        font-weight: 600;
+        border-bottom: 2px solid var(--brand-border);
+        padding-bottom: 8px;
+        margin-bottom: 15px;
+        position: relative;
+    }
+    
+    .form-section h5::before {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 40px;
+        height: 2px;
+        background: var(--brand-primary);
+    }
+    
+    /* Enhanced Input Styling */
+    .form-control:focus {
+        border-color: var(--brand-primary);
+        box-shadow: 0 0 0 0.2rem rgba(41, 133, 83, 0.25);
+    }
+    
+    .form-check-input:checked {
+        background-color: var(--brand-primary);
+        border-color: var(--brand-primary);
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-dark) 100%);
+        border-color: var(--brand-primary);
+        font-weight: 600;
+        padding: 12px 25px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(41, 133, 83, 0.3);
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--brand-primary-dark) 0%, var(--brand-primary) 100%);
+        box-shadow: 0 6px 18px rgba(41, 133, 83, 0.4);
+        transform: translateY(-2px);
+    }
+    
+    /* Enhanced State Tags */
+    .states-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 15px;
+        padding: 15px;
+        background: linear-gradient(135deg, var(--brand-accent) 0%, var(--brand-border) 100%);
+        border-radius: 8px;
+        min-height: 60px;
+        border: 1px solid var(--brand-border);
+    }
+    
+    .state-tag {
+        background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-dark) 100%);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 2px 6px rgba(41, 133, 83, 0.3);
+        transition: all 0.2s ease;
+    }
+    
+    .state-tag:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(41, 133, 83, 0.4);
+    }
+    
+    .state-tag .remove-state {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        font-size: 1rem;
+        cursor: pointer;
+        padding: 2px 6px;
+        border-radius: 50%;
+        line-height: 1;
+        transition: background 0.2s ease;
+    }
+    
+    .state-tag .remove-state:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+    
+    /* Enhanced Results Section */
+    .results-section {
+        background: white;
+        border: 2px solid var(--brand-primary);
+        border-radius: 12px;
+        padding: 25px;
+        margin-top: 30px;
+        display: none;
+        box-shadow: 0 6px 20px rgba(41, 133, 83, 0.15);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .results-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--brand-primary) 0%, var(--brand-primary-light) 50%, var(--brand-primary) 100%);
+    }
+    
+    /* Enhanced Route Summary */
+    .route-summary {
+        background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-dark) 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 10px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 15px rgba(41, 133, 83, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .route-summary::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 120%;
+        height: 200%;
+        background: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M20 20L0 0h40v40L20 20z'/%3E%3C/g%3E%3C/svg%3E") repeat;
+        pointer-events: none;
+    }
+    
+    .route-summary h4 {
+        margin-bottom: 20px;
+        font-weight: 700;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .route-summary p {
+        margin-bottom: 8px;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .route-summary strong {
+        color: rgba(255, 255, 255, 0.9);
+    }
+    
+    /* Enhanced Requirements Table */
+    .requirements-table {
+        margin-top: 25px;
+    }
+    
+    .requirements-table h5 {
+        color: var(--brand-primary);
+        font-weight: 700;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--brand-border);
+        position: relative;
+    }
+    
+    .requirements-table h5::before {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 60px;
+        height: 2px;
+        background: var(--brand-primary);
+    }
+    
+    .table {
+        box-shadow: 0 4px 15px rgba(41, 133, 83, 0.1);
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid var(--brand-border);
+    }
+    
+    .table thead {
+        background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-dark) 100%);
+    }
+    
+    .table thead th {
+        color: white;
+        font-weight: 600;
+        border: none;
+        padding: 15px 12px;
+        text-transform: uppercase;
+        font-size: 0.875rem;
+        letter-spacing: 0.5px;
+    }
+    
+    .table tbody tr:hover {
+        background-color: rgba(41, 133, 83, 0.05);
+    }
+    
+    .table tbody td {
+        padding: 12px;
+        border-color: var(--brand-border);
+        vertical-align: middle;
+    }
+    
+    .badge.bg-primary {
+        background: var(--brand-primary) !important;
+    }
+    
+    .badge.bg-warning {
+        background: #f39c12 !important;
+    }
+    
+    .badge.bg-success {
+        background: #27ae60 !important;
+    }
+    
+    .badge.bg-danger {
+        background: #e74c3c !important;
+    }
+    
+    /* Brand Footer in Results */
+    .results-footer {
+        text-align: center;
+        margin-top: 25px;
+        padding: 15px;
+        border-top: 1px solid var(--brand-border);
+        color: #666;
+        font-size: 0.9rem;
+    }
+    
+    .results-footer strong {
+        color: var(--brand-primary);
+    }
+
+    /* Share & Print Buttons */
+    .results-actions {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin: 20px 0;
+        flex-wrap: wrap;
+    }
+    
+    .btn-share,
+    .btn-print {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        min-width: 140px;
+        justify-content: center;
+    }
+    
+    .btn-report {
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+    }
+    
+    .dimension-total {
+        color: var(--brand-primary);
+        font-weight: 600;
+        margin-left: 10px;
+        font-size: 12px;
+        opacity: 0.8;
+    }
+    
+    .btn-report:hover {
+        background: #c82333;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    }
+
+    .btn-report:active {
+        transform: translateY(0);
+    }
+    
+    .btn-share {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    }
+    
+    .btn-share:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(0, 123, 255, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .btn-print {
+        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+    }
+    
+    .btn-print:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(108, 117, 125, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+    
+    /* Print Styles */
+    @media print {
+        /* Hide everything except results */
+        body * {
+            visibility: hidden;
+        }
+        
+        #resultsSection,
+        #resultsSection * {
+            visibility: visible;
+        }
+        
+        #resultsSection {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        /* Hide interactive elements in print */
+        .results-actions,
+        .btn-share,
+        .btn-print,
+        .map-section,
+        .form-section,
+        .load-plan-header {
+            display: none !important;
+        }
+        
+        /* Enhanced print branding */
+        .results-footer {
+            page-break-inside: avoid;
+            border-top: 2px solid var(--brand-primary);
+            background: linear-gradient(135deg, #f8fff9 0%, #e8f5e8 100%);
+            padding: 20px;
+            margin-top: 30px;
+        }
+        
+        .results-footer strong {
+            font-size: 1.2em;
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        /* Print header */
+        #resultsSection::before {
+            content: "Load Planning Report - Generated by [Your App Name]";
+            display: block;
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--brand-primary);
+            border-bottom: 2px solid var(--brand-primary);
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+        
+        /* Table styling for print */
+        .table {
+            font-size: 0.9em;
+        }
+        
+        .table th {
+            background: var(--brand-primary) !important;
+            color: white !important;
+        }
+        
+        /* Route summary styling for print */
+        .route-summary {
+            border: 2px solid var(--brand-border);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            background: #f8fff9;
+        }
+        
+        .route-summary h4 {
+            color: var(--brand-primary);
+            border-bottom: 2px solid var(--brand-primary);
+            padding-bottom: 10px;
+        }
+    }
+    
+    /* Dimension Input Enhancement */
+    .dimension-input-group {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        background: var(--brand-accent);
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid var(--brand-border);
+    }
+    
+    .dimension-input-group input {
+        flex: 1;
+        max-width: 80px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    
+    .dimension-input-group label {
+        font-size: 0.875rem;
+        margin: 0;
+        white-space: nowrap;
+        color: var(--brand-primary);
+        font-weight: 500;
+    }
+    
+    /* Map Controls Enhancement */
+    .btn-outline-secondary {
+        border-color: var(--brand-primary);
+        color: var(--brand-primary);
+    }
+    
+    .btn-outline-secondary:hover,
+    .btn-outline-secondary:focus,
+    .btn-outline-secondary.active {
+        background-color: var(--brand-primary);
+        border-color: var(--brand-primary);
+        color: white;
+    }
+    
+    #loadPlanMap {
+        width: 100%;
+        height: 100%;
+        border-radius: 8px;
+    }
+
+    /* Validation Error Styles */
+    .form-control.is-invalid {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    }
+
+    .states-tags.is-invalid {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    }
+
+    .alert-danger {
+        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+        border: 1px solid #f1aeb5;
+        color: #721c24;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    .alert-danger h6 {
+        color: #721c24;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .alert-danger ul {
+        padding-left: 20px;
+    }
+
+    .alert-danger ul li {
+        margin-bottom: 5px;
+    }
+    
+    /* Responsive Enhancements */
+    @media (max-width: 768px) {
+        .load-plan-header h1 {
+            font-size: 1.8rem;
+        }
+        
+        .load-plan-container {
+            padding: 15px;
+        }
+        
+        .map-section {
+            height: 450px; /* Fixed height for mobile */
+            min-height: 450px;
+        }
+        
+        .form-section {
+            height: auto;
+            min-height: 400px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block main_class %}container-fluid mt-4{% endblock %}
+
+{% block content %}
+<div class="load-plan-container">
+    <div class="load-plan-header">
+        <h1><i class="fas fa-calculator me-3"></i>Load Plan Service</h1>
+        <p>🆕 <strong>New Feature!</strong> Plan your oversized load route and calculate escort requirements by state. Please note: regulation data may not be 100% accurate - we rely on your feedback to improve accuracy over time.</p>
+    </div>
+    <div class="section-divider"></div>
+
+    <div class="row">
+        <!-- Map Section -->
+        <div class="col-lg-6">
+            <div class="map-section">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="btn-group" role="group">
+                        <input type="radio" class="btn-check" name="mapType" id="mapTypeMap" autocomplete="off" checked>
+                        <label class="btn btn-outline-secondary btn-sm" for="mapTypeMap">Map</label>
+
+                        <input type="radio" class="btn-check" name="mapType" id="mapTypeSatellite" autocomplete="off">
+                        <label class="btn btn-outline-secondary btn-sm" for="mapTypeSatellite">Satellite</label>
+                    </div>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="resetMap">
+                        <i class="fas fa-undo"></i> Reset
+                    </button>
+                </div>
+                <div id="loadPlanMap"></div>
+            </div>
+        </div>
+
+        <!-- Form Section -->
+        <div class="col-lg-6">
+            <div class="form-section">
+                <form id="loadPlanForm">
+                    <!-- Trip Information -->
+                    <div class="mb-4">
+                        <h5 class="section-title"><i class="fas fa-map-marker-alt"></i> Trip Information</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="origin" class="form-label">Origin (City, State, ZIP)</label>
+                                <input type="text" class="form-control" id="origin" name="origin" 
+                                       placeholder="Charlotte, NC" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="destination" class="form-label">Destination (City, State, ZIP)</label>
+                                <input type="text" class="form-control" id="destination" name="destination" 
+                                       placeholder="Mobile, AL" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Road Type -->
+                    <div class="mb-4">
+                        <h5 class="section-title"><i class="fas fa-road"></i> Road Type</h5>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="roadType" id="interstate" value="Interstate" checked>
+                            <label class="form-check-label" for="interstate">
+                                Interstate (4 lanes)
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="roadType" id="nonInterstate" value="Non-Interstate">
+                            <label class="form-check-label" for="nonInterstate">
+                                Non-Interstate (2 lanes)
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Overall Dimensions -->
+                    <div class="mb-4">
+                        <h5 class="section-title"><i class="fas fa-ruler-combined"></i> Overall Dimensions (Including Trailer & Tractor)</h5>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Length</label>
+                                <div class="dimension-input-group">
+                                    <input type="number" class="form-control" id="lengthFt" name="lengthFt" 
+                                           placeholder="75" min="0" max="500" oninput="updateDimensionDisplay('length')">
+                                    <label>ft</label>
+                                    <input type="number" class="form-control" id="lengthIn" name="lengthIn" 
+                                           placeholder="0" min="0" max="11" oninput="updateDimensionDisplay('length')">
+                                    <label>in</label>
+                                    <small class="dimension-total" id="lengthTotal">= 0 ft 0 in</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Width</label>
+                                <div class="dimension-input-group">
+                                    <input type="number" class="form-control" id="widthFt" name="widthFt" 
+                                            placeholder="8" min="0" max="50" oninput="updateDimensionDisplay('width')">
+                                    <label>ft</label>
+                                    <input type="number" class="form-control" id="widthIn" name="widthIn" 
+                                           placeholder="5" min="0" max="11" oninput="updateDimensionDisplay('width')">
+                                    <label>in</label>
+                                    <small class="dimension-total" id="widthTotal">= 0 ft 0 in</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Height</label>
+                                <div class="dimension-input-group">
+                                    <input type="number" class="form-control" id="heightFt" name="heightFt" 
+                                           placeholder="13" min="0" max="50" oninput="updateDimensionDisplay('height')">
+                                    <label>ft</label>
+                                    <input type="number" class="form-control" id="heightIn" name="heightIn" 
+                                           placeholder="6" min="0" max="11" oninput="updateDimensionDisplay('height')">
+                                    <label>in</label>
+                                    <small class="dimension-total" id="heightTotal">= 0 ft 0 in</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Weight (lbs)</label>
+                                <input type="number" class="form-control" id="weight" name="weight" 
+                                       placeholder="80000" min="0" max="1000000">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Overhang (Optional) -->
+                    <div class="mb-4">
+                        <h5 class="section-title"><i class="fas fa-arrows-alt-h"></i> Overhang (Optional)</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Front Overhang</label>
+                                <div class="dimension-input-group">
+                                    <input type="number" class="form-control" id="frontOverhangFt" name="frontOverhangFt" 
+                                           placeholder="0" min="0" max="50">
+                                    <label>ft</label>
+                                    <input type="number" class="form-control" id="frontOverhangIn" name="frontOverhangIn" 
+                                           placeholder="0" min="0" max="11">
+                                    <label>in</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Rear Overhang</label>
+                                <div class="dimension-input-group">
+                                    <input type="number" class="form-control" id="rearOverhangFt" name="rearOverhangFt" 
+                                           placeholder="0" min="0" max="50">
+                                    <label>ft</label>
+                                    <input type="number" class="form-control" id="rearOverhangIn" name="rearOverhangIn" 
+                                           placeholder="0" min="0" max="11">
+                                    <label>in</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Custom Route -->
+                    <div class="mb-4">
+                        <h5 class="section-title"><i class="fas fa-route"></i> Custom Route <span class="text-danger">*Required</span></h5>
+                        <p class="small text-muted">Select the states your load will travel through in order</p>
+                        
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="stateSearch" 
+                                   placeholder="Type state name or abbreviation...">
+                            <button type="button" class="btn btn-outline-secondary" id="clearAllStates">
+                                <i class="fas fa-times"></i> Clear All States
+                            </button>
+                        </div>
+                        
+                        <div class="states-tags" id="selectedStates">
+                            <span class="text-muted">No states selected</span>
+                        </div>
+                    </div>
+
+                    <!-- Calculate Button -->
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-calculator"></i> Calculate Escort Requirements
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    <div class="results-section" id="resultsSection">
+        <!-- Route Summary will be inserted here -->
+        <div id="routeSummary"></div>
+        
+        <!-- Requirements Table will be inserted here -->
+        <div id="requirementsTable"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/state_regulations.js') }}"></script>
+<script>
+// All JavaScript code for Load Planning functionality
+// (See documentation for complete implementation)
+console.log('Load Plan template loaded - JavaScript will be added based on implementation guide');
+</script>
+{% endblock %}

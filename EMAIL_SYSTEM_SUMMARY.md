@@ -2,7 +2,7 @@
 
 ## ✅ System Status: **FULLY IMPLEMENTED & TESTED**
 
-The My PEVO application now includes a professional email notification system that handles critical business communications. The system is production-ready and automatically detects whether it's running locally or in production.
+The Pilot Cars & Permits application now includes a professional email notification system that handles critical business communications. The system is production-ready and automatically detects whether it's running locally or in production.
 
 ## 🚨 Critical Email Notifications Implemented
 
@@ -64,8 +64,8 @@ MAIL_PORT="587"
 MAIL_USE_TLS="true"
 MAIL_USERNAME="your-ses-smtp-username"
 MAIL_PASSWORD="your-ses-smtp-password"
-MAIL_DEFAULT_SENDER="noreply@yourdomain.com"
-MAIL_ADMIN_EMAIL="dispatch@yourdomain.com"
+MAIL_DEFAULT_SENDER="noreply@pilotcarsandpermits.com"
+MAIL_ADMIN_EMAIL="dispatch@pilotcarsandpermits.com"
 FLASK_ENV="production"
 ```
 
@@ -76,8 +76,8 @@ MAIL_PORT="587"
 MAIL_USE_TLS="true"
 MAIL_USERNAME="apikey"
 MAIL_PASSWORD="your-sendgrid-api-key"
-MAIL_DEFAULT_SENDER="noreply@yourdomain.com"
-MAIL_ADMIN_EMAIL="dispatch@yourdomain.com"
+MAIL_DEFAULT_SENDER="noreply@pilotcarsandpermits.com"
+MAIL_ADMIN_EMAIL="dispatch@pilotcarsandpermits.com"
 FLASK_ENV="production"
 ```
 
@@ -155,4 +155,4 @@ The email notification system is **production-ready** and requires only:
 
 ---
 
-**Contact**: See `email_setup_production.md` for detailed setup instructions and troubleshooting. 
+**Contact**: See `email_setup_production.md` for detailed setup instructions and troubleshooting.

@@ -1,10 +1,10 @@
-# My PEVO - Comprehensive Pilot Car Escort Service Platform
+# Pilot Cars & Permits - Comprehensive Pilot Car Escort Service Platform
 
 A professional web application providing complete pilot car escort services, load planning, customer relationship management, and business operations for trucking companies and pilot car vendors.
 
 ## 🌟 Overview
 
-My PEVO is a full-featured business platform designed for the pilot car escort industry. It serves trucking companies, pilot car vendors, and administrative teams with comprehensive tools for:
+Pilot Cars & Permits is a full-featured business platform designed for the pilot car escort industry. It serves trucking companies, pilot car vendors, and administrative teams with comprehensive tools for:
 
 - **Load Planning & Route Analysis**
 - **Pilot Car Service Coordination** 
@@ -126,9 +126,9 @@ My PEVO is a full-featured business platform designed for the pilot car escort i
    MAIL_SERVER=your-smtp-server.com
    MAIL_PORT=587
    MAIL_USE_TLS=True
-   MAIL_USERNAME=your-email@domain.com
+   MAIL_USERNAME=dispatch@pilotcarsandpermits.com
    MAIL_PASSWORD=your-email-password
-   ADMIN_EMAIL=admin@yourdomain.com
+   ADMIN_EMAIL=dispatch@pilotcarsandpermits.com
    ```
 
 4. **Run the application**
@@ -270,4 +270,4 @@ This project is proprietary software. All rights reserved.
 
 ## 📞 Support
 
-For technical support or questions, please contact the development team or system administrator. 
+For technical support or questions, please contact the development team or system administrator.

@@ -1,308 +1,984 @@
 {% extends "base.html" %}
 
-{% block title %}Load Plan - My PEVO{% endblock %}
+{% block title %}Load Planning & Route Analysis - Pilot Cars & Permits{% endblock %}
+
+{% block meta_description %}Professional load planning and route analysis tool for oversized loads. Calculate escort requirements, compliance needs, and optimal routes across all 50 states. Free route planning tool.{% endblock %}
+
+{% block meta_keywords %}load planning, route analysis, oversized load planning, escort requirements, DOT compliance, load calculation, route survey, freight planning, heavy haul planning{% endblock %}
+
+{% block og_title %}Load Planning & Route Analysis Tool - Pilot Cars & Permits{% endblock %}
+{% block og_description %}Professional load planning and route analysis tool for oversized loads. Calculate escort requirements and compliance needs across all 50 states.{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Brand Color Variables - Pilot Cars & Permits Theme */
+    :root {
+        --brand-primary: var(--pp-primary);
+        --brand-primary-light: var(--pp-primary-light);
+        --brand-primary-dark: var(--pp-primary-dark);
+        --brand-accent: var(--pp-accent);
+        --brand-border: #e8f5e8;
+        --brand-secondary: var(--pp-secondary);
+    }
+    
+    .load-plan-container {
+        min-height: 80vh;
+        background: linear-gradient(135deg, #f9fafb 0%, #e8f5e8 100%);
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(26, 95, 95, 0.1);
+    }
+    
+    /* Enhanced Header */
+    .load-plan-header {
+        background: var(--pp-gradient-primary);
+        color: white;
+        padding: 25px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 15px rgba(26, 95, 95, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .load-plan-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+        animation: float 20s infinite linear;
+        pointer-events: none;
+    }
+    
+    @keyframes float {
+        0% { transform: translateX(-50px) translateY(-50px); }
+        100% { transform: translateX(0px) translateY(0px); }
+    }
+    
+    .load-plan-header h1 {
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin: 0;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .load-plan-header p {
+        margin: 8px 0 0 0;
+        opacity: 0.9;
+        font-size: 1.1rem;
+        position: relative;
+        z-index: 2;
+    }
+    
+    /* Section Dividers */
+    .section-divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent 0%, var(--brand-border) 50%, transparent 100%);
+        margin: 30px 0;
+        position: relative;
+    }
+    
+    .section-divider::before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: -2px;
+        transform: translateX(-50%);
+        width: 6px;
+        height: 6px;
+        background: var(--brand-primary);
+        border-radius: 50%;
+    }
+    
+    /* Enhanced Map Section */
+    .map-section {
+        height: 600px;
+        border: 2px solid var(--brand-border);
+        border-radius: 12px;
+        background: white;
+        box-shadow: 0 4px 15px rgba(26, 95, 95, 0.1);
+        overflow: hidden;
+        position: relative;
+    }
+    
+    /* Enhanced Form Section */
+    .form-section {
+        background: white;
+        border: 2px solid var(--brand-border);
+        border-radius: 12px;
+        padding: 25px;
+        height: 600px;
+        overflow-y: auto;
+        box-shadow: 0 4px 15px rgba(26, 95, 95, 0.1);
+    }
+    
+    .form-section h5 {
+        color: var(--brand-primary);
+        font-weight: 600;
+        border-bottom: 2px solid var(--brand-border);
+        padding-bottom: 8px;
+        margin-bottom: 15px;
+        position: relative;
+    }
+    
+    .form-section h5::before {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 40px;
+        height: 2px;
+        background: var(--brand-primary);
+    }
+    
+    /* Enhanced Input Styling */
+    .form-control:focus {
+        border-color: var(--brand-primary);
+        box-shadow: 0 0 0 0.2rem rgba(26, 95, 95, 0.25);
+    }
+    
+    .form-check-input:checked {
+        background-color: var(--brand-primary);
+        border-color: var(--brand-primary);
+    }
+    
+    .btn-primary {
+        background: var(--pp-gradient-primary) !important;
+        border-color: var(--brand-primary) !important;
+        font-weight: 600;
+        padding: 12px 25px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(26, 95, 95, 0.3);
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--brand-primary-dark) 0%, var(--brand-primary) 100%) !important;
+        box-shadow: 0 6px 18px rgba(26, 95, 95, 0.4);
+        transform: translateY(-2px);
+    }
+    
+    /* Enhanced State Tags */
+    .states-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 15px;
+        padding: 15px;
+        background: linear-gradient(135deg, var(--pp-light) 0%, var(--brand-border) 100%);
+        border-radius: 8px;
+        min-height: 60px;
+        border: 1px solid var(--brand-border);
+    }
+    
+    .state-tag {
+        background: var(--pp-gradient-primary);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 2px 6px rgba(26, 95, 95, 0.3);
+        transition: all 0.2s ease;
+    }
+    
+    .state-tag:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(26, 95, 95, 0.4);
+    }
+    
+    .state-tag .remove-state {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        font-size: 1rem;
+        cursor: pointer;
+        padding: 2px 6px;
+        border-radius: 50%;
+        line-height: 1;
+        transition: background 0.2s ease;
+    }
+    
+    .state-tag .remove-state:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+    
+    /* Enhanced Results Section */
+    .results-section {
+        background: white;
+        border: 2px solid var(--brand-primary);
+        border-radius: 12px;
+        padding: 25px;
+        margin-top: 30px;
+        display: none;
+        box-shadow: 0 6px 20px rgba(26, 95, 95, 0.15);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .results-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--pp-gradient-primary);
+    }
+    
+    /* Dimension Input Enhancement */
+    .dimension-input-group {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        background: var(--pp-light);
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid var(--brand-border);
+    }
+    
+    .dimension-input-group input {
+        flex: 1;
+        max-width: 80px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    
+    .dimension-input-group label {
+        font-size: 0.875rem;
+        margin: 0;
+        white-space: nowrap;
+        color: var(--brand-primary);
+        font-weight: 500;
+    }
+    
+    .dimension-total {
+        color: var(--brand-primary);
+        font-weight: 600;
+        margin-left: 10px;
+        font-size: 12px;
+        opacity: 0.8;
+    }
+
+    /* State Autocomplete Enhancement */
+    .state-autocomplete {
+        position: relative;
+    }
+    
+    .state-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid var(--brand-border);
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 1000;
+        display: none;
+        box-shadow: 0 4px 12px rgba(26, 95, 95, 0.15);
+    }
+    
+    .state-dropdown-item {
+        padding: 10px 15px;
+        cursor: pointer;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background-color 0.2s ease;
+    }
+    
+    .state-dropdown-item:hover,
+    .state-dropdown-item.active {
+        background: var(--pp-light);
+        color: var(--brand-primary);
+    }
+    
+    .state-dropdown-item:last-child {
+        border-bottom: none;
+    }
+    
+    /* Print Styles */
+    @media print {
+        .load-plan-container {
+            background: white !important;
+            box-shadow: none !important;
+        }
+        
+        .load-plan-header {
+            background: var(--brand-primary) !important;
+            -webkit-print-color-adjust: exact;
+        }
+        
+        .map-section {
+            page-break-inside: avoid;
+        }
+        
+        .btn, .no-print {
+            display: none !important;
+        }
+    }
+    
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .load-plan-header h1 {
+            font-size: 1.8rem;
+        }
+        
+        .dimension-input-group {
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .map-section,
+        .form-section {
+            height: auto;
+            min-height: 400px;
+        }
+        
+        .states-tags {
+            min-height: auto;
+        }
+    }
+    
+    /* Animation Classes */
+    .fade-in {
+        animation: fadeIn 0.5s ease-in;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .pulse {
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(26, 95, 95, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(26, 95, 95, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(26, 95, 95, 0); }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-3">
-    <div class="row mb-3">
-        <div class="col-12">
-            <h2><i class="fas fa-route me-2"></i>Load Plan Service</h2>
-            <p class="text-muted">Plan your oversized load route and check escort requirements</p>
+<div class="container-fluid mt-4">
+<div class="load-plan-container">
+    <div class="load-plan-header">
+        <h1><i class="fas fa-calculator me-3"></i>Load Plan Service</h1>
+        <p>🆕 <strong>New Feature!</strong> Plan your oversized load route and calculate escort requirements by state. Please note: regulation data may not be 100% accurate - we rely on your feedback to improve accuracy over time.</p>
+    </div>
+    <div class="section-divider"></div>
+
+    <div class="row">
+        <!-- Map Section -->
+        <div class="col-lg-6">
+            <div class="map-section">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="btn-group" role="group">
+                        <input type="radio" class="btn-check" name="mapType" id="mapTypeMap" autocomplete="off" checked>
+                        <label class="btn btn-outline-secondary btn-sm" for="mapTypeMap">Map</label>
+
+                        <input type="radio" class="btn-check" name="mapType" id="mapTypeSatellite" autocomplete="off">
+                        <label class="btn btn-outline-secondary btn-sm" for="mapTypeSatellite">Satellite</label>
+                    </div>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="resetMap">
+                        <i class="fas fa-undo"></i> Reset
+                    </button>
+                </div>
+                <div id="loadPlanMap"></div>
+            </div>
+        </div>
+
+        <!-- Form Section -->
+        <div class="col-lg-6">
+            <div class="form-section">
+                <form id="loadPlanForm">
+                    <!-- Trip Information -->
+                    <div class="mb-4">
+                        <h5 class="section-title"><i class="fas fa-map-marker-alt"></i> Trip Information</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="origin" class="form-label">Origin (City, State, ZIP)</label>
+                                <input type="text" class="form-control" id="origin" name="origin" 
+                                       placeholder="Charlotte, NC" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="destination" class="form-label">Destination (City, State, ZIP)</label>
+                                <input type="text" class="form-control" id="destination" name="destination" 
+                                       placeholder="Mobile, AL" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Road Type -->
+                    <div class="mb-4">
+                        <h5 class="section-title"><i class="fas fa-road"></i> Road Type</h5>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="roadType" id="interstate" value="Interstate" checked>
+                            <label class="form-check-label" for="interstate">
+                                Interstate (4 lanes)
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="roadType" id="nonInterstate" value="Non-Interstate">
+                            <label class="form-check-label" for="nonInterstate">
+                                Non-Interstate (2 lanes)
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Overall Dimensions -->
+                    <div class="mb-4">
+                        <h5 class="section-title"><i class="fas fa-ruler-combined"></i> Overall Dimensions (Including Trailer & Tractor)</h5>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Length</label>
+                                <div class="dimension-input-group">
+                                    <input type="number" class="form-control" id="lengthFt" name="lengthFt" 
+                                           placeholder="75" min="0" max="500" oninput="updateDimensionDisplay('length')">
+                                    <label>ft</label>
+                                    <input type="number" class="form-control" id="lengthIn" name="lengthIn" 
+                                           placeholder="0" min="0" max="11" oninput="updateDimensionDisplay('length')">
+                                    <label>in</label>
+                                    <small class="dimension-total" id="lengthTotal">= 0.0 ft</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Width</label>
+                                <div class="dimension-input-group">
+                                    <input type="number" class="form-control" id="widthFt" name="widthFt" 
+                                            placeholder="8" min="0" max="50" oninput="updateDimensionDisplay('width')">
+                                    <label>ft</label>
+                                    <input type="number" class="form-control" id="widthIn" name="widthIn" 
+                                           placeholder="5" min="0" max="11" oninput="updateDimensionDisplay('width')">
+                                    <label>in</label>
+                                    <small class="dimension-total" id="widthTotal">= 0.0 ft</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Height</label>
+                                <div class="dimension-input-group">
+                                    <input type="number" class="form-control" id="heightFt" name="heightFt" 
+                                           placeholder="13" min="0" max="50" oninput="updateDimensionDisplay('height')">
+                                    <label>ft</label>
+                                    <input type="number" class="form-control" id="heightIn" name="heightIn" 
+                                           placeholder="6" min="0" max="11" oninput="updateDimensionDisplay('height')">
+                                    <label>in</label>
+                                    <small class="dimension-total" id="heightTotal">= 0.0 ft</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Weight (lbs)</label>
+                                <input type="number" class="form-control" id="weight" name="weight" 
+                                       placeholder="80000" min="0" max="1000000">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Overhang (Optional) -->
+                    <div class="mb-4">
+                        <h5 class="section-title"><i class="fas fa-arrows-alt-h"></i> Overhang (Optional)</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Front Overhang</label>
+                                <div class="dimension-input-group">
+                                    <input type="number" class="form-control" id="frontOverhangFt" name="frontOverhangFt" 
+                                           placeholder="0" min="0" max="50">
+                                    <label>ft</label>
+                                    <input type="number" class="form-control" id="frontOverhangIn" name="frontOverhangIn" 
+                                           placeholder="0" min="0" max="11">
+                                    <label>in</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Rear Overhang</label>
+                                <div class="dimension-input-group">
+                                    <input type="number" class="form-control" id="rearOverhangFt" name="rearOverhangFt" 
+                                           placeholder="0" min="0" max="50">
+                                    <label>ft</label>
+                                    <input type="number" class="form-control" id="rearOverhangIn" name="rearOverhangIn" 
+                                           placeholder="0" min="0" max="11">
+                                    <label>in</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Custom Route -->
+                    <div class="mb-4">
+                        <h5 class="section-title"><i class="fas fa-route"></i> Custom Route <span class="text-danger">*Required</span></h5>
+                        <p class="small text-muted">Select the states your load will travel through in order</p>
+                        
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="stateSearch" 
+                                   placeholder="Type state name or abbreviation...">
+                            <button type="button" class="btn btn-outline-secondary" id="clearAllStates">
+                                <i class="fas fa-times"></i> Clear All States
+                            </button>
+                        </div>
+                        
+                        <div class="states-tags" id="selectedStates">
+                            <span class="text-muted">No states selected</span>
+                        </div>
+                    </div>
+
+                    <!-- Calculate Button -->
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-calculator"></i> Calculate Escort Requirements
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
-    <div class="row load-plan-container">
-        <!-- Map Section (40% width) -->
-        <div class="col-lg-5">
-            <div class="map-container">
-                <div id="map"></div>
-                <div class="map-controls">
-                    <button class="btn btn-sm btn-outline-primary" onclick="resetMap()">
-                        <i class="fas fa-refresh"></i> Reset
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Form Section (60% width) -->
-        <div class="col-lg-7">
-            <div class="info-panel">
-                <!-- Trip Information -->
-                <div class="form-section">
-                    <h5><i class="fas fa-map-marker-alt me-2"></i>Trip Information</h5>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="origin" class="form-label">Origin (City, State, ZIP)</label>
-                                <input type="text" class="form-control" id="origin" placeholder="Charlotte, NC" autocomplete="off">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="destination" class="form-label">Destination (City, State, ZIP)</label>
-                                <input type="text" class="form-control" id="destination" placeholder="Mobile, AL" autocomplete="off">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Road Type -->
-                <div class="form-section">
-                    <h5><i class="fas fa-road me-2"></i>Road Type</h5>
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="road_type" id="interstate" value="Interstate" checked>
-                                <label class="form-check-label" for="interstate">
-                                    Interstate (4 lanes)
-                                </label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="road_type" id="non_interstate" value="Non-Interstate">
-                                <label class="form-check-label" for="non_interstate">
-                                    Non-Interstate (2 lanes)
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Overall Dimensions -->
-                <div class="form-section">
-                    <h5><i class="fas fa-ruler me-2"></i>Overall Dimensions (Including Trailer & Tractor)</h5>
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label for="length" class="form-label">Length (ft)</label>
-                                <input type="number" class="form-control dimension-input" id="length" step="0.1" placeholder="75.0">
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label for="width" class="form-label">Width (ft)</label>
-                                <input type="number" class="form-control dimension-input" id="width" step="0.1" placeholder="8.5">
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label for="height" class="form-label">Height (ft)</label>
-                                <input type="number" class="form-control dimension-input" id="height" step="0.1" placeholder="13.6">
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label for="weight" class="form-label">Weight (lbs)</label>
-                                <input type="number" class="form-control dimension-input" id="weight" step="1" placeholder="80000">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Overhang (Optional) -->
-                <div class="form-section">
-                    <h5><i class="fas fa-arrows-alt-h me-2"></i>Overhang (Optional)</h5>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="front_overhang" class="form-label">Front Overhang (ft)</label>
-                                <input type="number" class="form-control dimension-input" id="front_overhang" step="0.1" placeholder="0.0">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="rear_overhang" class="form-label">Rear Overhang (ft)</label>
-                                <input type="number" class="form-control dimension-input" id="rear_overhang" step="0.1" placeholder="0.0">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Custom Route -->
-                <div class="form-section">
-                    <h5><i class="fas fa-route me-2"></i>Custom Route <span class="text-danger">*Required</span></h5>
-                    <p class="text-muted small">Select the states your load will travel through in order</p>
-                    
-                    <div class="route-builder">
-                        
-                        <!-- State Search Input -->
-                        <div class="mb-3">
-                            <div class="row">
-                                <div class="col-md-6 position-relative">
-                                    <input type="text" class="form-control" id="state-search" placeholder="Type state name or abbreviation..." autocomplete="off">
-                                    <div id="state-suggestions" class="state-suggestions" style="display: none;"></div>
-                                </div>
-                                <div class="col-md-6">
-                                    <button type="button" class="btn btn-outline-secondary" onclick="clearRoute()">
-                                        <i class="fas fa-times me-1"></i>Clear All States
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="selected-route" id="selected-route" style="display: none;">
-                            <strong>Selected Route:</strong> <span id="route-display"></span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Calculate Button -->
-                <div class="form-section">
-                    <button type="button" class="btn btn-primary btn-lg w-100" onclick="calculateRoute()">
-                        <i class="fas fa-calculator me-2"></i>Calculate Escort Requirements
-                    </button>
-                </div>
-
-                <!-- Loading Spinner -->
-                <div id="loading" class="loading" style="display: none;">
-                    <div class="spinner-border" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <p class="mt-3">Calculating escort requirements...</p>
-                </div>
-            </div>
-        </div>
+    <!-- Results Section -->
+    <div class="results-section" id="resultsSection">
+        <!-- Route Summary will be inserted here -->
+        <div id="routeSummary"></div>
+        
+        <!-- Requirements Table will be inserted here -->
+        <div id="requirementsTable"></div>
     </div>
 </div>
-
-<!-- Full Width Results Section -->
-<div class="container-fluid py-4" id="results-section" style="display: none;">
-    <div class="row">
-        <div class="col-12">
-                    <!-- Route Summary -->
-                    <div id="route-summary" class="route-summary">
-                        <h4><i class="fas fa-info-circle me-2"></i>Route Summary</h4>
-                        <div id="summary-content"></div>
-                    </div>
-
-            <!-- Results Table -->
-            <div class="results-container">
-                <div class="table-responsive">
-                    <table class="table" id="results-table">
-                        <thead>
-                            <tr>
-                                <th>State</th>
-                                <th>Road Type</th>
-                                <th>Route Survey</th>
-                                <th>Police Escort</th>
-                                <th>Escort Requirements</th>
-                                <th>Notes</th>
-                            </tr>
-                        </thead>
-                        <tbody id="results-tbody">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="form-section">
-                <div class="row">
-                    <div class="col-md-4">
-                        <input type="text" class="form-control" id="route-name" placeholder="Enter route name to save">
-                    </div>
-                    <div class="col-md-4">
-                        <button type="button" class="btn btn-success w-100" onclick="saveRoute()">
-                            <i class="fas fa-save me-2"></i>Save Route
-                        </button>
-                    </div>
-                    <div class="col-md-4">
-                        <button type="button" class="btn btn-warning w-100" onclick="orderPilotCarFromLoadPlan()" id="orderPilotCarBtn" style="display: none;">
-                            <i class="fas fa-car me-2"></i>Order Pilot Car
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 {% endblock %}
 
-{% block extra_scripts %}
-<!-- Google Maps API -->
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB7POzdvk3ri7buWrkOLV7nNZK8pSeOxao&libraries=places&callback=initMap"></script>
-
+{% block extra_js %}
 <script>
+// Enhanced Load Planning JavaScript with proper validation and fallbacks
+const US_STATES = [
+    {name:'Alabama',abbr:'AL'},{name:'Alaska',abbr:'AK'},{name:'Arizona',abbr:'AZ'},{name:'Arkansas',abbr:'AR'},
+    {name:'California',abbr:'CA'},{name:'Colorado',abbr:'CO'},{name:'Connecticut',abbr:'CT'},{name:'Delaware',abbr:'DE'},
+    {name:'Florida',abbr:'FL'},{name:'Georgia',abbr:'GA'},{name:'Hawaii',abbr:'HI'},{name:'Idaho',abbr:'ID'},
+    {name:'Illinois',abbr:'IL'},{name:'Indiana',abbr:'IN'},{name:'Iowa',abbr:'IA'},{name:'Kansas',abbr:'KS'},
+    {name:'Kentucky',abbr:'KY'},{name:'Louisiana',abbr:'LA'},{name:'Maine',abbr:'ME'},{name:'Maryland',abbr:'MD'},
+    {name:'Massachusetts',abbr:'MA'},{name:'Michigan',abbr:'MI'},{name:'Minnesota',abbr:'MN'},{name:'Mississippi',abbr:'MS'},
+    {name:'Missouri',abbr:'MO'},{name:'Montana',abbr:'MT'},{name:'Nebraska',abbr:'NE'},{name:'Nevada',abbr:'NV'},
+    {name:'New Hampshire',abbr:'NH'},{name:'New Jersey',abbr:'NJ'},{name:'New Mexico',abbr:'NM'},{name:'New York',abbr:'NY'},
+    {name:'North Carolina',abbr:'NC'},{name:'North Dakota',abbr:'ND'},{name:'Ohio',abbr:'OH'},{name:'Oklahoma',abbr:'OK'},
+    {name:'Oregon',abbr:'OR'},{name:'Pennsylvania',abbr:'PA'},{name:'Rhode Island',abbr:'RI'},{name:'South Carolina',abbr:'SC'},
+    {name:'South Dakota',abbr:'SD'},{name:'Tennessee',abbr:'TN'},{name:'Texas',abbr:'TX'},{name:'Utah',abbr:'UT'},
+    {name:'Vermont',abbr:'VT'},{name:'Virginia',abbr:'VA'},{name:'Washington',abbr:'WA'},{name:'West Virginia',abbr:'WV'},
+    {name:'Wisconsin',abbr:'WI'},{name:'Wyoming',abbr:'WY'}
+];
+
 // Global variables
-let map;
+let selectedStates = [];
+let loadPlanMap;
 let directionsService;
 let directionsRenderer;
-let selectedStates = [];
-let currentResults = null;
 let originAutocomplete;
 let destinationAutocomplete;
 
-// Initialize Google Map
-function initMap() {
-    try {
-        console.log('Initializing Google Maps...');
-        
-        // Initialize map centered on the US
-        map = new google.maps.Map(document.getElementById('map'), {
-            zoom: 6,
-            center: { lat: 38.9072, lng: -77.0369 }, // Washington DC
-            mapTypeId: google.maps.MapTypeId.ROADMAP
+// Initialize everything when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Load Planning initializing...');
+    setupInputValidation();
+    setupDimensions();
+    setupStates();
+    setupForm();
+    
+    // Initialize map immediately - don't wait
+    initMapWithFallback();
+});
+
+// Enhanced dimension display with validation
+function updateDimensionDisplay(dim) {
+    console.log(`📏 Updating dimension display for: ${dim}`);
+    
+    const ftInput = document.getElementById(dim + 'Ft');
+    const inInput = document.getElementById(dim + 'In');
+    const totalDisplay = document.getElementById(dim + 'Total');
+    
+    if (!ftInput || !inInput || !totalDisplay) {
+        console.error(`❌ Missing elements for dimension: ${dim}`);
+        return;
+    }
+    
+    const ft = parseFloat(ftInput.value) || 0;
+    const inch = parseFloat(inInput.value) || 0;
+    const total = ft + (inch / 12);
+    
+    // Update display
+    totalDisplay.textContent = `= ${total.toFixed(1)} ft`;
+    
+    // Add visual feedback - validate both inputs
+    validateInput(ftInput);
+    validateInput(inInput);
+    
+    console.log(`✅ ${dim}: ${ft}ft ${inch}in = ${total.toFixed(1)}ft`);
+}
+
+// Input validation with visual feedback (green when valid)
+function validateInput(input) {
+    if (!input) return;
+    
+    const value = parseFloat(input.value);
+    const textValue = input.value.trim();
+    
+    // Check if input is valid based on type and value
+    let isValid = false;
+    
+    if (input.type === 'number') {
+        isValid = !isNaN(value) && value > 0;
+    } else if (input.type === 'text') {
+        isValid = textValue.length > 2;
+    }
+    
+    if (isValid) {
+        // Apply green styling for valid input
+        input.style.borderColor = '#28a745';
+        input.style.backgroundColor = '#f8fff9';
+        input.style.boxShadow = '0 0 0 0.2rem rgba(40, 167, 69, 0.25)';
+        console.log(`✅ Input ${input.id} validated as valid:`, input.value);
+    } else {
+        // Reset to default styling
+        input.style.borderColor = '';
+        input.style.backgroundColor = '';
+        input.style.boxShadow = '';
+    }
+}
+
+// Setup input validation for all relevant fields
+function setupInputValidation() {
+    console.log('🔧 Setting up input validation...');
+    
+    // Add validation to all number inputs (dimensions, weight, etc.)
+    const numberInputs = document.querySelectorAll('input[type="number"]');
+    console.log(`Found ${numberInputs.length} number inputs`);
+    
+    numberInputs.forEach(input => {
+        // Add multiple event listeners for immediate feedback
+        input.addEventListener('input', () => {
+            validateInput(input);
+            // Also update dimension display if it's a dimension input
+            if (input.id.includes('length') || input.id.includes('width') || input.id.includes('height')) {
+                const dimension = input.id.replace(/Ft|In/, '').toLowerCase();
+                updateDimensionDisplay(dimension);
+            }
         });
+        input.addEventListener('blur', () => validateInput(input));
+        input.addEventListener('keyup', () => validateInput(input));
+    });
+    
+    // Add validation to text inputs (origin, destination)
+    const textInputs = document.querySelectorAll('#origin, #destination');
+    console.log(`Found ${textInputs.length} text inputs`);
+    
+    textInputs.forEach(input => {
+        input.addEventListener('input', () => validateInput(input));
+        input.addEventListener('blur', () => validateInput(input));
+        input.addEventListener('keyup', () => validateInput(input));
+    });
+    
+    console.log('✅ Input validation setup complete');
+}
+
+function setupDimensions() {
+    console.log('📏 Setting up dimensions...');
+    
+    const dimensions = ['length', 'width', 'height'];
+    const units = ['Ft', 'In'];
+    
+    dimensions.forEach(dimension => {
+        units.forEach(unit => {
+            const elementId = dimension + unit;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                // Add multiple event listeners for immediate feedback
+                element.addEventListener('input', () => {
+                    updateDimensionDisplay(dimension);
+                    validateInput(element);
+                });
+                
+                element.addEventListener('keyup', () => {
+                    updateDimensionDisplay(dimension);
+                    validateInput(element);
+                });
+                
+                element.addEventListener('blur', () => {
+                    validateInput(element);
+                });
+                
+                element.addEventListener('focus', () => {
+                    element.style.borderColor = 'var(--pp-primary)';
+                });
+                
+                console.log(`✅ Setup events for ${elementId}`);
+            } else {
+                console.error(`❌ Element not found: ${elementId}`);
+            }
+        });
+    });
+    
+    // Add validation to weight input
+    const weightInput = document.getElementById('weight');
+    if (weightInput) {
+        weightInput.addEventListener('input', () => validateInput(weightInput));
+        weightInput.addEventListener('blur', () => validateInput(weightInput));
+        weightInput.addEventListener('keyup', () => validateInput(weightInput));
+        console.log('✅ Setup weight input validation');
+    }
+    
+    console.log('✅ Dimensions setup complete');
+}
+
+// Enhanced state autocomplete
+function setupStates(){
+    const input=document.getElementById('stateSearch');
+    const dropdown=document.createElement('div');
+    dropdown.className='dropdown-menu w-100';
+    dropdown.style.cssText='position:absolute;top:100%;left:0;z-index:1000;max-height:200px;overflow-y:auto;display:none;border:1px solid #ddd;background:white;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15)';
+    input.parentNode.style.position='relative';
+    input.parentNode.appendChild(dropdown);
+
+    input.addEventListener('input',e=>{
+        const q=e.target.value.toLowerCase();
+        if(!q){dropdown.style.display='none';return;}
+        const matches=US_STATES.filter(s=>!selectedStates.find(x=>x.abbr===s.abbr)&&(s.name.toLowerCase().includes(q)||s.abbr.toLowerCase().includes(q)));
+        dropdown.innerHTML=matches.map(s=>`<div class="dropdown-item" onclick="selectState({name:'${s.name}',abbr:'${s.abbr}'})" style="padding:10px 15px;cursor:pointer;border-bottom:1px solid #f0f0f0" onmouseover="this.style.backgroundColor='#f8f9fa'" onmouseout="this.style.backgroundColor='white'">${s.name} (${s.abbr})</div>`).join('');
+        dropdown.style.display=matches.length?'block':'none';
+    });
+
+    // Hide dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.style.display = 'none';
+        }
+    });
+
+    document.getElementById('clearAllStates').addEventListener('click',()=>{selectedStates=[];updateStates();});
+}
+
+function selectState(state){
+    if(!selectedStates.find(s=>s.abbr===state.abbr)){
+        selectedStates.push(state);
+        updateStates();
+    }
+    document.getElementById('stateSearch').value='';
+    const dropdown = document.querySelector('.dropdown-menu');
+    if (dropdown) dropdown.style.display='none';
+}
+
+function removeState(abbr){
+    selectedStates=selectedStates.filter(s=>s.abbr!==abbr);
+    updateStates();
+}
+
+function updateStates(){
+    const container=document.getElementById('selectedStates');
+    container.innerHTML=selectedStates.length?
+        selectedStates.map(s=>`<span class="state-tag">${s.name} (${s.abbr})<button type="button" class="remove-state" onclick="removeState('${s.abbr}')">×</button></span>`).join(''):
+        '<span class="text-muted">No states selected</span>';
+}
+
+// Enhanced form setup
+function setupForm(){
+    document.getElementById('loadPlanForm').addEventListener('submit',e=>{
+        e.preventDefault();
+        const btn=e.target.querySelector('button[type=submit]');
+        btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Calculating...';
+        btn.disabled=true;
+        setTimeout(()=>{
+            showResults();
+            btn.innerHTML='<i class="fas fa-calculator"></i> Calculate Escort Requirements';
+            btn.disabled=false;
+        },2000);
+    });
+    
+    document.querySelectorAll('input[name=mapType]').forEach(i=>{
+        i.addEventListener('change',()=>{
+            if(loadPlanMap && typeof google !== 'undefined') {
+                loadPlanMap.setMapTypeId(i.id==='mapTypeSatellite'?google.maps.MapTypeId.SATELLITE:google.maps.MapTypeId.ROADMAP);
+            }
+        });
+    });
+    
+    // Reset map button
+    const resetBtn = document.getElementById('resetMap');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            if (loadPlanMap) {
+                loadPlanMap.setCenter({lat:39.8283,lng:-98.5795});
+                loadPlanMap.setZoom(4);
+            }
+        });
+    }
+}
+
+// Enhanced map initialization with better fallback
+function initMapWithFallback() {
+    console.log('🗺️ Attempting to initialize map...');
+    
+    // Check if Google Maps is available
+    if (typeof google === 'undefined' || !google || !google.maps) {
+        console.log('⚠️ Google Maps API not available, showing fallback');
+        showMapFallback();
+        setupBasicAddressAutocomplete();
+        return;
+    }
+    
+    try {
+        console.log('✅ Google Maps API available, initializing map');
+        initMap();
+    } catch (error) {
+        console.error('❌ Map initialization failed:', error);
+        showMapFallback();
+        setupBasicAddressAutocomplete();
+    }
+}
+
+function initMap() {
+    console.log('🗺️ Creating Google Map...');
+    
+    const mapElement = document.getElementById('loadPlanMap');
+    if (!mapElement) {
+        console.error('❌ Map element not found');
+        return;
+    }
+    
+    try {
+        // Create map instance
+        loadPlanMap = new google.maps.Map(mapElement, {
+            center: { lat: 39.8283, lng: -98.5795 }, // Center of USA
+            zoom: 4,
+            mapTypeId: google.maps.MapTypeId.ROADMAP,
+            mapTypeControl: true,
+            streetViewControl: false,
+            fullscreenControl: true
+        });
+        
+        console.log('✅ Map created successfully');
         
         // Initialize directions service and renderer
         directionsService = new google.maps.DirectionsService();
         directionsRenderer = new google.maps.DirectionsRenderer({
-            draggable: true,
-            panel: null
+            polylineOptions: {
+                strokeColor: '#1a5f5f',
+                strokeWeight: 4,
+                strokeOpacity: 0.8
+            },
+            suppressMarkers: false
         });
-        directionsRenderer.setMap(map);
+        directionsRenderer.setMap(loadPlanMap);
         
-        // Listen for route changes when user drags the route
-        directionsRenderer.addListener('directions_changed', function() {
-            console.log('Route changed by user');
-            updateRouteStates();
-        });
+        console.log('✅ Directions service initialized');
         
-        // Initialize autocomplete for origin and destination
-        initAutocomplete();
+        // Setup Places autocomplete if available
+        if (google.maps.places && google.maps.places.Autocomplete) {
+            console.log('🔍 Setting up Google Places autocomplete...');
+            setupGooglePlacesAutocomplete();
+        } else {
+            console.log('⚠️ Places library not available, using basic autocomplete');
+            setupBasicAddressAutocomplete();
+        }
         
-        console.log('Google Maps initialized successfully');
+        console.log('✅ Map initialization complete');
+        
     } catch (error) {
-        console.error('Error initializing Google Maps:', error);
+        console.error('❌ Error creating map:', error);
+        showMapFallback();
+        setupBasicAddressAutocomplete();
     }
 }
 
-// Initialize autocomplete for address inputs
-function initAutocomplete() {
-    // Create autocomplete objects for both inputs
-    originAutocomplete = new google.maps.places.Autocomplete(
-        document.getElementById('origin'),
-        {
-            componentRestrictions: { country: 'us' },
-            fields: ['place_id', 'geometry', 'name', 'formatted_address']
-        }
-    );
+function setupGooglePlacesAutocomplete() {
+    const inputIds = ['origin', 'destination'];
     
-    destinationAutocomplete = new google.maps.places.Autocomplete(
-        document.getElementById('destination'),
-        {
-            componentRestrictions: { country: 'us' },
-            fields: ['place_id', 'geometry', 'name', 'formatted_address']
+    inputIds.forEach(id => {
+        const input = document.getElementById(id);
+        if (!input) {
+            console.error(`❌ Input element ${id} not found`);
+            return;
         }
-    );
-    
-    // Listen for place selection
-    originAutocomplete.addListener('place_changed', function() {
-        const place = originAutocomplete.getPlace();
-        if (place.formatted_address) {
-            document.getElementById('origin').value = place.formatted_address;
+        
+        try {
+            // Create autocomplete instance
+            const autocomplete = new google.maps.places.Autocomplete(input, {
+                componentRestrictions: { country: 'us' },
+                fields: ['place_id', 'geometry', 'name', 'formatted_address'],
+                types: ['geocode'] // Focus on addresses
+            });
+            
+            // Store reference for later use
+            if (id === 'origin') {
+                originAutocomplete = autocomplete;
+            } else {
+                destinationAutocomplete = autocomplete;
+            }
+            
+            // Add event listeners
+            autocomplete.addListener('place_changed', () => {
+                const place = autocomplete.getPlace();
+                console.log(`🏠 Place selected for ${id}:`, place.formatted_address);
+                
+                validateInput(input);
+                calculateRoute();
+            });
+            
+            // Add manual input validation
+            input.addEventListener('input', () => {
+                validateInput(input);
+            });
+            
+            console.log(`✅ Autocomplete setup for ${id}`);
+            
+        } catch (error) {
+            console.error(`❌ Error setting up autocomplete for ${id}:`, error);
+            setupBasicAddressAutocomplete();
         }
     });
     
-    destinationAutocomplete.addListener('place_changed', function() {
-        const place = destinationAutocomplete.getPlace();
-        if (place.formatted_address) {
-            document.getElementById('destination').value = place.formatted_address;
-        }
-    });
+    console.log('✅ Google Places autocomplete setup complete');
 }
 
-// Calculate and display route on map
-function calculateAndDisplayRoute() {
+function setupBasicAddressAutocomplete() {
+    console.log('🔧 Setting up basic address autocomplete fallback');
+    
+    const inputIds = ['origin', 'destination'];
+    
+    inputIds.forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+            // Add placeholder to indicate manual entry
+            input.placeholder = input.placeholder + ' (Enter manually)';
+            
+            // Add validation events
+            input.addEventListener('input', () => {
+                validateInput(input);
+            });
+            
+            input.addEventListener('blur', () => {
+                validateInput(input);
+            });
+            
+            console.log(`✅ Basic validation setup for ${id}`);
+        }
+    });
+    
+    console.log('✅ Basic address autocomplete setup complete');
+}
+
+function calculateRoute() {
+    if (!directionsService) return;
+    
     const origin = document.getElementById('origin').value;
     const destination = document.getElementById('destination').value;
     
@@ -310,455 +986,61 @@ function calculateAndDisplayRoute() {
         directionsService.route({
             origin: origin,
             destination: destination,
-            travelMode: google.maps.TravelMode.DRIVING,
-            avoidTolls: false,
-            avoidHighways: false
-        }, function(response, status) {
+            travelMode: google.maps.TravelMode.DRIVING
+        }, (result, status) => {
             if (status === 'OK') {
-                directionsRenderer.setDirections(response);
-                updateRouteStates();
-            } else {
-                console.error('Directions request failed due to ' + status);
+                directionsRenderer.setDirections(result);
             }
         });
     }
 }
 
-// Update route display (removed auto-detection functionality)
-function updateRouteStates() {
-    // This function previously auto-detected states from routes
-    // Now it only updates the visual route display
-    if (directionsRenderer && directionsRenderer.getDirections()) {
-        console.log('Route updated on map');
+function showMapFallback() {
+    console.log('🗺️ Showing map fallback');
+    
+    const mapElement = document.getElementById('loadPlanMap');
+    if (mapElement) {
+        mapElement.innerHTML = `
+            <div class="d-flex align-items-center justify-content-center h-100 bg-light" style="min-height:500px; border-radius: 8px;">
+                <div class="text-center p-4">
+                    <i class="fas fa-map-marked-alt fa-4x text-muted mb-3"></i>
+                    <h5 class="text-muted">Interactive Map Unavailable</h5>
+                    <p class="text-muted mb-2">Google Maps API is not available</p>
+                    <p class="text-muted mb-0">Please enter your route information in the form</p>
+                    <small class="text-muted">The address autocomplete may also be limited</small>
+                </div>
+            </div>`;
     }
 }
 
-// Function removed - was used for auto-detection
-
-
-
-// State data for search functionality
-const stateData = [
-    { code: 'AL', name: 'Alabama' }, { code: 'AK', name: 'Alaska' }, { code: 'AZ', name: 'Arizona' },
-    { code: 'AR', name: 'Arkansas' }, { code: 'CA', name: 'California' }, { code: 'CO', name: 'Colorado' },
-    { code: 'CT', name: 'Connecticut' }, { code: 'DE', name: 'Delaware' }, { code: 'FL', name: 'Florida' },
-    { code: 'GA', name: 'Georgia' }, { code: 'HI', name: 'Hawaii' }, { code: 'ID', name: 'Idaho' },
-    { code: 'IL', name: 'Illinois' }, { code: 'IN', name: 'Indiana' }, { code: 'IA', name: 'Iowa' },
-    { code: 'KS', name: 'Kansas' }, { code: 'KY', name: 'Kentucky' }, { code: 'LA', name: 'Louisiana' },
-    { code: 'ME', name: 'Maine' }, { code: 'MD', name: 'Maryland' }, { code: 'MA', name: 'Massachusetts' },
-    { code: 'MI', name: 'Michigan' }, { code: 'MN', name: 'Minnesota' }, { code: 'MS', name: 'Mississippi' },
-    { code: 'MO', name: 'Missouri' }, { code: 'MT', name: 'Montana' }, { code: 'NE', name: 'Nebraska' },
-    { code: 'NV', name: 'Nevada' }, { code: 'NH', name: 'New Hampshire' }, { code: 'NJ', name: 'New Jersey' },
-    { code: 'NM', name: 'New Mexico' }, { code: 'NY', name: 'New York' }, { code: 'NC', name: 'North Carolina' },
-    { code: 'ND', name: 'North Dakota' }, { code: 'OH', name: 'Ohio' }, { code: 'OK', name: 'Oklahoma' },
-    { code: 'OR', name: 'Oregon' }, { code: 'PA', name: 'Pennsylvania' }, { code: 'RI', name: 'Rhode Island' },
-    { code: 'SC', name: 'South Carolina' }, { code: 'SD', name: 'South Dakota' }, { code: 'TN', name: 'Tennessee' },
-    { code: 'TX', name: 'Texas' }, { code: 'UT', name: 'Utah' }, { code: 'VT', name: 'Vermont' },
-    { code: 'VA', name: 'Virginia' }, { code: 'WA', name: 'Washington' }, { code: 'WV', name: 'West Virginia' },
-    { code: 'WI', name: 'Wisconsin' }, { code: 'WY', name: 'Wyoming' }
-];
-
-// State selection functionality
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, initializing...');
+function showResults(){
+    const origin = document.getElementById('origin').value || 'Not specified';
+    const destination = document.getElementById('destination').value || 'Not specified';
+    const statesList = selectedStates.length ? selectedStates.map(s=>s.name).join(', ') : 'No states selected';
     
-    // Check if calculate button exists
-    const calculateBtn = document.querySelector('button[onclick="calculateRoute()"]');
-    if (calculateBtn) {
-        console.log('Calculate button found');
-    } else {
-        console.error('Calculate button not found!');
-    }
-    
-    // Initialize state search functionality
-    initStateSearch();
-});
-
-// Initialize state search functionality
-function initStateSearch() {
-    const searchInput = document.getElementById('state-search');
-    const suggestionsDiv = document.getElementById('state-suggestions');
-    
-    searchInput.addEventListener('input', function() {
-        const query = this.value.toLowerCase().trim();
-        
-        if (query.length === 0) {
-            suggestionsDiv.style.display = 'none';
-            return;
-        }
-        
-        const filteredStates = stateData.filter(state => 
-            state.code.toLowerCase().includes(query) || 
-            state.name.toLowerCase().includes(query)
-        );
-        
-        if (filteredStates.length > 0) {
-            suggestionsDiv.innerHTML = filteredStates.map(state => 
-                `<div class="state-suggestion-item" data-state="${state.code}">${state.code} - ${state.name}</div>`
-            ).join('');
-            suggestionsDiv.style.display = 'block';
-            
-            // Ensure the input is visible
-            searchInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        } else {
-            suggestionsDiv.style.display = 'none';
-        }
-    });
-    
-    // Handle suggestion clicks
-    suggestionsDiv.addEventListener('click', function(e) {
-        if (e.target.classList.contains('state-suggestion-item')) {
-            const stateCode = e.target.dataset.state;
-            addState(stateCode);
-            searchInput.value = '';
-            suggestionsDiv.style.display = 'none';
-        }
-    });
-    
-    // Hide suggestions when clicking outside
-    document.addEventListener('click', function(e) {
-        if (!searchInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
-            suggestionsDiv.style.display = 'none';
-        }
-    });
-    
-    // Handle enter key and prevent scroll jumps
-    searchInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            e.stopPropagation();
-            const firstSuggestion = suggestionsDiv.querySelector('.state-suggestion-item');
-            if (firstSuggestion) {
-                firstSuggestion.click();
-            }
-            return false;
-        }
-    });
+    document.getElementById('routeSummary').innerHTML=`
+        <div class="route-summary">
+            <h4><i class="fas fa-route"></i> Route Summary</h4>
+            <p><strong>Origin:</strong> ${origin}</p>
+            <p><strong>Destination:</strong> ${destination}</p>
+            <p><strong>States:</strong> ${statesList}</p>
+        </div>`;
+    document.getElementById('requirementsTable').innerHTML='<div class="requirements-table"><h5><i class="fas fa-shield-alt"></i> Escort Requirements</h5><div class="alert alert-info"><strong>Demo Mode:</strong> This shows the UI structure. Real implementation would process actual state regulations and calculate specific escort requirements.</div></div>';
+    document.getElementById('resultsSection').style.display='block';
+    document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
 }
 
-// Add a state to the selection
-function addState(stateCode) {
-    if (!selectedStates.includes(stateCode)) {
-        selectedStates.push(stateCode);
-        updateRouteDisplay();
-    }
-}
+// Global functions
+window.updateDimensionDisplay=updateDimensionDisplay;
+window.selectState=selectState;
+window.removeState=removeState;
+window.initMap=initMapWithFallback; // For Google Maps callback
 
-function updateRouteDisplay() {
-    const routeDisplay = document.getElementById('route-display');
-    const selectedRoute = document.getElementById('selected-route');
-    
-    if (selectedStates.length > 0) {
-        const statesBadges = selectedStates.map((state, index) => 
-            `<span class="badge bg-primary me-1 mb-1">${state} <button type="button" class="btn-close btn-close-white ms-1" onclick="removeState('${state}')" style="font-size: 0.7em;"></button></span>`
-        ).join('');
-        routeDisplay.innerHTML = statesBadges;
-        selectedRoute.style.display = 'block';
-    } else {
-        selectedRoute.style.display = 'none';
-    }
-}
-
-// Remove a state from selection
-function removeState(stateCode) {
-    selectedStates = selectedStates.filter(s => s !== stateCode);
-    updateRouteDisplay();
-}
-
-function clearRoute() {
-    selectedStates = [];
-    document.querySelectorAll('.state-option.selected').forEach(option => {
-        option.classList.remove('selected');
-    });
-    updateRouteDisplay();
-}
-
-function resetMap() {
-    if (map) {
-        map.setCenter({ lat: 38.9072, lng: -77.0369 });
-        map.setZoom(6);
-        if (directionsRenderer) {
-            directionsRenderer.setDirections({ routes: [] });
-        }
-    }
-}
-
-function calculateRoute() {
-    // Validate form
-    const origin = document.getElementById('origin').value;
-    const destination = document.getElementById('destination').value;
-    const width = document.getElementById('width').value;
-    const height = document.getElementById('height').value;
-    const length = document.getElementById('length').value;
-    const weight = document.getElementById('weight').value;
-    
-    if (!origin || !destination || !width || !height || !length || !weight) {
-        alert('Please fill in all required fields (origin, destination, and all dimensions)');
-        return;
-    }
-    
-    if (selectedStates.length === 0) {
-        alert('Please select at least one state for your route. Use the state search below to add states.');
-        return;
-    }
-    
-    // Get road type
-    const roadType = document.querySelector('input[name="road_type"]:checked').value;
-    
-    // Prepare data
-    const routeData = {
-        origin: origin,
-        destination: destination,
-        road_type: roadType,
-        width: parseFloat(width),
-        height: parseFloat(height),
-        length: parseFloat(length),
-        weight: parseFloat(weight),
-        front_overhang: parseFloat(document.getElementById('front_overhang').value || 0),
-        rear_overhang: parseFloat(document.getElementById('rear_overhang').value || 0),
-        custom_route: selectedStates
-    };
-    
-    // Show loading
-    document.getElementById('loading').style.display = 'block';
-    document.getElementById('results-section').style.display = 'none';
-    
-    // Make API call
-    fetch('/calculate-route', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(routeData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        document.getElementById('loading').style.display = 'none';
-        
-        if (data.success) {
-            displayResults(data);
-            currentResults = data;
-        } else {
-            alert('Error: ' + data.error);
-        }
-    })
-    .catch(error => {
-        document.getElementById('loading').style.display = 'none';
-        alert('Error calculating route: ' + error);
-    });
-}
-
-function displayResults(data) {
-    // Update route summary with dimensions
-    const summaryContent = document.getElementById('summary-content');
-    const loadData = getCurrentLoadData();
-    
-    summaryContent.innerHTML = `
-        <div class="row">
-            <div class="col-md-6">
-                <p><strong>Origin:</strong> ${data.route_summary.origin}</p>
-                <p><strong>Destination:</strong> ${data.route_summary.destination}</p>
-                <p><strong>Road Type:</strong> ${data.route_summary.road_type}</p>
-                <p class="route-path"><strong>States:</strong> ${data.route_summary.states}</p>
-            </div>
-            <div class="col-md-6">
-                <p><strong>Dimensions:</strong></p>
-                <ul class="list-unstyled ms-3">
-                    <li>Length: ${loadData.length} ft</li>
-                    <li>Width: ${loadData.width} ft</li>
-                    <li>Height: ${loadData.height} ft</li>
-                    <li>Weight: ${loadData.weight.toLocaleString()} lbs</li>
-                    ${loadData.front_overhang > 0 ? `<li>Front Overhang: ${loadData.front_overhang} ft</li>` : ''}
-                    ${loadData.rear_overhang > 0 ? `<li>Rear Overhang: ${loadData.rear_overhang} ft</li>` : ''}
-                </ul>
-            </div>
-        </div>
-    `;
-    
-    // Update results table
-    const tbody = document.getElementById('results-tbody');
-    tbody.innerHTML = '';
-    
-    data.results.forEach(result => {
-        const escortInfo = processEscortRequirements(result.escort_requirements);
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td><span class="state-badge">${result.state}</span></td>
-            <td>${result.road_type}</td>
-            <td>${escortInfo.routeSurvey ? '<span class="badge badge-yes">Yes</span>' : '<span class="badge badge-no">No</span>'}</td>
-            <td>${escortInfo.policeEscort ? '<span class="badge badge-yes">Yes</span>' : '<span class="badge badge-no">No</span>'}</td>
-            <td>${getEscortBadge(escortInfo.finalRequirements)}</td>
-            <td class="notes-cell">${result.notes}</td>
-        `;
-        tbody.appendChild(row);
-    });
-    
-    // Show results
-    document.getElementById('results-section').style.display = 'block';
-    
-    // Show Order Pilot Car button when results are displayed
-    const orderBtn = document.getElementById('orderPilotCarBtn');
-    if (orderBtn) {
-        orderBtn.style.display = 'block';
-    }
-}
-
-// Get current load data from form
-function getCurrentLoadData() {
-    return {
-        length: parseFloat(document.getElementById('length').value || 0),
-        width: parseFloat(document.getElementById('width').value || 0),
-        height: parseFloat(document.getElementById('height').value || 0),
-        weight: parseFloat(document.getElementById('weight').value || 0),
-        front_overhang: parseFloat(document.getElementById('front_overhang').value || 0),
-        rear_overhang: parseFloat(document.getElementById('rear_overhang').value || 0)
-    };
-}
-
-// Process escort requirements with High Pole logic
-function processEscortRequirements(requirements) {
-    if (!requirements || requirements === 'None Required') {
-        return {
-            routeSurvey: false,
-            policeEscort: false,
-            finalRequirements: 'None Required'
-        };
-    }
-    
-    const reqString = requirements.toLowerCase();
-    const routeSurvey = reqString.includes('route survey');
-    const policeEscort = reqString.includes('police');
-    
-    // Parse individual escort requirements
-    let hasRear = reqString.includes('rear');
-    let hasFront = reqString.includes('front');
-    let hasHP = reqString.includes('high pole') || reqString.includes('hp');
-    
-    // Apply High Pole logic: HP replaces Front
-    if (hasHP && hasFront) {
-        hasFront = false; // HP replaces front
-    }
-    
-    // Build final requirements
-    const finalReqs = [];
-    if (hasHP) finalReqs.push('High Pole');
-    if (hasFront) finalReqs.push('Front');
-    if (hasRear) finalReqs.push('Rear');
-    
-    return {
-        routeSurvey,
-        policeEscort,
-        finalRequirements: finalReqs.length > 0 ? finalReqs.join(', ') : 'None Required'
-    };
-}
-
-function getEscortBadge(requirements) {
-    if (requirements === 'None Required') {
-        return '<span class="escort-badge escort-none">None Required</span>';
-    }
-    
-    const badges = requirements.split(', ').map(req => {
-        const reqLower = req.toLowerCase();
-        let className = 'escort-badge';
-        
-        if (reqLower.includes('high pole')) {
-            className += ' escort-hp';
-        } else if (reqLower.includes('front')) {
-            className += ' escort-front';
-        } else if (reqLower.includes('rear')) {
-            className += ' escort-rear';
-        } else if (reqLower.includes('police')) {
-            className += ' escort-police';
-        } else {
-            className += ' escort-other';
-        }
-        
-        return `<span class="${className}">${req}</span>`;
-    });
-    
-    return badges.join(' ');
-}
-
-function saveRoute() {
-    const routeName = document.getElementById('route-name').value;
-    if (!routeName) {
-        alert('Please enter a route name');
-        return;
-    }
-    
-    if (!currentResults) {
-        alert('Please calculate a route first');
-        return;
-    }
-    
-    const saveData = {
-        route_name: routeName,
-        origin: document.getElementById('origin').value,
-        destination: document.getElementById('destination').value,
-        road_type: document.querySelector('input[name="road_type"]:checked').value,
-        width: parseFloat(document.getElementById('width').value),
-        height: parseFloat(document.getElementById('height').value),
-        length: parseFloat(document.getElementById('length').value),
-        weight: parseFloat(document.getElementById('weight').value),
-        front_overhang: parseFloat(document.getElementById('front_overhang').value || 0),
-        rear_overhang: parseFloat(document.getElementById('rear_overhang').value || 0),
-        custom_route: selectedStates,
-        results: currentResults.results
-    };
-    
-    fetch('/save-route', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(saveData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Route saved successfully!');
-            document.getElementById('route-name').value = '';
-        } else {
-            alert('Error saving route: ' + data.error);
-        }
-    })
-    .catch(error => {
-        alert('Error saving route: ' + error);
-    });
-}
-
-// Function to order pilot car with pre-filled data from load plan
-function orderPilotCarFromLoadPlan() {
-    if (!currentResults) {
-        alert('Please calculate route requirements first');
-        return;
-    }
-    
-    // Gather data from the load plan form
-    const loadPlanData = {
-        pickup_address: document.getElementById('origin').value,
-        delivery_address: document.getElementById('destination').value,
-        length: document.getElementById('length').value,
-        width: document.getElementById('width').value,
-        height: document.getElementById('height').value,
-        weight: document.getElementById('weight').value,
-        front_overhang: document.getElementById('front_overhang').value || '0',
-        rear_overhang: document.getElementById('rear_overhang').value || '0',
-        road_type: document.querySelector('input[name="road_type"]:checked')?.value || 'Interstate',
-        route_states: selectedStates.join(','),
-        escort_requirements: JSON.stringify(currentResults)
-    };
-    
-    // Create URL with parameters
-    const params = new URLSearchParams();
-    Object.keys(loadPlanData).forEach(key => {
-        if (loadPlanData[key]) {
-            params.append(key, loadPlanData[key]);
-        }
-    });
-    
-    // Navigate to order pilot car page with pre-filled data
-    window.location.href = `/order-pilot-car?source=load_plan&${params.toString()}`;
-}
+console.log('Load Planning JavaScript loaded successfully');
 </script>
-{% endblock %} 
+<!-- Google Maps API with proper error handling -->
+<script async defer
+    src="https://maps.googleapis.com/maps/api/js?key={{ config.GOOGLE_MAPS_API_KEY if config.GOOGLE_MAPS_API_KEY and config.GOOGLE_MAPS_API_KEY != 'demo-key' else '' }}&libraries=places&callback=initMap"
+    onerror="console.log('Google Maps failed to load, using fallback'); initMapWithFallback();">
+</script>
+{% endblock %}

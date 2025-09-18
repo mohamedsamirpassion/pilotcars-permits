@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Quote Management - My PEVO Admin{% endblock %}
+{% block title %}Quote Management - Pilot Cars & Permits Admin{% endblock %}
 
 {% block content %}
 <div class="container py-4">
@@ -117,7 +117,7 @@
                               onclick="viewQuoteDetails({{ quote.id }})" title="View Details">
                         <i class="fas fa-search"></i>
                       </button>
-                      <a href="mailto:{{ user.email }}?subject=Quote #{{ quote.id }} - Pilot Car Services&body=Hello {{ user.company_name }},%0D%0A%0D%0AThank you for requesting a quote for pilot car services.%0D%0A%0D%0AQuote Details:%0D%0A- Quote ID: #{{ quote.id }}%0D%0A- Route: {{ quote.pickup_location }}, {{ quote.pickup_state }} to {{ quote.delivery_location }}, {{ quote.delivery_state }}%0D%0A- Total Cost: ${{ '%.2f'|format(quote.total_cost) }}%0D%0A%0D%0AWe're ready to provide professional escort services for your shipment. Please let me know if you'd like to proceed.%0D%0A%0D%0ABest regards,%0D%0AMy PEVO Team" 
+                      <a href="mailto:{{ user.email }}?subject=Quote #{{ quote.id }} - Pilot Car Services&body=Hello {{ user.company_name }},%0D%0A%0D%0AThank you for requesting a quote for pilot car services.%0D%0A%0D%0AQuote Details:%0D%0A- Quote ID: #{{ quote.id }}%0D%0A- Route: {{ quote.pickup_location }}, {{ quote.pickup_state }} to {{ quote.delivery_location }}, {{ quote.delivery_state }}%0D%0A- Total Cost: ${{ '%.2f'|format(quote.total_cost) }}%0D%0A%0D%0AWe're ready to provide professional escort services for your shipment. Please let me know if you'd like to proceed.%0D%0A%0D%0ABest regards,%0D%0APilot Cars & Permits Team" 
                          class="btn btn-outline-success" title="Contact Customer">
                         <i class="fas fa-envelope"></i>
                       </a>
@@ -376,7 +376,7 @@ function viewQuoteDetails(quoteId) {
       <div class="col-md-6">
         <h6>Next Steps</h6>
         <div class="d-grid gap-2">
-          <a href="mailto:${quote.customer.email}?subject=Quote #${quote.id} Follow-up&body=Hello ${quote.customer.company_name},%0D%0A%0D%0AFollowing up on your quote request #${quote.id}.%0D%0A%0D%0AQuote Summary:%0D%0A- Services: ${quote.car_types.join(', ')}%0D%0A- Route: ${quote.pickup_location}, ${quote.pickup_state} to ${quote.delivery_location}, ${quote.delivery_state}%0D%0A- Total: $${quote.total_cost.toFixed(2)}%0D%0A%0D%0AWe're ready to provide professional escort services. When would you like to proceed?%0D%0A%0D%0ABest regards,%0D%0AMy PEVO Team" 
+          <a href="mailto:${quote.customer.email}?subject=Quote #${quote.id} Follow-up&body=Hello ${quote.customer.company_name},%0D%0A%0D%0AFollowing up on your quote request #${quote.id}.%0D%0A%0D%0AQuote Summary:%0D%0A- Services: ${quote.car_types.join(', ')}%0D%0A- Route: ${quote.pickup_location}, ${quote.pickup_state} to ${quote.delivery_location}, ${quote.delivery_state}%0D%0A- Total: $${quote.total_cost.toFixed(2)}%0D%0A%0D%0AWe're ready to provide professional escort services. When would you like to proceed?%0D%0A%0D%0ABest regards,%0D%0APilot Cars & Permits Team" 
              class="btn btn-outline-primary btn-sm">
             <i class="fas fa-envelope me-2"></i>Send Follow-up Email
           </a>

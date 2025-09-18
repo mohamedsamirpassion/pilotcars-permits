@@ -1,7 +1,7 @@
-# Email Setup Guide for My PEVO Production Deployment
+# Email Setup Guide for Pilot Cars & Permits Production Deployment
 
 ## Overview
-The My PEVO application includes a professional email notification system that handles critical business communications. This guide will help you configure email services for production deployment.
+The Pilot Cars & Permits application includes a professional email notification system that handles critical business communications. This guide will help you configure email services for production deployment.
 
 ## Current Email Features
 
@@ -32,8 +32,8 @@ export MAIL_PORT="587"
 export MAIL_USE_TLS="true"
 export MAIL_USERNAME="your-ses-smtp-username"
 export MAIL_PASSWORD="your-ses-smtp-password"
-export MAIL_DEFAULT_SENDER="noreply@yourdomain.com"
-export MAIL_ADMIN_EMAIL="dispatch@yourdomain.com"
+export MAIL_DEFAULT_SENDER="noreply@pilotcarsandpermits.com"
+export MAIL_ADMIN_EMAIL="dispatch@pilotcarsandpermits.com"
 export FLASK_ENV="production"
 ```
 
@@ -53,8 +53,8 @@ export MAIL_PORT="587"
 export MAIL_USE_TLS="true"
 export MAIL_USERNAME="apikey"
 export MAIL_PASSWORD="your-sendgrid-api-key"
-export MAIL_DEFAULT_SENDER="noreply@yourdomain.com"
-export MAIL_ADMIN_EMAIL="dispatch@yourdomain.com"
+export MAIL_DEFAULT_SENDER="noreply@pilotcarsandpermits.com"
+export MAIL_ADMIN_EMAIL="dispatch@pilotcarsandpermits.com"
 export FLASK_ENV="production"
 ```
 
@@ -69,7 +69,7 @@ export MAIL_USE_TLS="true"
 export MAIL_USERNAME="your-gmail@gmail.com"
 export MAIL_PASSWORD="your-app-password"
 export MAIL_DEFAULT_SENDER="your-gmail@gmail.com"
-export MAIL_ADMIN_EMAIL="dispatch@yourdomain.com"
+export MAIL_ADMIN_EMAIL="dispatch@pilotcarsandpermits.com"
 export FLASK_ENV="production"
 ```
 
@@ -96,8 +96,8 @@ export FLASK_ENV="production"
 | `MAIL_USE_TLS` | Enable TLS encryption | `true` |
 | `MAIL_USERNAME` | SMTP username | `AKIAIOSFODNN7EXAMPLE` |
 | `MAIL_PASSWORD` | SMTP password/API key | `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY` |
-| `MAIL_DEFAULT_SENDER` | From email address | `noreply@mypevo.com` |
-| `MAIL_ADMIN_EMAIL` | Admin notifications email | `dispatch@mypevo.com` |
+| `MAIL_DEFAULT_SENDER` | From email address | `noreply@pilotcarsandpermits.com` |
+| `MAIL_ADMIN_EMAIL` | Admin notifications email | `dispatch@pilotcarsandpermits.com` |
 | `FLASK_ENV` | Application environment | `production` |
 
 ## Testing Email Configuration
@@ -125,7 +125,7 @@ print(f"Email test result: {result}")
 ```python
 # Test critical admin notification
 result = EmailService.send_email_notification(
-    "admin@yourdomain.com",
+    "dispatch@pilotcarsandpermits.com",
     "admin_new_order_critical",
     {
         'company_name': 'Test Company',

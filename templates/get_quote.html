@@ -1,6 +1,13 @@
-﻿{% extends 'base.html' %}
+﻿﻿﻿﻿{% extends "base.html" %}
 
-{% block title %}Get A Quote - My PEVO{% endblock %}
+{% block title %}Load Planning & Route Analysis - Pilot Car Services | Pilot Cars & Permits{% endblock %}
+
+{% block meta_description %}Professional load planning and route analysis for oversized loads. Calculate escort requirements, compliance needs, and optimal routes across all 50 states. Contact us for personalized pricing.{% endblock %}
+
+{% block meta_keywords %}load planning, route analysis, oversized load planning, escort requirements, DOT compliance, load calculation, route survey, freight planning, heavy haul planning{% endblock %}
+
+{% block og_title %}Load Planning & Route Analysis - Pilot Cars & Permits{% endblock %}
+{% block og_description %}Professional load planning and route analysis for oversized loads. Calculate escort requirements and compliance needs across all 50 states.{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -15,8 +22,8 @@
     margin-bottom: 20px;
   }
   .form-check-input:checked {
-    background-color: #007bff;
-    border-color: #007bff;
+    background-color: var(--pp-primary);
+    border-color: var(--pp-primary);
   }
   .quote-result {
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);

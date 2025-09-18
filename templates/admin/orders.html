@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Order Management - My PEVO Admin{% endblock %}
+{% block title %}Order Management - Pilot Cars & Permits Admin{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
@@ -351,13 +351,13 @@ document.getElementById('searchOrders').addEventListener('input', filterOrders);
 document.getElementById('statusFilter').addEventListener('change', filterOrders);
 
 function viewOrder(orderId) {
-    console.log('Admin viewOrder called with ID:', orderId);
+    // Admin view order details
     const order = orders.find(o => o.id === orderId);
     if (!order) {
         alert('Order not found');
         return;
     }
-    console.log('Admin order found:', order);
+    // Admin order found, displaying
     
     const modalBody = document.getElementById('orderModalBody');
     
@@ -551,13 +551,13 @@ function viewOrder(orderId) {
 }
 
 function updateOrderStatus(orderId) {
-    console.log('updateOrderStatus called with ID:', orderId);
+    // Update order status handler
     const order = orders.find(o => o.id === orderId);
     if (!order) {
         alert('Order not found');
         return;
     }
-    console.log('Order found for update:', order);
+    // Order found for status update
     
     // Populate the form
     document.getElementById('updateOrderId').value = orderId;

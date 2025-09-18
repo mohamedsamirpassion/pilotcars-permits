@@ -5,16 +5,16 @@
 {% block content %}
 <div class="container-fluid mt-4">
     <h1 class="mb-4">
-        <i class="fas fa-chart-line text-success"></i> Mini CRM Dashboard
+        <i class="fas fa-chart-line" style="color: var(--pp-primary);"></i> Mini CRM Dashboard
     </h1>
     
     <!-- Performance Overview Cards -->
     <div class="row mb-4">
         <div class="col-md-3">
-            <div class="card border-success">
+            <div class="card" style="border-color: var(--pp-primary);">
                 <div class="card-body text-center">
-                    <h5 class="card-title text-success">My Performance</h5>
-                    <h2 class="text-success">{{ "%.1f"|format(performance.conversion_rate) }}%</h2>
+                    <h5 class="card-title" style="color: var(--pp-primary);">My Performance</h5>
+                    <h2 style="color: var(--pp-primary);">{{ "%.1f"|format(performance.conversion_rate) }}%</h2>
                     <p class="text-muted">
                         {% if session.is_super_admin %}
                             Overall Conversion Rate
@@ -27,28 +27,28 @@
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card border-primary">
+            <div class="card" style="border-color: var(--pp-primary);">
                 <div class="card-body text-center">
-                    <h5 class="card-title text-primary">Pending Leads</h5>
-                    <h2 class="text-primary">{{ pending_leads|length }}</h2>
+                    <h5 class="card-title" style="color: var(--pp-primary);">Pending Leads</h5>
+                    <h2 style="color: var(--pp-primary);">{{ pending_leads|length }}</h2>
                     <p class="text-muted">Available to assign</p>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card border-warning">
+            <div class="card" style="border-color: var(--pp-secondary);">
                 <div class="card-body text-center">
-                    <h5 class="card-title text-warning">My Active Leads</h5>
-                    <h2 class="text-warning">{{ my_leads|length }}</h2>
+                    <h5 class="card-title" style="color: var(--pp-secondary);">My Active Leads</h5>
+                    <h2 style="color: var(--pp-secondary);">{{ my_leads|length }}</h2>
                     <p class="text-muted">Assigned to me</p>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card border-info">
+            <div class="card" style="border-color: var(--pp-accent);">
                 <div class="card-body text-center">
-                    <h5 class="card-title text-info">Total Value</h5>
-                    <h2 class="text-info">${{ "%.2f"|format(performance.total_value) }}</h2>
+                    <h5 class="card-title" style="color: var(--pp-accent);">Total Value</h5>
+                    <h2 style="color: var(--pp-accent);">\${{ "%.2f"|format(performance.total_value) }}</h2>
                     <p class="text-muted">
                         {% if session.is_super_admin %}
                             Total Revenue Generated
@@ -69,16 +69,16 @@
                     <h5 class="mb-0"><i class="fas fa-bolt"></i> Quick Actions</h5>
                 </div>
                 <div class="card-body">
-                    <a href="{{ url_for('admin_crm_leads') }}" class="btn btn-primary me-2">
+                    <a href="{{ url_for('admin_crm_leads') }}" class="btn btn-sm me-2" style="background-color: var(--pp-primary); color: white; border-color: var(--pp-primary);">
                         <i class="fas fa-list"></i> View All Leads
                     </a>
-                    <a href="{{ url_for('admin_crm_leads', status='pending') }}" class="btn btn-success me-2">
+                    <a href="{{ url_for('admin_crm_leads', status='pending') }}" class="btn btn-sm me-2" style="background-color: var(--pp-accent); color: white; border-color: var(--pp-accent);">
                         <i class="fas fa-plus-circle"></i> Assign Pending Leads
                     </a>
-                    <a href="{{ url_for('admin_crm_leads', admin_id=current_user.id) }}" class="btn btn-warning me-2">
+                    <a href="{{ url_for('admin_crm_leads', admin_id=current_user.id) }}" class="btn btn-sm me-2" style="background-color: var(--pp-secondary); color: white; border-color: var(--pp-secondary);">
                         <i class="fas fa-user"></i> My Leads
                     </a>
-                    <a href="{{ url_for('admin_crm_follow_ups') }}" class="btn btn-info me-2">
+                    <a href="{{ url_for('admin_crm_follow_ups') }}" class="btn btn-sm me-2" style="background-color: var(--pp-primary-light); color: white; border-color: var(--pp-primary-light);">
                         <i class="fas fa-calendar-check"></i> Follow-ups
                     </a>
                 </div>
@@ -90,7 +90,7 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="card">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <div class="card-header text-white d-flex justify-content-between align-items-center" style="background-color: var(--pp-primary);">
                     <h5 class="mb-0"><i class="fas fa-clock"></i> Recent Pending Leads</h5>
                     <a href="{{ url_for('admin_crm_leads', status='pending') }}" class="btn btn-light btn-sm">View All</a>
                 </div>
@@ -115,11 +115,11 @@
                                         <small class="text-muted">{{ lead.company.email }}</small>
                                     </td>
                                     <td>
-                                        <span class="badge bg-secondary">{{ lead.lead_source.replace('_', ' ').title() }}</span>
+                                        <span class="badge" style="background-color: var(--pp-gray-600); color: white;">{{ lead.lead_source.replace('_', ' ').title() }}</span>
                                     </td>
                                     <td>
                                         {% if lead.estimated_value %}
-                                            <span class="text-success">${{ "%.2f"|format(lead.estimated_value) }}</span>
+                                            <span style="color: var(--pp-accent);">${{ "%.2f"|format(lead.estimated_value) }}</span>
                                         {% else %}
                                             <span class="text-muted">-</span>
                                         {% endif %}
@@ -129,14 +129,15 @@
                                     </td>
                                     <td>
                                         {% if not lead.assigned_admin_id %}
-                                        <button class="btn btn-success btn-sm assign-lead-btn" 
+                                        <button class="btn btn-sm assign-lead-btn" 
+                                                style="background-color: var(--pp-accent); color: white; border-color: var(--pp-accent);"
                                                 data-lead-id="{{ lead.id }}" 
                                                 data-company="{{ lead.company.company_name }}">
                                             <i class="fas fa-hand-paper"></i> Assign to Me
                                         </button>
                                         {% endif %}
                                         <a href="{{ url_for('admin_crm_lead_detail', lead_id=lead.id) }}" 
-                                           class="btn btn-outline-primary btn-sm">
+                                           class="btn btn-outline-secondary btn-sm" style="border-color: var(--pp-primary); color: var(--pp-primary);">
                                             <i class="fas fa-eye"></i> View
                                         </a>
                                     </td>
@@ -160,9 +161,9 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="card">
-                <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                <div class="card-header text-white d-flex justify-content-between align-items-center" style="background-color: var(--pp-secondary);">
                     <h5 class="mb-0"><i class="fas fa-user-tie"></i> My Active Leads</h5>
-                    <a href="{{ url_for('admin_crm_leads', admin_id=current_user.id) }}" class="btn btn-dark btn-sm">View All</a>
+                    <a href="{{ url_for('admin_crm_leads', admin_id=current_user.id) }}" class="btn btn-light btn-sm">View All</a>
                 </div>
                 <div class="card-body">
                     {% if my_leads %}
@@ -186,18 +187,18 @@
                                     </td>
                                     <td>
                                         {% if lead.status == 'assigned' %}
-                                            <span class="badge bg-info">Assigned</span>
+                                            <span class="badge" style="background-color: var(--pp-primary); color: white;">Assigned</span>
                                         {% elif lead.status == 'in_progress' %}
-                                            <span class="badge bg-warning">In Progress</span>
+                                            <span class="badge" style="background-color: var(--pp-secondary); color: white;">In Progress</span>
                                         {% elif lead.status == 'converted' %}
-                                            <span class="badge bg-success">Converted</span>
+                                            <span class="badge" style="background-color: var(--pp-accent); color: white;">Converted</span>
                                         {% elif lead.status == 'lost' %}
-                                            <span class="badge bg-danger">Lost</span>
+                                            <span class="badge" style="background-color: var(--pp-danger); color: white;">Lost</span>
                                         {% endif %}
                                     </td>
                                     <td>
                                         {% if lead.estimated_value %}
-                                            <span class="text-success">${{ "%.2f"|format(lead.estimated_value) }}</span>
+                                            <span style="color: var(--pp-accent);">${{ "%.2f"|format(lead.estimated_value) }}</span>
                                         {% else %}
                                             <span class="text-muted">-</span>
                                         {% endif %}
@@ -207,11 +208,12 @@
                                     </td>
                                     <td>
                                         <a href="{{ url_for('admin_crm_lead_detail', lead_id=lead.id) }}" 
-                                           class="btn btn-primary btn-sm">
+                                           class="btn btn-sm" style="background-color: var(--pp-primary); color: white; border-color: var(--pp-primary);">
                                             <i class="fas fa-eye"></i> View
                                         </a>
                                         {% if lead.status not in ['converted', 'lost'] %}
-                                        <button class="btn btn-success btn-sm convert-lead-btn"
+                                        <button class="btn btn-sm convert-lead-btn"
+                                                style="background-color: var(--pp-accent); color: white; border-color: var(--pp-accent);"
                                                 data-lead-id="{{ lead.id }}"
                                                 data-company="{{ lead.company.company_name }}">
                                             <i class="fas fa-check"></i> Convert
@@ -239,7 +241,7 @@
     <div class="row">
         <div class="col-12">
             <div class="card">
-                <div class="card-header bg-dark text-white">
+                <div class="card-header text-white" style="background-color: var(--pp-dark);">
                     <h5 class="mb-0"><i class="fas fa-users"></i> Team Performance</h5>
                 </div>
                 <div class="card-body">
@@ -267,7 +269,7 @@
                                     <td>{{ admin_perf.total_leads }}</td>
                                     <td>{{ admin_perf.conversions }}</td>
                                     <td>
-                                        <span class="badge {% if admin_perf.conversion_rate >= 30 %}bg-success{% elif admin_perf.conversion_rate >= 15 %}bg-warning{% else %}bg-danger{% endif %}">
+                                        <span class="badge" style="background-color: var(--pp-primary); color: white;">
                                             {{ admin_perf.conversion_rate }}%
                                         </span>
                                     </td>
@@ -298,7 +300,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-success" id="confirm-assign-btn">
+                                <button type="button" class="btn" style="background-color: var(--pp-accent); color: white; border-color: var(--pp-accent);" id="confirm-assign-btn">
                     <i class="fas fa-hand-paper"></i> Assign to Me
                 </button>
             </div>
@@ -327,7 +329,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-success" id="confirm-convert-btn">
+                <button type="button" class="btn" style="background-color: var(--pp-accent); color: white; border-color: var(--pp-accent);" id="confirm-convert-btn">
                     <i class="fas fa-check"></i> Mark as Converted
                 </button>
             </div>

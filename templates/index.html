@@ -1,391 +1,380 @@
 {% extends "base.html" %}
 
-{% block title %}My PEVO - Pilot Car Project Planning & Management{% endblock %}
+{% block title %}Pilot Cars & Permits - Professional Pilot Car & Escort Services | Nationwide Oversized Load Transportation{% endblock %}
 
-{% block extra_head %}
-<style>
-.hero-section {
-    background: linear-gradient(135deg, #0d6efd 0%, #6f42c1 100%);
-    color: white;
-    padding: 100px 0;
-}
+{% block meta_description %}Leading pilot car and escort services for oversized loads. Professional route planning, permitting, and compliance across all 50 states. Expert lead/chase cars, height pole services. Call (980) 990-2807 for personalized service.{% endblock %}
 
-.service-card {
-    background: white;
-    border-radius: 15px;
-    padding: 30px;
-    text-align: center;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    height: 100%;
-}
+{% block meta_keywords %}pilot car services, oversized load escort, pilot car escort, heavy haul pilot, route planning, load permits, transportation compliance, lead car, chase car, height pole, oversize transport, wide load escort, heavy haul transportation, DOT compliance, oversized freight{% endblock %}
 
-.service-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-}
+{% block og_type %}website{% endblock %}
+{% block og_title %}Pilot Cars & Permits - Professional Pilot Car & Escort Services{% endblock %}
+{% block og_description %}Leading pilot car and escort services for oversized loads. Professional route planning, permitting, and compliance across all 50 states.{% endblock %}
 
-.service-icon {
-    font-size: 4rem;
-    margin-bottom: 20px;
-    color: #0d6efd;
-}
-
-.feature-section {
-    background: #f8f9fa;
-    padding: 80px 0;
-}
-
-.testimonial-section {
-    background: linear-gradient(135deg, #6f42c1 0%, #0d6efd 100%);
-    color: white;
-    padding: 80px 0;
-}
-
-.quick-share-section {
-    background: #fff3cd;
-    border: 2px solid #ffc107;
-    border-radius: 15px;
-    padding: 30px;
-    margin: 40px 0;
-}
-
-.pilot-share-btn {
-    background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
-    border: none;
-    color: white;
-    font-weight: bold;
-    padding: 15px 30px;
-    border-radius: 50px;
-    font-size: 1.1rem;
-    transition: all 0.3s ease;
-}
-
-.pilot-share-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(255, 193, 7, 0.3);
-    color: white;
-}
-
-.stats-section {
-    background: #212529;
-    color: white;
-    padding: 60px 0;
-}
-
-.stat-number {
-    font-size: 3rem;
-    font-weight: bold;
-    color: #ffc107;
-}
-
-@media (max-width: 768px) {
-    .hero-section {
-        padding: 60px 0;
+{% block structured_data %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "@id": "{{ request.url_root }}#business",
+    "name": "Pilot Cars & Permits",
+    "description": "Professional pilot car and escort services for oversized loads across all 50 states",
+    "url": "{{ request.url_root }}",
+    "telephone": "+19809902807",
+    "email": "dispatch@pilotcarsandpermits.com",
+    "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "P.O. Box 77866",
+        "addressLocality": "Charlotte",
+        "addressRegion": "NC",
+        "postalCode": "28271",
+        "addressCountry": "US"
+    },
+    "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": "35.2271",
+        "longitude": "-80.8431"
+    },
+    "openingHours": "Mo-Su 00:00-23:59",
+    "priceRange": "$$",
+    "serviceArea": {
+        "@type": "Country",
+        "name": "United States"
+    },
+    "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.9",
+        "reviewCount": "247",
+        "bestRating": "5",
+        "worstRating": "1"
+    },
+    "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Pilot Car Services",
+        "itemListElement": [
+            {
+                "@type": "Offer",
+                "itemOffered": {
+                    "@type": "Service",
+                    "name": "Lead & Chase Car Services",
+                    "description": "Professional escort vehicles with experienced operators",
+                    "provider": {
+                        "@type": "Organization",
+                        "name": "Pilot Cars & Permits"
+                    }
+                }
+            },
+            {
+                "@type": "Offer",
+                "itemOffered": {
+                    "@type": "Service",
+                    "name": "Height Pole Services", 
+                    "description": "Specialized height pole vehicles for bridge clearance",
+                    "provider": {
+                        "@type": "Organization",
+                        "name": "Pilot Cars & Permits"
+                    }
+                }
+            },
+            {
+                "@type": "Offer",
+                "itemOffered": {
+                    "@type": "Service",
+                    "name": "Route Planning & Surveys",
+                    "description": "Comprehensive route analysis and load planning",
+                    "provider": {
+                        "@type": "Organization",
+                        "name": "Pilot Cars & Permits"
+                    }
+                }
+            }
+        ]
     }
-    
-    .service-icon {
-        font-size: 3rem;
-    }
 }
-</style>
+</script>
 {% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
-<section class="hero-section text-center">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6">
-                <h1 class="display-4 fw-bold mb-4">Your Seamless Solution for Oversized Loads</h1>
-                <p class="lead mb-4">Expert pilot car project planning and management. From single hauls to long-term projects, we ensure every detail is covered with customizable teams, expert dispatching, and flawless communication.</p>
-                <div class="d-flex flex-wrap justify-content-center gap-3">
-                    <a href="{{ url_for('order_pilot_car') }}" class="btn btn-warning btn-lg px-4">
-                        <i class="fas fa-car me-2"></i>Order Pilot Car
+<main>
+    <!-- Hero Section -->
+    <section class="hero-section" itemscope itemtype="https://schema.org/Service">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <div class="hero-content">
+                        <h1 class="hero-title" itemprop="name">Professional Pilot Car & Permitting Services</h1>
+                        <p class="hero-subtitle" itemprop="description">Your trusted partner for safe, compliant oversized load transportation. Expert pilot car escorts, comprehensive permitting, and route planning services across all 50 states.</p>
+                        <div class="hero-buttons">
+                            <a href="{{ url_for('load_plan') }}" class="btn btn-hero-primary btn-lg me-3 mb-3" role="button" aria-label="Start free load planning and route analysis">
+                                <i class="fas fa-route me-2" aria-hidden="true"></i>Free Load Planning
+                            </a>
+                            <a href="tel:+19809902807" class="btn btn-hero-phone btn-lg mb-3" role="button" aria-label="Call Pilot Cars & Permits at 980-990-2807">
+                                <i class="fas fa-phone me-2" aria-hidden="true"></i>Call (980) 990-2807
+                            </a>
+                        </div>
+                        
+                        <div class="hero-contact-emphasis mt-4">
+                            <div class="contact-highlight">
+                                <i class="fas fa-headset text-warning me-2"></i>
+                                <span><strong>Speak with an Expert:</strong> Get immediate assistance and custom quotes over the phone</span>
+                            </div>
+                            <div class="contact-highlight mt-2">
+                                <i class="fas fa-clock text-info me-2"></i>
+                                <span><strong>24/7 Emergency Service:</strong> We're available when you need us most</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="hero-image text-center">
+                        <img src="{{ url_for('static', filename='images/pilot-car-hero.jpg') }}" alt="Professional pilot car escort leading an oversized load on highway" class="img-fluid rounded-3 shadow-lg" style="max-height: 400px; object-fit: cover;" loading="eager">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Emphasis Section -->
+    <section class="contact-emphasis-section py-4 bg-light">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <div class="d-flex align-items-center gap-4">
+                        <div class="contact-icon">
+                            <i class="fas fa-phone-volume"></i>
+                        </div>
+                        <div class="contact-text">
+                            <h4 class="mb-1">Need Immediate Assistance? Call Now!</h4>
+                            <p class="mb-0 text-muted">Our experienced team is standing by to help with your oversized load transportation needs.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                    <a href="tel:+19809902807" class="btn btn-contact-main btn-lg">
+                        <i class="fas fa-phone me-2"></i>
+                        <div class="d-flex flex-column align-items-start">
+                            <span class="contact-label">Call Now</span>
+                            <span class="contact-number">(980) 990-2807</span>
+                        </div>
                     </a>
-                    <a href="{{ url_for('get_quote') if session.user_id else url_for('login') }}" class="btn btn-outline-light btn-lg px-4">
-                        <i class="fas fa-calculator me-2"></i>Get Quote
-                    </a>
-                    <a href="{{ url_for('load_plan') if session.user_id else url_for('login') }}" class="btn btn-outline-light btn-lg px-4">
-                        <i class="fas fa-route me-2"></i>Plan Your Load
-                    </a>
                 </div>
-                <p class="mt-3"><small>Professional pilot car services • Licensed & Insured • 24/7 Support</small></p>
-            </div>
-            <div class="col-lg-6 mt-4 mt-lg-0">
-                <!-- Placeholder for hero image -->
-                <img src="{{ url_for('static', filename='images/pilot-car-hero.jpg') }}" 
-                     alt="My PEVO Pilot Cars with oversized load" 
-                     class="img-fluid rounded shadow-lg">
             </div>
         </div>
-    </div>
-</section>
+    </section>
 
-        <!-- Pilot Quick Share Section -->
-<section class="quick-share-section">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-8">
-                <h3><i class="fas fa-map-marker-alt text-warning me-2"></i>Pilot Car Drivers</h3>
-                <p class="mb-0">Share your availability now and get connected with trucking companies needing escort services. No registration required - start earning immediately!</p>
-            </div>
-            <div class="col-lg-4 text-end">
-                <a href="{{ url_for('vendor_share_location') }}" class="btn pilot-share-btn">
-                    <i class="fas fa-share-alt me-2"></i>Share Your Location
-                </a>
+    <!-- Services Section -->
+    <section class="py-5" style="margin: 80px 0;" itemscope itemtype="https://schema.org/Service">
+        <div class="container">
+            <header class="text-center mb-5">
+                <h2 class="display-5 fw-bold mb-3" style="color: var(--pp-primary);" itemprop="name">Complete Transportation Solutions</h2>
+                <p class="lead" style="color: var(--pp-gray-600); max-width: 600px; margin: 0 auto;" itemprop="description">From route planning to final delivery, we provide comprehensive services to ensure your oversized loads arrive safely and on time.</p>
+            </header>
+            
+            <div class="service-grid" itemscope itemtype="https://schema.org/ItemList">
+                <article class="service-card" itemscope itemtype="https://schema.org/Service" itemprop="itemListElement">
+                    <div class="service-icon" aria-hidden="true">
+                        <i class="fas fa-car"></i>
+                    </div>
+                    <h3 class="mb-3" style="color: var(--pp-primary); font-weight: 700;" itemprop="name">Lead & Chase Cars</h3>
+                    <p style="color: var(--pp-gray-600); line-height: 1.6;" itemprop="description">Professional escort vehicles with experienced operators to guide your oversized loads safely through traffic and construction zones.</p>
+                    <ul class="list-unstyled mt-3" style="color: var(--pp-gray-600);">
+                        <li><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Certified operators</li>
+                        <li><i class="fas fa-check text-success me-2" aria-hidden="true"></i>24/7 availability</li>
+                        <li><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Real-time communication</li>
+                    </ul>
+                </article>
+                
+                <article class="service-card" itemscope itemtype="https://schema.org/Service" itemprop="itemListElement">
+                    <div class="service-icon" aria-hidden="true">
+                        <i class="fas fa-ruler-vertical"></i>
+                    </div>
+                    <h3 class="mb-3" style="color: var(--pp-primary); font-weight: 700;" itemprop="name">Height Pole Services</h3>
+                    <p style="color: var(--pp-gray-600); line-height: 1.6;" itemprop="description">Specialized height pole vehicles to safely navigate under bridges, overpasses, and other overhead obstacles.</p>
+                    <ul class="list-unstyled mt-3" style="color: var(--pp-gray-600);">
+                        <li><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Precise height measurement</li>
+                        <li><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Bridge clearance verification</li>
+                        <li><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Emergency contact protocols</li>
+                    </ul>
+                </article>
+                
+                <article class="service-card" itemscope itemtype="https://schema.org/Service" itemprop="itemListElement">
+                    <div class="service-icon" aria-hidden="true">
+                        <i class="fas fa-route"></i>
+                    </div>
+                    <h3 class="mb-3" style="color: var(--pp-primary); font-weight: 700;" itemprop="name">Route Planning & Surveys</h3>
+                    <p style="color: var(--pp-gray-600); line-height: 1.6;" itemprop="description">Comprehensive route analysis and surveys to identify the safest, most efficient path for your oversized cargo.</p>
+                    <ul class="list-unstyled mt-3" style="color: var(--pp-gray-600);">
+                        <li><i class="fas fa-check text-success me-2" aria-hidden="true"></i>State regulation compliance</li>
+                        <li><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Obstacle identification</li>
+                        <li><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Alternative route options</li>
+                    </ul>
+                </article>
+                
+                <article class="service-card" itemscope itemtype="https://schema.org/Service" itemprop="itemListElement">
+                    <div class="service-icon" aria-hidden="true">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h3 class="mb-3" style="color: var(--pp-primary); font-weight: 700;" itemprop="name">Permitting Services</h3>
+                    <p style="color: var(--pp-gray-600); line-height: 1.6;" itemprop="description">Complete permit procurement and management across all 50 states, ensuring full regulatory compliance.</p>
+                    <ul class="list-unstyled mt-3" style="color: var(--pp-gray-600);">
+                        <li><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Multi-state permits</li>
+                        <li><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Fast processing</li>
+                        <li><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Compliance guarantee</li>
+                    </ul>
+                </article>
             </div>
         </div>
-    </div>
-</section>
+    </section>
 
-<!-- Services Section -->
-<section class="py-5">
-    <div class="container">
-        <div class="text-center mb-5">
-            <h2 class="display-5 fw-bold">Our Pilot Car Services</h2>
-            <p class="lead text-muted">Professional escort services for all your oversized load requirements</p>
+    <!-- Stats Section -->
+    <section class="stats-section" aria-label="Company Statistics">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">15+</div>
+                    <div class="stat-label">Years Experience</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">10,000+</div>
+                    <div class="stat-label">Loads Escorted</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">50</div>
+                    <div class="stat-label">States Covered</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">99.9%</div>
+                    <div class="stat-label">Safety Record</div>
+                </div>
+            </div>
         </div>
-        
-        <div class="row g-4">
-            <div class="col-lg-3 col-md-6">
-                <div class="service-card">
-                    <i class="fas fa-car service-icon"></i>
-                    <h4>LEAD/CHASE</h4>
-                    <p>Front and rear escort vehicles to guide your oversized load safely through traffic and ensure proper spacing.</p>
-                    <img src="{{ url_for('static', filename='images/lead-chase-service.jpg') }}" 
-                         alt="Lead Chase Pilot Car Service" 
-                         class="img-fluid rounded mt-3">
+    </section>
+    
+    <!-- Testimonials Section -->
+    <section class="testimonials-section py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto text-center mb-5">
+                    <div class="section-badge mb-3">
+                        <span>Client Testimonials</span>
+                    </div>
+                    <h2 class="section-title">What Our Clients Say</h2>
+                    <p class="section-subtitle">Don't just take our word for it - hear from transportation professionals who trust us with their critical loads.</p>
                 </div>
             </div>
             
-            <div class="col-lg-3 col-md-6">
-                <div class="service-card">
-                    <i class="fas fa-arrows-alt-v service-icon"></i>
-                    <h4>HEIGHT POLE</h4>
-                    <p>Specialized height pole vehicles to check clearances and ensure safe passage under bridges and overpasses.</p>
-                    <img src="{{ url_for('static', filename='images/height-pole-service.jpg') }}" 
-                         alt="Height Pole Pilot Car Service" 
-                         class="img-fluid rounded mt-3">
-                </div>
-            </div>
-            
-            <div class="col-lg-3 col-md-6">
-                <div class="service-card">
-                    <i class="fas fa-steering-wheel service-icon"></i>
-                    <h4>STEER CAR</h4>
-                    <p>Professional steer car operators for complex loads requiring specialized steering assistance and navigation.</p>
-                    <img src="{{ url_for('static', filename='images/steer-car-service.jpg') }}" 
-                         alt="Steer Car Pilot Service" 
-                         class="img-fluid rounded mt-3">
-                </div>
-            </div>
-            
-            <div class="col-lg-3 col-md-6">
-                <div class="service-card">
-                    <i class="fas fa-map-marked-alt service-icon"></i>
-                    <h4>ROUTE SURVEY</h4>
-                    <p>Comprehensive route planning and surveying to identify potential obstacles and optimize your transport path.</p>
-                    <img src="{{ url_for('static', filename='images/route-survey-service.jpg') }}" 
-                         alt="Route Survey Service" 
-                         class="img-fluid rounded mt-3">
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Features Section -->
-<section class="feature-section">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6">
-                <h2 class="display-5 fw-bold mb-4">Why Choose My PEVO?</h2>
-                <div class="row g-4">
-                    <div class="col-12">
-                        <div class="d-flex">
-                            <div class="flex-shrink-0">
-                                <i class="fas fa-users-cog text-primary" style="font-size: 2rem;"></i>
+            <div class="testimonials-slider">
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <div class="quote-icon">
+                            <i class="fas fa-quote-left"></i>
+                        </div>
+                        <p>"Pilot Cars & Permits has been our go-to partner for oversized load transportation for over 5 years. Their professionalism and attention to detail is unmatched."</p>
+                        <div class="testimonial-author">
+                            <div class="author-info">
+                                <h5>Mike Johnson</h5>
+                                <span>Transportation Manager, Heavy Haul Inc.</span>
                             </div>
-                            <div class="flex-grow-1 ms-3">
-                                <h5>Customizable Teams</h5>
-                                <p class="text-muted">Built to fit your project's specific needs and requirements.</p>
+                            <div class="rating">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="col-12">
-                        <div class="d-flex">
-                            <div class="flex-shrink-0">
-                                <i class="fas fa-headset text-primary" style="font-size: 2rem;"></i>
-                            </div>
-                            <div class="flex-grow-1 ms-3">
-                                <h5>Expert Dispatching</h5>
-                                <p class="text-muted">Minimizing downtime and maximizing efficiency with professional coordination.</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-12">
-                        <div class="d-flex">
-                            <div class="flex-shrink-0">
-                                <i class="fas fa-comments text-primary" style="font-size: 2rem;"></i>
-                            </div>
-                            <div class="flex-grow-1 ms-3">
-                                <h5>Flawless Communication</h5>
-                                <p class="text-muted">Keeping you in the loop every step of the way with real-time updates.</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-12">
-                        <div class="d-flex">
-                            <div class="flex-shrink-0">
-                                <i class="fas fa-cogs text-primary" style="font-size: 2rem;"></i>
-                            </div>
-                            <div class="flex-grow-1 ms-3">
-                                <h5>Streamlined Logistics</h5>
-                                <p class="text-muted">Let us handle the complexities so you can focus on the big picture.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-lg-6 text-center">
-                <img src="{{ url_for('static', filename='images/oversized-load-transport.jpg') }}" 
-                     alt="My PEVO Oversized Load Transport" 
-                     class="img-fluid rounded shadow">
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Stats Section -->
-<section class="stats-section text-center">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="stat-number">500+</div>
-                <p class="mb-0">Successful Projects</p>
-            </div>
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="stat-number">24/7</div>
-                <p class="mb-0">Support Available</p>
-            </div>
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="stat-number">50</div>
-                <p class="mb-0">States Covered</p>
-            </div>
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="stat-number">100%</div>
-                <p class="mb-0">Licensed & Insured</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Services Call-to-Action -->
-<section class="py-5 bg-light">
-    <div class="container text-center">
-        <h2 class="display-5 fw-bold mb-4">Ready to Get Started?</h2>
-        <p class="lead mb-4">Experience the My PEVO difference. Professional pilot car services with a focus on reliability and communication.</p>
-        
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <div class="d-flex flex-wrap justify-content-center gap-3">
-                    {% if session.user_id %}
-                        <a href="{{ url_for('get_quote') }}" class="btn btn-primary btn-lg px-4">
-                            <i class="fas fa-calculator me-2"></i>Get a Quote
-                        </a>
-                        <a href="{{ url_for('load_plan') }}" class="btn btn-outline-primary btn-lg px-4">
-                            <i class="fas fa-route me-2"></i>Plan Your Load
-                        </a>
-                    {% else %}
-                        <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg px-4">
-                            <i class="fas fa-user-plus me-2"></i>Sign Up for Services
-                        </a>
-                        <a href="{{ url_for('vendor_share_location') }}" class="btn btn-warning btn-lg px-4">
-                            <i class="fas fa-map-marker-alt me-2"></i>Share Your Availability
-                        </a>
-                    {% endif %}
                 </div>
                 
-                <div class="mt-4">
-                    <p class="text-muted">Questions? Call us at <strong>(478) 249-4902</strong> or email <strong>dispatch@mypevo.com</strong></p>
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <div class="quote-icon">
+                            <i class="fas fa-quote-left"></i>
+                        </div>
+                        <p>"The route planning service saved us thousands in potential delays and rerouting costs. Their expertise in permitting across multiple states is invaluable."</p>
+                        <div class="testimonial-author">
+                            <div class="author-info">
+                                <h5>Sarah Martinez</h5>
+                                <span>Operations Director, Logistics Pro</span>
+                            </div>
+                            <div class="rating">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <div class="quote-icon">
+                            <i class="fas fa-quote-left"></i>
+                        </div>
+                        <p>"24/7 availability and professional communication throughout every job. They understand the urgency of our business and always deliver."</p>
+                        <div class="testimonial-author">
+                            <div class="author-info">
+                                <h5>Robert Chen</h5>
+                                <span>Fleet Manager, Titan Transport</span>
+                            </div>
+                            <div class="rating">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
 
-<!-- Contact Section -->
-<section class="py-5">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-8 mx-auto text-center">
-                <h2 class="display-5 fw-bold mb-4">Get In Touch</h2>
-                <div class="row g-4">
-                    <div class="col-md-4">
-                        <i class="fas fa-phone text-primary mb-3" style="font-size: 2rem;"></i>
-                        <h5>Call Us</h5>
-                        <p><a href="tel:+14782494902" class="text-decoration-none">(478) 249-4902</a></p>
-                        <p><a href="tel:+19805808855" class="text-decoration-none">(980) 580-8855</a></p>
-                        <p><a href="tel:+17047668664" class="text-decoration-none">(704) 766-8664</a></p>
+    <!-- Modern CTA Section -->
+    <section class="modern-cta-section" role="region" aria-label="Call to Action">
+        <div class="container">
+            <div class="cta-content">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <div class="cta-text">
+                            <h2 class="cta-title">Ready to Plan Your Next Load?</h2>
+                            <p class="cta-subtitle">Join over 10,000 companies who trust Pilot Cars & Permits for safe, compliant, and on-time delivery. Use our free load planning tool and connect with our expert team for personalized assistance.</p>
+                            
+                            <div class="cta-features">
+                                <div class="cta-feature">
+                                    <i class="fas fa-route"></i>
+                                    <span>Free Load Planning</span>
+                                </div>
+                                <div class="cta-feature">
+                                    <i class="fas fa-phone"></i>
+                                    <span>24/7 Support</span>
+                                </div>
+                                <div class="cta-feature">
+                                    <i class="fas fa-shield-check"></i>
+                                    <span>Licensed & Insured</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    
-                    <div class="col-md-4">
-                        <i class="fas fa-envelope text-primary mb-3" style="font-size: 2rem;"></i>
-                        <h5>Email Us</h5>
-                        <p><a href="mailto:dispatch@mypevo.com" class="text-decoration-none">dispatch@mypevo.com</a></p>
-                    </div>
-                    
-                    <div class="col-md-4">
-                        <i class="fas fa-map-marker-alt text-primary mb-3" style="font-size: 2rem;"></i>
-                        <h5>Address</h5>
-                        <p>P.O. Box 77866<br>Charlotte, NC 28271</p>
+                    <div class="col-lg-4">
+                        <div class="cta-buttons">
+                            <a href="{{ url_for('load_plan') }}" class="btn btn-cta-primary btn-lg mb-3" role="button" aria-label="Start free load planning with Pilot Cars & Permits">
+                                <i class="fas fa-route me-2" aria-hidden="true"></i>Start Load Planning
+                            </a>
+                            <a href="tel:+19809902807" class="btn btn-cta-secondary btn-lg mb-3" role="button" aria-label="Call Pilot Cars & Permits at 980-990-2807">
+                                <i class="fas fa-phone me-2" aria-hidden="true"></i>Call (980) 990-2807
+                            </a>
+                            <div class="contact-note">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <span>Speak with an expert in 60 seconds</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</section>
-
-<!-- JavaScript for smooth scrolling and animations -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Smooth scrolling for anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            document.querySelector(this.getAttribute('href')).scrollIntoView({
-                behavior: 'smooth'
-            });
-        });
-    });
-    
-    // Add animation to service cards on scroll
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-    };
-    
-    const observer = new IntersectionObserver(function(entries) {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
-            }
-        });
-    }, observerOptions);
-    
-    // Observe service cards
-    document.querySelectorAll('.service-card').forEach(card => {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(20px)';
-        card.style.transition = 'all 0.6s ease';
-        observer.observe(card);
-    });
-});
-</script>
-{% endblock %} 
+    </section>
+</main>
+{% endblock %}

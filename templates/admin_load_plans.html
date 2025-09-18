@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
 
-{% block title %}Load Plan Management - My PEVO Admin{% endblock %}
+{% block title %}Load Plan Management - Pilot Cars & Permits Admin{% endblock %}
 
 {% block extra_head %}
 <style>
   .state-badge {
-    background: #007bff;
+    background: var(--pp-primary);
     color: white;
     padding: 4px 8px;
     border-radius: 4px;
@@ -40,7 +40,7 @@
   .escort-badge.escort-none { background: #28a745; }
   .escort-badge.escort-hp { background: #ffc107; color: #000; }
   .escort-badge.escort-front { background: #17a2b8; }
-  .escort-badge.escort-rear { background: #007bff; }
+  .escort-badge.escort-rear { background: var(--pp-primary); }
   .escort-badge.escort-police { background: #dc3545; }
   .escort-badge.escort-other { background: #6c757d; }
   
@@ -176,7 +176,7 @@
                               onclick="viewLoadPlan({{ route.id }})" title="View Details">
                         <i class="fas fa-search"></i>
                       </button>
-                      <a href="mailto:{{ user.email }}?subject=Escort Services for {{ route.route_name }}&body=Hello {{ user.company_name }},%0D%0A%0D%0AI reviewed your load plan '{{ route.route_name }}' and noticed it may require pilot car escort services.%0D%0A%0D%0ALoad Details:%0D%0A- Route: {{ route.origin }} to {{ route.destination }}%0D%0A- Dimensions: {{ route.width }}' W x {{ route.height }}' H x {{ route.length }}' L%0D%0A- Weight: {{ "{:,}".format(route.weight|int) }} lbs%0D%0A%0D%0AMy PEVO can provide professional escort services. Please let me know if you'd like a quote.%0D%0A%0D%0ABest regards,%0D%0AMy PEVO Team" 
+                      <a href="mailto:{{ user.email }}?subject=Escort Services for {{ route.route_name }}&body=Hello {{ user.company_name }},%0D%0A%0D%0AI reviewed your load plan '{{ route.route_name }}' and noticed it may require pilot car escort services.%0D%0A%0D%0ALoad Details:%0D%0A- Route: {{ route.origin }} to {{ route.destination }}%0D%0A- Dimensions: {{ route.width }}' W x {{ route.height }}' H x {{ route.length }}' L%0D%0A- Weight: {{ "{:,}".format(route.weight|int) }} lbs%0D%0A%0D%0APilot Cars & Permits can provide professional escort services. Please let me know if you'd like a quote.%0D%0A%0D%0ABest regards,%0D%0APilot Cars & Permits Team" 
                          class="btn btn-outline-success" title="Contact Customer">
                         <i class="fas fa-envelope"></i>
                       </a>

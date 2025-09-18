@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Login - My PEVO{% endblock %}
+{% block title %}Login - Pilot Cars & Permits{% endblock %}
 
 {% block content %}
 <div class="modern-auth-container">
@@ -9,9 +9,9 @@
         <div class="brand-content">
             <div class="brand-logo-large">
                 <i class="fas fa-truck"></i>
-                <span>My PEVO</span>
+                <span>Pilot Cars & Permits</span>
             </div>
-            <h1>Welcome Back to My PEVO</h1>
+            <h1>Welcome Back to Pilot Cars & Permits</h1>
             <p>Your comprehensive platform for pilot car escort services and oversized load planning.</p>
             
             <div class="feature-highlights">
@@ -65,6 +65,7 @@
             {% endwith %}
 
             <form method="POST" class="modern-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <div class="form-group">
                     <label for="email">Email Address</label>
                     <div class="input-wrapper">

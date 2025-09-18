@@ -1,8 +1,8 @@
-# Mini CRM System - My PEVO
+# Mini CRM System - Pilot Cars & Permits
 
 ## Overview
 
-The Mini CRM (Customer Relationship Management) system is designed to help My PEVO admins track and convert leads generated from free services into paying customers for pilot car services.
+The Mini CRM (Customer Relationship Management) system is designed to help Pilot Cars & Permits admins track and convert leads generated from free services into paying customers for pilot car services.
 
 ## Business Logic
 
@@ -266,4 +266,4 @@ conversions = SalesConversion.query.join(SalesLead).filter(
 conversion_rate = (conversions / total_leads * 100) if total_leads > 0 else 0
 ```
 
-This CRM system provides My PEVO with a comprehensive tool to track, manage, and convert leads generated from their free services into paying customers, ultimately increasing revenue and improving sales team performance. 
+This CRM system provides My PEVO with a comprehensive tool to track, manage, and convert leads generated from their free services into paying customers, ultimately increasing revenue and improving sales team performance.

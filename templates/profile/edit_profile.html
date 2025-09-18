@@ -1,6 +1,6 @@
-﻿{% extends "base.html" %}
+﻿﻿﻿﻿﻿﻿﻿{% extends "base.html" %}
 
-{% block title %}Edit Profile - My PEVO{% endblock %}
+{% block title %}Edit Profile - Pilot Cars & Permits{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -320,15 +320,15 @@
 <script>
 // Handle profile form submission
 function submitProfileForm() {
-    console.log('submitProfileForm called');
+    // Profile form submission handler
     
     const form = document.getElementById('editProfileForm');
     if (!form) {
-        console.error('Form not found');
+        // Form validation
         alert('Form not found!');
         return;
     }
-    console.log('Form found:', form);
+    // Form found, processing data
     
     const formData = new FormData(form);
     const data = {};
@@ -336,35 +336,36 @@ function submitProfileForm() {
     // Convert FormData to regular object
     for (let [key, value] of formData.entries()) {
         data[key] = value;
-        console.log('Form field:', key, '=', value);
+        // Building form data
     }
     
-    console.log('Sending data:', data);
+    // Sending profile update request
     
     // Disable button and show loading state
     const saveButton = document.getElementById('saveButton');
     saveButton.disabled = true;
     saveButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
     
-    console.log('About to send fetch request...');
+    // Making API request
     
     // Send AJAX request
     fetch('/profile/update', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
         },
         body: JSON.stringify(data)
     })
     .then(response => {
-        console.log('Fetch response received:', response);
+        // Response received successfully
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         return response.json();
     })
     .then(data => {
-        console.log('Response data:', data);
+        // Processing response data
         const messageContainer = document.getElementById('messageContainer');
         
         if (data.success) {
@@ -416,7 +417,7 @@ function submitProfileForm() {
 
 // Test function - can be called from browser console
 function testProfileUpdate() {
-    console.log('Testing profile update...');
+    // Testing profile update functionality
     submitProfileForm();
 }
 
@@ -424,7 +425,7 @@ function testProfileUpdate() {
 
 // Handle password change
 function changePassword() {
-    console.log('Change password called');
+    // Password change handler
     const form = document.getElementById('changePasswordForm');
     const formData = new FormData(form);
     
@@ -449,6 +450,7 @@ function changePassword() {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
         },
         body: JSON.stringify({
             current_password: formData.get('current_password'),

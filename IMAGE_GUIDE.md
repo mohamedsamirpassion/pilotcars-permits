@@ -1,4 +1,4 @@
-# My PEVO Website Images Guide
+# Pilot Cars & Permits Website Images Guide
 
 Please place the following images in the `static/images/` folder:
 
@@ -7,8 +7,8 @@ Please place the following images in the `static/images/` folder:
 ### 1. **pilot-car-hero.jpg**
 - **Purpose**: Main hero image showing pilot cars with oversized load
 - **Recommended size**: 800x600 pixels or larger
-- **Description**: Professional photo of My PEVO pilot cars escorting an oversized load
-- **Alt text**: "My PEVO Pilot Cars with oversized load"
+- **Description**: Professional photo of Pilot Cars & Permits pilot cars escorting an oversized load
+- **Alt text**: "Professional Pilot Car Services"
 
 ### 2. **lead-chase-service.jpg**
 - **Purpose**: Service card image for Lead/Chase service
@@ -37,8 +37,8 @@ Please place the following images in the `static/images/` folder:
 ### 6. **oversized-load-transport.jpg**
 - **Purpose**: Features section image
 - **Recommended size**: 600x400 pixels
-- **Description**: Professional image of My PEVO managing oversized load transport
-- **Alt text**: "My PEVO Oversized Load Transport"
+- **Description**: Professional image of Pilot Cars & Permits managing oversized load transport
+- **Alt text**: "Oversized Load Management"
 
 ### 7. **client-testimonial.jpg**
 - **Purpose**: Testimonial section - client photo
@@ -50,8 +50,8 @@ Please place the following images in the `static/images/` folder:
 
 - **Format**: JPG preferred for photos, PNG for graphics with transparency
 - **Quality**: High quality, well-lit professional photos
-- **Style**: Consistent professional look matching My PEVO branding
-- **Colors**: Should complement the blue/yellow My PEVO color scheme
+- **Style**: Consistent professional look matching Pilot Cars & Permits branding
+- **Colors**: Should complement the teal/coral Pilot Cars & Permits color scheme
 
 ## Fallback Option
 
@@ -81,6 +81,6 @@ static/
 
 - Use high-resolution photos (at least 1200px wide for hero image)
 - Ensure good lighting and clear visibility of vehicles/equipment
-- Include My PEVO branding/vehicles when possible
+- Include Pilot Cars & Permits branding/vehicles when possible
 - Consider action shots showing services in progress
-- Maintain consistent professional quality across all images 
+- Maintain consistent professional quality across all images

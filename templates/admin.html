@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Dashboard - My PEVO{% endblock %}
+{% block title %}Admin Dashboard - Pilot Cars & Permits{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -34,7 +34,7 @@
   <div class="row">
     <div class="col-12">
       <h2><i class="fas fa-user-shield me-2"></i>Admin Dashboard</h2>
-      <p class="text-muted">Manage My PEVO services and monitor customer activity</p>
+      <p class="text-muted">Manage Pilot Cars & Permits services and monitor customer activity</p>
     </div>
   </div>
 
@@ -113,6 +113,7 @@
       </div>
     </div>
 
+    {% if quote_feature_enabled() %}
     <div class="col-lg-3 mb-4">
       <div class="admin-card h-100 p-4" onclick="location.href='/admin/quotes'">
         <div class="text-center">
@@ -125,6 +126,7 @@
         </div>
       </div>
     </div>
+    {% endif %}
 
     <div class="col-lg-3 mb-4">
       <div class="admin-card h-100 p-4" onclick="location.href='/admin/load-plans'">
@@ -155,6 +157,7 @@
 
   <!-- Recent Activity -->
   <div class="row mt-4">
+    {% if quote_feature_enabled() %}
     <div class="col-lg-6">
       <div class="admin-section p-4">
         <h5><i class="fas fa-clock me-2"></i>Recent Quotes</h5>
@@ -189,8 +192,9 @@
         </div>
       </div>
     </div>
+    {% endif %}
 
-    <div class="col-lg-6">
+    <div class="col-lg-{% if quote_feature_enabled() %}6{% else %}12{% endif %}">
       <div class="admin-section p-4">
         <h5><i class="fas fa-route me-2"></i>Recent Load Plans</h5>
         {% if all_routes[:5] %}
